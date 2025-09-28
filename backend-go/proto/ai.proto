@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package ai;
+option go_package = "./internal/proto";
+
+service AIBrain {
+  rpc Think(EventRequest) returns (ActionResponse) {}
+}
+
+message MemoryMessage {
+  string description = 1;
+  double importance = 2;
+  string event_type = 3;
+  repeated string participants = 4;
+}
+
+message EmotionStateMessage {
+  double joy = 1;
+  double sadness = 2;
+  double anger = 3;
+  double fear = 4;
+  double trust = 5;
+}
+
+message EventRequest {
+  string event_type = 1;
+  string target_npc_id = 2;
+  repeated MemoryMessage recent_memories = 3;
+  EmotionStateMessage current_emotions = 4;
+
+  // --- NEW FIELD ---
+  // The text of the player's question. This will be empty for simple events.
+  string question_text = 5;
+  // -----------------
+}
+
+message ActionResponse {
+  string action_type = 1;
+  string content = 2;
+}

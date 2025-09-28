@@ -1,0 +1,17 @@
+# Environment variables
+backend-go/.env
+**/.env
+
+# Python virtual environments & cache
+venv/
+agentic-npc/
+.venv/
+__pycache__/
+
+# Go binaries
+*.exe
+myapp
+
+# IDE folders
+.idea/
+.vscode/
