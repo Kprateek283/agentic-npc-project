@@ -1,0 +1,35 @@
+{
+  "quest_id": "sq_e1_missing_herbs",
+  "name": "A Simple Errand",
+  "description": "Elara, the village herbalist, seems busy. Maybe I can help her with something.",
+  "quest_giver_name": "Elara",
+  "steps": {
+    "1": {
+      "name": "Ask Elara if she needs help",
+      "description": "I should talk to Elara and see if she needs any help.",
+      "completion_trigger": {
+        "event_type": "PLAYER_INTERACT",
+        "target_npc_name": "Elara"
+      },
+      "rewards": {
+        "unlocks_step": "2"
+      }
+    },
+    "2": {
+      "name": "Find Sunpetal Herbs",
+      "description": "Elara asked me to gather 5 Sunpetal Herbs from the nearby forest.",
+      "completion_trigger": {
+        "event_type": "PLAYER_SUBMITTED_QUEST_ITEM",
+        "target_npc_name": "Elara",
+        "keyword": "Sunpetal"
+      },
+      "rewards": {
+        "xp": 50,
+        "relationship_change": {
+          "target_npc_name": "Elara",
+          "trust": "+0.4"
+        }
+      }
+    }
+  }
+}

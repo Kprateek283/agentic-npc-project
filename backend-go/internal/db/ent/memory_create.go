@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -20,6 +21,7 @@ type MemoryCreate struct {
 	config
 	mutation *MemoryMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -178,6 +180,7 @@ func (_c *MemoryCreate) createSpec() (*Memory, *sqlgraph.CreateSpec) {
 		_node = &Memory{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(memory.Table, sqlgraph.NewFieldSpec(memory.FieldID, field.TypeInt))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
@@ -222,11 +225,285 @@ func (_c *MemoryCreate) createSpec() (*Memory, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Memory.Create().
+//		SetCreatedAt(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.MemoryUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *MemoryCreate) OnConflict(opts ...sql.ConflictOption) *MemoryUpsertOne {
+	_c.conflict = opts
+	return &MemoryUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Memory.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *MemoryCreate) OnConflictColumns(columns ...string) *MemoryUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &MemoryUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// MemoryUpsertOne is the builder for "upsert"-ing
+	//  one Memory node.
+	MemoryUpsertOne struct {
+		create *MemoryCreate
+	}
+
+	// MemoryUpsert is the "OnConflict" setter.
+	MemoryUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetCreatedAt sets the "created_at" field.
+func (u *MemoryUpsert) SetCreatedAt(v time.Time) *MemoryUpsert {
+	u.Set(memory.FieldCreatedAt, v)
+	return u
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *MemoryUpsert) UpdateCreatedAt() *MemoryUpsert {
+	u.SetExcluded(memory.FieldCreatedAt)
+	return u
+}
+
+// SetDescription sets the "description" field.
+func (u *MemoryUpsert) SetDescription(v string) *MemoryUpsert {
+	u.Set(memory.FieldDescription, v)
+	return u
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *MemoryUpsert) UpdateDescription() *MemoryUpsert {
+	u.SetExcluded(memory.FieldDescription)
+	return u
+}
+
+// SetEventType sets the "event_type" field.
+func (u *MemoryUpsert) SetEventType(v string) *MemoryUpsert {
+	u.Set(memory.FieldEventType, v)
+	return u
+}
+
+// UpdateEventType sets the "event_type" field to the value that was provided on create.
+func (u *MemoryUpsert) UpdateEventType() *MemoryUpsert {
+	u.SetExcluded(memory.FieldEventType)
+	return u
+}
+
+// SetParticipants sets the "participants" field.
+func (u *MemoryUpsert) SetParticipants(v []string) *MemoryUpsert {
+	u.Set(memory.FieldParticipants, v)
+	return u
+}
+
+// UpdateParticipants sets the "participants" field to the value that was provided on create.
+func (u *MemoryUpsert) UpdateParticipants() *MemoryUpsert {
+	u.SetExcluded(memory.FieldParticipants)
+	return u
+}
+
+// SetImportance sets the "importance" field.
+func (u *MemoryUpsert) SetImportance(v float64) *MemoryUpsert {
+	u.Set(memory.FieldImportance, v)
+	return u
+}
+
+// UpdateImportance sets the "importance" field to the value that was provided on create.
+func (u *MemoryUpsert) UpdateImportance() *MemoryUpsert {
+	u.SetExcluded(memory.FieldImportance)
+	return u
+}
+
+// AddImportance adds v to the "importance" field.
+func (u *MemoryUpsert) AddImportance(v float64) *MemoryUpsert {
+	u.Add(memory.FieldImportance, v)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Memory.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(memory.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *MemoryUpsertOne) UpdateNewValues() *MemoryUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(memory.FieldID)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Memory.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *MemoryUpsertOne) Ignore() *MemoryUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *MemoryUpsertOne) DoNothing() *MemoryUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the MemoryCreate.OnConflict
+// documentation for more info.
+func (u *MemoryUpsertOne) Update(set func(*MemoryUpsert)) *MemoryUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&MemoryUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *MemoryUpsertOne) SetCreatedAt(v time.Time) *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetCreatedAt(v)
+	})
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *MemoryUpsertOne) UpdateCreatedAt() *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateCreatedAt()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *MemoryUpsertOne) SetDescription(v string) *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *MemoryUpsertOne) UpdateDescription() *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// SetEventType sets the "event_type" field.
+func (u *MemoryUpsertOne) SetEventType(v string) *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetEventType(v)
+	})
+}
+
+// UpdateEventType sets the "event_type" field to the value that was provided on create.
+func (u *MemoryUpsertOne) UpdateEventType() *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateEventType()
+	})
+}
+
+// SetParticipants sets the "participants" field.
+func (u *MemoryUpsertOne) SetParticipants(v []string) *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetParticipants(v)
+	})
+}
+
+// UpdateParticipants sets the "participants" field to the value that was provided on create.
+func (u *MemoryUpsertOne) UpdateParticipants() *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateParticipants()
+	})
+}
+
+// SetImportance sets the "importance" field.
+func (u *MemoryUpsertOne) SetImportance(v float64) *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetImportance(v)
+	})
+}
+
+// AddImportance adds v to the "importance" field.
+func (u *MemoryUpsertOne) AddImportance(v float64) *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.AddImportance(v)
+	})
+}
+
+// UpdateImportance sets the "importance" field to the value that was provided on create.
+func (u *MemoryUpsertOne) UpdateImportance() *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateImportance()
+	})
+}
+
+// Exec executes the query.
+func (u *MemoryUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for MemoryCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *MemoryUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *MemoryUpsertOne) ID(ctx context.Context) (id int, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *MemoryUpsertOne) IDX(ctx context.Context) int {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // MemoryCreateBulk is the builder for creating many Memory entities in bulk.
 type MemoryCreateBulk struct {
 	config
 	err      error
 	builders []*MemoryCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Memory entities in the database.
@@ -256,6 +533,7 @@ func (_c *MemoryCreateBulk) Save(ctx context.Context) ([]*Memory, error) {
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -306,6 +584,197 @@ func (_c *MemoryCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *MemoryCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Memory.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.MemoryUpsert) {
+//			SetCreatedAt(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *MemoryCreateBulk) OnConflict(opts ...sql.ConflictOption) *MemoryUpsertBulk {
+	_c.conflict = opts
+	return &MemoryUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Memory.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *MemoryCreateBulk) OnConflictColumns(columns ...string) *MemoryUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &MemoryUpsertBulk{
+		create: _c,
+	}
+}
+
+// MemoryUpsertBulk is the builder for "upsert"-ing
+// a bulk of Memory nodes.
+type MemoryUpsertBulk struct {
+	create *MemoryCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Memory.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(memory.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *MemoryUpsertBulk) UpdateNewValues() *MemoryUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(memory.FieldID)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Memory.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *MemoryUpsertBulk) Ignore() *MemoryUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *MemoryUpsertBulk) DoNothing() *MemoryUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the MemoryCreateBulk.OnConflict
+// documentation for more info.
+func (u *MemoryUpsertBulk) Update(set func(*MemoryUpsert)) *MemoryUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&MemoryUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *MemoryUpsertBulk) SetCreatedAt(v time.Time) *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetCreatedAt(v)
+	})
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *MemoryUpsertBulk) UpdateCreatedAt() *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateCreatedAt()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *MemoryUpsertBulk) SetDescription(v string) *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *MemoryUpsertBulk) UpdateDescription() *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// SetEventType sets the "event_type" field.
+func (u *MemoryUpsertBulk) SetEventType(v string) *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetEventType(v)
+	})
+}
+
+// UpdateEventType sets the "event_type" field to the value that was provided on create.
+func (u *MemoryUpsertBulk) UpdateEventType() *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateEventType()
+	})
+}
+
+// SetParticipants sets the "participants" field.
+func (u *MemoryUpsertBulk) SetParticipants(v []string) *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetParticipants(v)
+	})
+}
+
+// UpdateParticipants sets the "participants" field to the value that was provided on create.
+func (u *MemoryUpsertBulk) UpdateParticipants() *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateParticipants()
+	})
+}
+
+// SetImportance sets the "importance" field.
+func (u *MemoryUpsertBulk) SetImportance(v float64) *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetImportance(v)
+	})
+}
+
+// AddImportance adds v to the "importance" field.
+func (u *MemoryUpsertBulk) AddImportance(v float64) *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.AddImportance(v)
+	})
+}
+
+// UpdateImportance sets the "importance" field to the value that was provided on create.
+func (u *MemoryUpsertBulk) UpdateImportance() *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateImportance()
+	})
+}
+
+// Exec executes the query.
+func (u *MemoryUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the MemoryCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for MemoryCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *MemoryUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

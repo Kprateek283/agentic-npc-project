@@ -33,18 +33,28 @@ class EmotionStateMessage(_message.Message):
     def __init__(self, joy: _Optional[float] = ..., sadness: _Optional[float] = ..., anger: _Optional[float] = ..., fear: _Optional[float] = ..., trust: _Optional[float] = ...) -> None: ...
 
 class EventRequest(_message.Message):
-    __slots__ = ("event_type", "target_npc_id", "recent_memories", "current_emotions", "question_text")
-    EVENT_TYPE_FIELD_NUMBER: _ClassVar[int]
-    TARGET_NPC_ID_FIELD_NUMBER: _ClassVar[int]
-    RECENT_MEMORIES_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("personality_path", "backstory_path", "lore_path", "current_emotions", "recent_memories", "event_type", "question_text", "source_entity_id", "current_quest_step", "completion_rate")
+    PERSONALITY_PATH_FIELD_NUMBER: _ClassVar[int]
+    BACKSTORY_PATH_FIELD_NUMBER: _ClassVar[int]
+    LORE_PATH_FIELD_NUMBER: _ClassVar[int]
     CURRENT_EMOTIONS_FIELD_NUMBER: _ClassVar[int]
+    RECENT_MEMORIES_FIELD_NUMBER: _ClassVar[int]
+    EVENT_TYPE_FIELD_NUMBER: _ClassVar[int]
     QUESTION_TEXT_FIELD_NUMBER: _ClassVar[int]
-    event_type: str
-    target_npc_id: str
-    recent_memories: _containers.RepeatedCompositeFieldContainer[MemoryMessage]
+    SOURCE_ENTITY_ID_FIELD_NUMBER: _ClassVar[int]
+    CURRENT_QUEST_STEP_FIELD_NUMBER: _ClassVar[int]
+    COMPLETION_RATE_FIELD_NUMBER: _ClassVar[int]
+    personality_path: str
+    backstory_path: str
+    lore_path: str
     current_emotions: EmotionStateMessage
+    recent_memories: _containers.RepeatedCompositeFieldContainer[MemoryMessage]
+    event_type: str
     question_text: str
-    def __init__(self, event_type: _Optional[str] = ..., target_npc_id: _Optional[str] = ..., recent_memories: _Optional[_Iterable[_Union[MemoryMessage, _Mapping]]] = ..., current_emotions: _Optional[_Union[EmotionStateMessage, _Mapping]] = ..., question_text: _Optional[str] = ...) -> None: ...
+    source_entity_id: str
+    current_quest_step: int
+    completion_rate: float
+    def __init__(self, personality_path: _Optional[str] = ..., backstory_path: _Optional[str] = ..., lore_path: _Optional[str] = ..., current_emotions: _Optional[_Union[EmotionStateMessage, _Mapping]] = ..., recent_memories: _Optional[_Iterable[_Union[MemoryMessage, _Mapping]]] = ..., event_type: _Optional[str] = ..., question_text: _Optional[str] = ..., source_entity_id: _Optional[str] = ..., current_quest_step: _Optional[int] = ..., completion_rate: _Optional[float] = ...) -> None: ...
 
 class ActionResponse(_message.Message):
     __slots__ = ("action_type", "content")

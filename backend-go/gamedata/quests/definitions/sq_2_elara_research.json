@@ -1,0 +1,38 @@
+{
+  "quest_id": "sq_2_elara_research",
+  "name": "The Herbalist's Knowledge",
+  "description": "Elian said the Herbalist, Elara, might know something. I should find her and ask about a 'cure' for Lian.",
+
+  "steps": {
+    "1": {
+      "name": "Ask Elara about the cure",
+      "description": "Elara is the village's expert on herbs and lore. She's the only one who might know of a way to help Lian.",
+
+      "preconditions": [
+        {
+          "type": "RELATIONSHIP_TRUST",
+          "target_npc_name": "Elara",
+          "operator": "GREATER_THAN",
+          "value": 0.5
+        }
+      ],
+
+      "completion_trigger": {
+        "event_type": "PLAYER_ASKED_QUESTION",
+        "target_npc_name": "Elara",
+        "keyword": "cure"
+      },
+
+      "fail_response": {
+        "action_type": "SPEAK",
+        "content": "I'm sorry, but I don't discuss such serious matters with those I've only just met. Perhaps we can speak later, after we are better acquainted."
+      },
+
+      "rewards": {
+        "xp": 100,
+        "unlocks_quest_id": "sq_3_baelor_gate"
+      }
+    }
+  }
+}
+

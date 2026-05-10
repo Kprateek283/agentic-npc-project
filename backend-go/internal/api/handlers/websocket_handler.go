@@ -1,19 +1,18 @@
 package handlers
 
 import (
+	"agentic-npc-backend/internal/db/ent"
+	"agentic-npc-backend/internal/domain/npc_logic"
+	"agentic-npc-backend/internal/domain/quest_logic"
+	"agentic-npc-backend/internal/dto"
+	"agentic-npc-backend/internal/infra/grpc_client"
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 
-	"agentic-npc-backend/internal/db/ent"
-	"agentic-npc-backend/internal/db/ent/npc"
-	"agentic-npc-backend/internal/domain/npc_logic"
-	"agentic-npc-backend/internal/dto"
-	"agentic-npc-backend/internal/infra/grpc_client"
-
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/websocket"
 )
 
@@ -23,19 +22,38 @@ var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
-		return true
+		return true // Allow all origins for dev
 	},
 }
 
+// WebSocketHandler holds all clients and services
 type WebSocketHandler struct {
-	dbClient *ent.Client
-	aiClient *grpc_client.AIClient
+	dbClient       *ent.Client
+	aiClient       *grpc_client.AIClient
+	questManager   *quest_logic.QuestManager
+	redisClient    *redis.Client
+	emotionManager *npc_logic.EmotionManager // <-- ADD THIS FIELD
 }
 
-func NewWebSocketHandler(dbClient *ent.Client, aiClient *grpc_client.AIClient) *WebSocketHandler {
-	return &WebSocketHandler{dbClient: dbClient, aiClient: aiClient}
+// NewWebSocketHandler creates a new handler with all dependencies
+func NewWebSocketHandler(
+	dbClient *ent.Client,
+	aiClient *grpc_client.AIClient,
+	questManager *quest_logic.QuestManager,
+	redisClient *redis.Client,
+	emotionManager *npc_logic.EmotionManager, // <-- ADD THIS ARGUMENT
+) *WebSocketHandler {
+	return &WebSocketHandler{
+		dbClient:       dbClient,
+		aiClient:       aiClient,
+		questManager:   questManager,
+		redisClient:    redisClient,
+		emotionManager: emotionManager, // <-- ADD THIS FIELD
+	}
 }
 
+// Handle ... (Handle, sendError, and sendSimpleResponse are unchanged) ...
+// Handle manages the WebSocket connection lifecycle
 func (h *WebSocketHandler) Handle(c *gin.Context) {
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
@@ -48,7 +66,13 @@ func (h *WebSocketHandler) Handle(c *gin.Context) {
 			log.Printf("Error closing WebSocket connection: %v", err)
 		}
 	}()
-	log.Println("Client connected via WebSocket")
+	log.Println("Client connected via WebSocket. Awaiting authentication...")
+
+	ctx := context.Background()
+
+	// Connection-specific state
+	var isAuthenticated bool = false
+	var currentPlayerID string = ""
 
 	for {
 		_, p, err := conn.ReadMessage()
@@ -62,63 +86,44 @@ func (h *WebSocketHandler) Handle(c *gin.Context) {
 			log.Println("Error unmarshalling event:", err)
 			continue
 		}
-		log.Printf("Received event '%s' from '%s' for NPC '%s'", event.EventType, event.SourceEntityId, event.TargetNpcName)
+		log.Printf("Received event '%s'", event.EventType)
 
-		ctx := context.Background()
+		if !isAuthenticated {
+			// --- Authentication Logic (Delegated) ---
+			playerID, authenticated, authErr := h.HandleAuthEvent(conn, ctx, event)
+			if authErr != nil {
+				h.sendError(conn, authErr.Error())
+				continue
+			}
+			isAuthenticated = authenticated
+			currentPlayerID = playerID
 
-		targetNPC, err := h.dbClient.NPC.Query().Where(npc.NameEQ(event.TargetNpcName)).Only(ctx)
-		if ent.IsNotFound(err) {
-			log.Printf("NPC '%s' not found, creating new one...", event.TargetNpcName)
-			targetNPC, err = h.dbClient.NPC.Create().SetName(event.TargetNpcName).Save(ctx)
+		} else {
+			// --- Authenticated Game Logic (Delegated) ---
+			event.SourceEntityId = currentPlayerID
+			h.HandleGameEvent(conn, ctx, event)
 		}
-		if err != nil {
-			log.Printf("Error finding/creating NPC: %v", err)
-			continue
-		}
+	}
+}
 
-		newEmotions := npc_logic.ModifyEmotionsOnEvent(event, targetNPC.Emotions)
-		updatedNPC, err := targetNPC.Update().SetEmotions(newEmotions).Save(ctx)
-		if err != nil {
-			log.Printf("Error updating NPC emotions: %v", err)
-			continue
-		}
-		log.Printf("Emotion state for '%s' updated.", updatedNPC.Name)
+// sendError sends a structured error message back to the client.
+func (h *WebSocketHandler) sendError(conn *websocket.Conn, message string) {
+	responseMap := map[string]string{
+		"action_type": "ERROR",
+		"content":     message,
+	}
+	if err := conn.WriteJSON(responseMap); err != nil {
+		log.Printf("Error sending error to client: %v", err)
+	}
+}
 
-		// This is the full, correct code for creating a memory
-		newMemory, err := h.dbClient.Memory.
-			Create().
-			SetEventType(event.EventType).
-			SetParticipants([]string{event.SourceEntityId, updatedNPC.ID.String()}).
-			SetDescription(fmt.Sprintf("%s triggered %s on %s", event.SourceEntityId, event.EventType, updatedNPC.Name)).
-			SetOwner(updatedNPC).
-			Save(ctx)
-		if err != nil {
-			log.Printf("Error creating memory: %v", err)
-			continue
-		}
-		log.Printf("Successfully saved Memory ID %d.", newMemory.ID)
-
-		recentMemories, err := updatedNPC.QueryMemories().Order(ent.Desc("created_at")).Limit(5).All(ctx)
-		if err != nil {
-			log.Printf("Error fetching recent memories: %v", err)
-			continue
-		}
-		log.Printf("Fetched %d recent memories for NPC '%s'", len(recentMemories), updatedNPC.Name)
-
-		actionResponse, err := h.aiClient.CallAIThink(event.EventType, updatedNPC.ID.String(), recentMemories, updatedNPC.Emotions, event.QuestionText)
-		if err != nil {
-			log.Println("Error calling AI service:", err)
-			continue
-		}
-		log.Printf("Received action from AI service: %s", actionResponse.Content)
-
-		responseMap := map[string]string{
-			"action_type": actionResponse.ActionType,
-			"content":     actionResponse.Content,
-		}
-		if err := conn.WriteJSON(responseMap); err != nil {
-			log.Println("WebSocket write error:", err)
-			break
-		}
+// sendSimpleResponse sends a non-error message (like SPEAK or ADMIN_ACK)
+func (h *WebSocketHandler) sendSimpleResponse(conn *websocket.Conn, actionType string, content string) {
+	responseMap := map[string]string{
+		"action_type": actionType,
+		"content":     content,
+	}
+	if err := conn.WriteJSON(responseMap); err != nil {
+		log.Println("WebSocket write error:", err)
 	}
 }

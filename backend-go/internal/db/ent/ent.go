@@ -3,8 +3,14 @@
 package ent
 
 import (
+	"agentic-npc-backend/internal/db/ent/inventoryitem"
+	"agentic-npc-backend/internal/db/ent/item"
 	"agentic-npc-backend/internal/db/ent/memory"
 	"agentic-npc-backend/internal/db/ent/npc"
+	"agentic-npc-backend/internal/db/ent/player"
+	"agentic-npc-backend/internal/db/ent/playernpcrelationship"
+	"agentic-npc-backend/internal/db/ent/playerqueststate"
+	"agentic-npc-backend/internal/db/ent/quest"
 	"context"
 	"errors"
 	"fmt"
@@ -74,8 +80,14 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			memory.Table: memory.ValidColumn,
-			npc.Table:    npc.ValidColumn,
+			inventoryitem.Table:         inventoryitem.ValidColumn,
+			item.Table:                  item.ValidColumn,
+			memory.Table:                memory.ValidColumn,
+			npc.Table:                   npc.ValidColumn,
+			player.Table:                player.ValidColumn,
+			playernpcrelationship.Table: playernpcrelationship.ValidColumn,
+			playerqueststate.Table:      playerqueststate.ValidColumn,
+			quest.Table:                 quest.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

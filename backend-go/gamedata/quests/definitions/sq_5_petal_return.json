@@ -1,0 +1,39 @@
+{
+  "quest_id": "sq_5_petal_return",
+  "name": "The Final Component",
+  "description": "I have the Glimmering Trowel. Now I must find the Mindbloom Petal and bring it to Elian so he can finally cure his brother, Lian.",
+
+  "steps": {
+    "1": {
+      "name": "Deliver the Mindbloom Petal to Elian",
+      "description": "Return to Elian with the Mindbloom Petal. This is the moment of truth.",
+
+      "preconditions": [
+        {
+          "type": "QUEST_COMPLETED",
+          "quest_id": "sq_3_baelor_gate"
+        },
+        {
+          "type": "PLAYER_HAS_ITEM",
+          "item_name": "Mindbloom Petal"
+        }
+      ],
+
+      "completion_trigger": {
+        "event_type": "PLAYER_SUBMITTED_QUEST_ITEM",
+        "target_npc_name": "Elian",
+        "keyword": "Mindbloom Petal"
+      },
+
+      "fail_response": {
+        "action_type": "SPEAK",
+        "content": "You don't have the Mindbloom Petal! Please, you must find it! It's the only way to save my brother."
+      },
+
+      "rewards": {
+        "xp": 500,
+        "completes_quest_id": "main_quest_1"
+      }
+    }
+  }
+}

@@ -5,11 +5,14 @@ package ent
 import (
 	"agentic-npc-backend/internal/db/ent/memory"
 	"agentic-npc-backend/internal/db/ent/npc"
+	"agentic-npc-backend/internal/db/ent/playernpcrelationship"
 	"agentic-npc-backend/internal/db/ent/schema"
 	"context"
 	"errors"
 	"fmt"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -20,6 +23,7 @@ type NPCCreate struct {
 	config
 	mutation *NPCMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetName sets the "name" field.
@@ -39,6 +43,24 @@ func (_c *NPCCreate) SetNillableNpcType(v *string) *NPCCreate {
 	if v != nil {
 		_c.SetNpcType(*v)
 	}
+	return _c
+}
+
+// SetPersonalityPath sets the "personality_path" field.
+func (_c *NPCCreate) SetPersonalityPath(v string) *NPCCreate {
+	_c.mutation.SetPersonalityPath(v)
+	return _c
+}
+
+// SetBackstoryPath sets the "backstory_path" field.
+func (_c *NPCCreate) SetBackstoryPath(v string) *NPCCreate {
+	_c.mutation.SetBackstoryPath(v)
+	return _c
+}
+
+// SetLorePath sets the "lore_path" field.
+func (_c *NPCCreate) SetLorePath(v string) *NPCCreate {
+	_c.mutation.SetLorePath(v)
 	return _c
 }
 
@@ -81,6 +103,21 @@ func (_c *NPCCreate) AddMemories(v ...*Memory) *NPCCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddMemoryIDs(ids...)
+}
+
+// AddPlayerRelationshipIDs adds the "player_relationships" edge to the PlayerNPCRelationship entity by IDs.
+func (_c *NPCCreate) AddPlayerRelationshipIDs(ids ...int) *NPCCreate {
+	_c.mutation.AddPlayerRelationshipIDs(ids...)
+	return _c
+}
+
+// AddPlayerRelationships adds the "player_relationships" edges to the PlayerNPCRelationship entity.
+func (_c *NPCCreate) AddPlayerRelationships(v ...*PlayerNPCRelationship) *NPCCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddPlayerRelationshipIDs(ids...)
 }
 
 // Mutation returns the NPCMutation object of the builder.
@@ -145,6 +182,30 @@ func (_c *NPCCreate) check() error {
 	if _, ok := _c.mutation.NpcType(); !ok {
 		return &ValidationError{Name: "npc_type", err: errors.New(`ent: missing required field "NPC.npc_type"`)}
 	}
+	if _, ok := _c.mutation.PersonalityPath(); !ok {
+		return &ValidationError{Name: "personality_path", err: errors.New(`ent: missing required field "NPC.personality_path"`)}
+	}
+	if v, ok := _c.mutation.PersonalityPath(); ok {
+		if err := npc.PersonalityPathValidator(v); err != nil {
+			return &ValidationError{Name: "personality_path", err: fmt.Errorf(`ent: validator failed for field "NPC.personality_path": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.BackstoryPath(); !ok {
+		return &ValidationError{Name: "backstory_path", err: errors.New(`ent: missing required field "NPC.backstory_path"`)}
+	}
+	if v, ok := _c.mutation.BackstoryPath(); ok {
+		if err := npc.BackstoryPathValidator(v); err != nil {
+			return &ValidationError{Name: "backstory_path", err: fmt.Errorf(`ent: validator failed for field "NPC.backstory_path": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.LorePath(); !ok {
+		return &ValidationError{Name: "lore_path", err: errors.New(`ent: missing required field "NPC.lore_path"`)}
+	}
+	if v, ok := _c.mutation.LorePath(); ok {
+		if err := npc.LorePathValidator(v); err != nil {
+			return &ValidationError{Name: "lore_path", err: fmt.Errorf(`ent: validator failed for field "NPC.lore_path": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.Emotions(); !ok {
 		return &ValidationError{Name: "emotions", err: errors.New(`ent: missing required field "NPC.emotions"`)}
 	}
@@ -179,6 +240,7 @@ func (_c *NPCCreate) createSpec() (*NPC, *sqlgraph.CreateSpec) {
 		_node = &NPC{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(npc.Table, sqlgraph.NewFieldSpec(npc.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -190,6 +252,18 @@ func (_c *NPCCreate) createSpec() (*NPC, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.NpcType(); ok {
 		_spec.SetField(npc.FieldNpcType, field.TypeString, value)
 		_node.NpcType = value
+	}
+	if value, ok := _c.mutation.PersonalityPath(); ok {
+		_spec.SetField(npc.FieldPersonalityPath, field.TypeString, value)
+		_node.PersonalityPath = value
+	}
+	if value, ok := _c.mutation.BackstoryPath(); ok {
+		_spec.SetField(npc.FieldBackstoryPath, field.TypeString, value)
+		_node.BackstoryPath = value
+	}
+	if value, ok := _c.mutation.LorePath(); ok {
+		_spec.SetField(npc.FieldLorePath, field.TypeString, value)
+		_node.LorePath = value
 	}
 	if value, ok := _c.mutation.Emotions(); ok {
 		_spec.SetField(npc.FieldEmotions, field.TypeJSON, value)
@@ -215,7 +289,353 @@ func (_c *NPCCreate) createSpec() (*NPC, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := _c.mutation.PlayerRelationshipsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   npc.PlayerRelationshipsTable,
+			Columns: []string{npc.PlayerRelationshipsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(playernpcrelationship.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.NPC.Create().
+//		SetName(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.NPCUpsert) {
+//			SetName(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *NPCCreate) OnConflict(opts ...sql.ConflictOption) *NPCUpsertOne {
+	_c.conflict = opts
+	return &NPCUpsertOne{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.NPC.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *NPCCreate) OnConflictColumns(columns ...string) *NPCUpsertOne {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &NPCUpsertOne{
+		create: _c,
+	}
+}
+
+type (
+	// NPCUpsertOne is the builder for "upsert"-ing
+	//  one NPC node.
+	NPCUpsertOne struct {
+		create *NPCCreate
+	}
+
+	// NPCUpsert is the "OnConflict" setter.
+	NPCUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetName sets the "name" field.
+func (u *NPCUpsert) SetName(v string) *NPCUpsert {
+	u.Set(npc.FieldName, v)
+	return u
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *NPCUpsert) UpdateName() *NPCUpsert {
+	u.SetExcluded(npc.FieldName)
+	return u
+}
+
+// SetNpcType sets the "npc_type" field.
+func (u *NPCUpsert) SetNpcType(v string) *NPCUpsert {
+	u.Set(npc.FieldNpcType, v)
+	return u
+}
+
+// UpdateNpcType sets the "npc_type" field to the value that was provided on create.
+func (u *NPCUpsert) UpdateNpcType() *NPCUpsert {
+	u.SetExcluded(npc.FieldNpcType)
+	return u
+}
+
+// SetPersonalityPath sets the "personality_path" field.
+func (u *NPCUpsert) SetPersonalityPath(v string) *NPCUpsert {
+	u.Set(npc.FieldPersonalityPath, v)
+	return u
+}
+
+// UpdatePersonalityPath sets the "personality_path" field to the value that was provided on create.
+func (u *NPCUpsert) UpdatePersonalityPath() *NPCUpsert {
+	u.SetExcluded(npc.FieldPersonalityPath)
+	return u
+}
+
+// SetBackstoryPath sets the "backstory_path" field.
+func (u *NPCUpsert) SetBackstoryPath(v string) *NPCUpsert {
+	u.Set(npc.FieldBackstoryPath, v)
+	return u
+}
+
+// UpdateBackstoryPath sets the "backstory_path" field to the value that was provided on create.
+func (u *NPCUpsert) UpdateBackstoryPath() *NPCUpsert {
+	u.SetExcluded(npc.FieldBackstoryPath)
+	return u
+}
+
+// SetLorePath sets the "lore_path" field.
+func (u *NPCUpsert) SetLorePath(v string) *NPCUpsert {
+	u.Set(npc.FieldLorePath, v)
+	return u
+}
+
+// UpdateLorePath sets the "lore_path" field to the value that was provided on create.
+func (u *NPCUpsert) UpdateLorePath() *NPCUpsert {
+	u.SetExcluded(npc.FieldLorePath)
+	return u
+}
+
+// SetEmotions sets the "emotions" field.
+func (u *NPCUpsert) SetEmotions(v *schema.EmotionState) *NPCUpsert {
+	u.Set(npc.FieldEmotions, v)
+	return u
+}
+
+// UpdateEmotions sets the "emotions" field to the value that was provided on create.
+func (u *NPCUpsert) UpdateEmotions() *NPCUpsert {
+	u.SetExcluded(npc.FieldEmotions)
+	return u
+}
+
+// SetCurrentGoals sets the "current_goals" field.
+func (u *NPCUpsert) SetCurrentGoals(v []string) *NPCUpsert {
+	u.Set(npc.FieldCurrentGoals, v)
+	return u
+}
+
+// UpdateCurrentGoals sets the "current_goals" field to the value that was provided on create.
+func (u *NPCUpsert) UpdateCurrentGoals() *NPCUpsert {
+	u.SetExcluded(npc.FieldCurrentGoals)
+	return u
+}
+
+// ClearCurrentGoals clears the value of the "current_goals" field.
+func (u *NPCUpsert) ClearCurrentGoals() *NPCUpsert {
+	u.SetNull(npc.FieldCurrentGoals)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.NPC.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(npc.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *NPCUpsertOne) UpdateNewValues() *NPCUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(npc.FieldID)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.NPC.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *NPCUpsertOne) Ignore() *NPCUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *NPCUpsertOne) DoNothing() *NPCUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the NPCCreate.OnConflict
+// documentation for more info.
+func (u *NPCUpsertOne) Update(set func(*NPCUpsert)) *NPCUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&NPCUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *NPCUpsertOne) SetName(v string) *NPCUpsertOne {
+	return u.Update(func(s *NPCUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *NPCUpsertOne) UpdateName() *NPCUpsertOne {
+	return u.Update(func(s *NPCUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetNpcType sets the "npc_type" field.
+func (u *NPCUpsertOne) SetNpcType(v string) *NPCUpsertOne {
+	return u.Update(func(s *NPCUpsert) {
+		s.SetNpcType(v)
+	})
+}
+
+// UpdateNpcType sets the "npc_type" field to the value that was provided on create.
+func (u *NPCUpsertOne) UpdateNpcType() *NPCUpsertOne {
+	return u.Update(func(s *NPCUpsert) {
+		s.UpdateNpcType()
+	})
+}
+
+// SetPersonalityPath sets the "personality_path" field.
+func (u *NPCUpsertOne) SetPersonalityPath(v string) *NPCUpsertOne {
+	return u.Update(func(s *NPCUpsert) {
+		s.SetPersonalityPath(v)
+	})
+}
+
+// UpdatePersonalityPath sets the "personality_path" field to the value that was provided on create.
+func (u *NPCUpsertOne) UpdatePersonalityPath() *NPCUpsertOne {
+	return u.Update(func(s *NPCUpsert) {
+		s.UpdatePersonalityPath()
+	})
+}
+
+// SetBackstoryPath sets the "backstory_path" field.
+func (u *NPCUpsertOne) SetBackstoryPath(v string) *NPCUpsertOne {
+	return u.Update(func(s *NPCUpsert) {
+		s.SetBackstoryPath(v)
+	})
+}
+
+// UpdateBackstoryPath sets the "backstory_path" field to the value that was provided on create.
+func (u *NPCUpsertOne) UpdateBackstoryPath() *NPCUpsertOne {
+	return u.Update(func(s *NPCUpsert) {
+		s.UpdateBackstoryPath()
+	})
+}
+
+// SetLorePath sets the "lore_path" field.
+func (u *NPCUpsertOne) SetLorePath(v string) *NPCUpsertOne {
+	return u.Update(func(s *NPCUpsert) {
+		s.SetLorePath(v)
+	})
+}
+
+// UpdateLorePath sets the "lore_path" field to the value that was provided on create.
+func (u *NPCUpsertOne) UpdateLorePath() *NPCUpsertOne {
+	return u.Update(func(s *NPCUpsert) {
+		s.UpdateLorePath()
+	})
+}
+
+// SetEmotions sets the "emotions" field.
+func (u *NPCUpsertOne) SetEmotions(v *schema.EmotionState) *NPCUpsertOne {
+	return u.Update(func(s *NPCUpsert) {
+		s.SetEmotions(v)
+	})
+}
+
+// UpdateEmotions sets the "emotions" field to the value that was provided on create.
+func (u *NPCUpsertOne) UpdateEmotions() *NPCUpsertOne {
+	return u.Update(func(s *NPCUpsert) {
+		s.UpdateEmotions()
+	})
+}
+
+// SetCurrentGoals sets the "current_goals" field.
+func (u *NPCUpsertOne) SetCurrentGoals(v []string) *NPCUpsertOne {
+	return u.Update(func(s *NPCUpsert) {
+		s.SetCurrentGoals(v)
+	})
+}
+
+// UpdateCurrentGoals sets the "current_goals" field to the value that was provided on create.
+func (u *NPCUpsertOne) UpdateCurrentGoals() *NPCUpsertOne {
+	return u.Update(func(s *NPCUpsert) {
+		s.UpdateCurrentGoals()
+	})
+}
+
+// ClearCurrentGoals clears the value of the "current_goals" field.
+func (u *NPCUpsertOne) ClearCurrentGoals() *NPCUpsertOne {
+	return u.Update(func(s *NPCUpsert) {
+		s.ClearCurrentGoals()
+	})
+}
+
+// Exec executes the query.
+func (u *NPCUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for NPCCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *NPCUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *NPCUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("ent: NPCUpsertOne.ID is not supported by MySQL driver. Use NPCUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *NPCUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
 }
 
 // NPCCreateBulk is the builder for creating many NPC entities in bulk.
@@ -223,6 +643,7 @@ type NPCCreateBulk struct {
 	config
 	err      error
 	builders []*NPCCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the NPC entities in the database.
@@ -252,6 +673,7 @@ func (_c *NPCCreateBulk) Save(ctx context.Context) ([]*NPC, error) {
 					_, err = mutators[i+1].Mutate(root, _c.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = _c.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, _c.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -298,6 +720,225 @@ func (_c *NPCCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (_c *NPCCreateBulk) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.NPC.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.NPCUpsert) {
+//			SetName(v+v).
+//		}).
+//		Exec(ctx)
+func (_c *NPCCreateBulk) OnConflict(opts ...sql.ConflictOption) *NPCUpsertBulk {
+	_c.conflict = opts
+	return &NPCUpsertBulk{
+		create: _c,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.NPC.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (_c *NPCCreateBulk) OnConflictColumns(columns ...string) *NPCUpsertBulk {
+	_c.conflict = append(_c.conflict, sql.ConflictColumns(columns...))
+	return &NPCUpsertBulk{
+		create: _c,
+	}
+}
+
+// NPCUpsertBulk is the builder for "upsert"-ing
+// a bulk of NPC nodes.
+type NPCUpsertBulk struct {
+	create *NPCCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.NPC.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(npc.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *NPCUpsertBulk) UpdateNewValues() *NPCUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(npc.FieldID)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.NPC.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *NPCUpsertBulk) Ignore() *NPCUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *NPCUpsertBulk) DoNothing() *NPCUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the NPCCreateBulk.OnConflict
+// documentation for more info.
+func (u *NPCUpsertBulk) Update(set func(*NPCUpsert)) *NPCUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&NPCUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetName sets the "name" field.
+func (u *NPCUpsertBulk) SetName(v string) *NPCUpsertBulk {
+	return u.Update(func(s *NPCUpsert) {
+		s.SetName(v)
+	})
+}
+
+// UpdateName sets the "name" field to the value that was provided on create.
+func (u *NPCUpsertBulk) UpdateName() *NPCUpsertBulk {
+	return u.Update(func(s *NPCUpsert) {
+		s.UpdateName()
+	})
+}
+
+// SetNpcType sets the "npc_type" field.
+func (u *NPCUpsertBulk) SetNpcType(v string) *NPCUpsertBulk {
+	return u.Update(func(s *NPCUpsert) {
+		s.SetNpcType(v)
+	})
+}
+
+// UpdateNpcType sets the "npc_type" field to the value that was provided on create.
+func (u *NPCUpsertBulk) UpdateNpcType() *NPCUpsertBulk {
+	return u.Update(func(s *NPCUpsert) {
+		s.UpdateNpcType()
+	})
+}
+
+// SetPersonalityPath sets the "personality_path" field.
+func (u *NPCUpsertBulk) SetPersonalityPath(v string) *NPCUpsertBulk {
+	return u.Update(func(s *NPCUpsert) {
+		s.SetPersonalityPath(v)
+	})
+}
+
+// UpdatePersonalityPath sets the "personality_path" field to the value that was provided on create.
+func (u *NPCUpsertBulk) UpdatePersonalityPath() *NPCUpsertBulk {
+	return u.Update(func(s *NPCUpsert) {
+		s.UpdatePersonalityPath()
+	})
+}
+
+// SetBackstoryPath sets the "backstory_path" field.
+func (u *NPCUpsertBulk) SetBackstoryPath(v string) *NPCUpsertBulk {
+	return u.Update(func(s *NPCUpsert) {
+		s.SetBackstoryPath(v)
+	})
+}
+
+// UpdateBackstoryPath sets the "backstory_path" field to the value that was provided on create.
+func (u *NPCUpsertBulk) UpdateBackstoryPath() *NPCUpsertBulk {
+	return u.Update(func(s *NPCUpsert) {
+		s.UpdateBackstoryPath()
+	})
+}
+
+// SetLorePath sets the "lore_path" field.
+func (u *NPCUpsertBulk) SetLorePath(v string) *NPCUpsertBulk {
+	return u.Update(func(s *NPCUpsert) {
+		s.SetLorePath(v)
+	})
+}
+
+// UpdateLorePath sets the "lore_path" field to the value that was provided on create.
+func (u *NPCUpsertBulk) UpdateLorePath() *NPCUpsertBulk {
+	return u.Update(func(s *NPCUpsert) {
+		s.UpdateLorePath()
+	})
+}
+
+// SetEmotions sets the "emotions" field.
+func (u *NPCUpsertBulk) SetEmotions(v *schema.EmotionState) *NPCUpsertBulk {
+	return u.Update(func(s *NPCUpsert) {
+		s.SetEmotions(v)
+	})
+}
+
+// UpdateEmotions sets the "emotions" field to the value that was provided on create.
+func (u *NPCUpsertBulk) UpdateEmotions() *NPCUpsertBulk {
+	return u.Update(func(s *NPCUpsert) {
+		s.UpdateEmotions()
+	})
+}
+
+// SetCurrentGoals sets the "current_goals" field.
+func (u *NPCUpsertBulk) SetCurrentGoals(v []string) *NPCUpsertBulk {
+	return u.Update(func(s *NPCUpsert) {
+		s.SetCurrentGoals(v)
+	})
+}
+
+// UpdateCurrentGoals sets the "current_goals" field to the value that was provided on create.
+func (u *NPCUpsertBulk) UpdateCurrentGoals() *NPCUpsertBulk {
+	return u.Update(func(s *NPCUpsert) {
+		s.UpdateCurrentGoals()
+	})
+}
+
+// ClearCurrentGoals clears the value of the "current_goals" field.
+func (u *NPCUpsertBulk) ClearCurrentGoals() *NPCUpsertBulk {
+	return u.Update(func(s *NPCUpsert) {
+		s.ClearCurrentGoals()
+	})
+}
+
+// Exec executes the query.
+func (u *NPCUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("ent: OnConflict was set for builder %d. Set it on the NPCCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("ent: missing options for NPCCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *NPCUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

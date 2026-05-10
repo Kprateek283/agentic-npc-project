@@ -1,0 +1,15 @@
+{
+  "quest_id": "main_quest_1",
+  "quest_name": "The Silent Twin",
+  "quest_giver_name": "Elian",
+  "quest_chain": [
+    "sq_1_elian_intro",
+    "sq_2_elara_research",
+    "sq_3_baelor_gate",
+    "sq_5_petal_return"
+  ],
+  "prerequisites": {
+    "starts_after_quest": "sq_0_prove_your_worth"
+  }
+}
+

@@ -65,6 +65,21 @@ func NpcType(v string) predicate.NPC {
 	return predicate.NPC(sql.FieldEQ(FieldNpcType, v))
 }
 
+// PersonalityPath applies equality check predicate on the "personality_path" field. It's identical to PersonalityPathEQ.
+func PersonalityPath(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldEQ(FieldPersonalityPath, v))
+}
+
+// BackstoryPath applies equality check predicate on the "backstory_path" field. It's identical to BackstoryPathEQ.
+func BackstoryPath(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldEQ(FieldBackstoryPath, v))
+}
+
+// LorePath applies equality check predicate on the "lore_path" field. It's identical to LorePathEQ.
+func LorePath(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldEQ(FieldLorePath, v))
+}
+
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.NPC {
 	return predicate.NPC(sql.FieldEQ(FieldName, v))
@@ -195,6 +210,201 @@ func NpcTypeContainsFold(v string) predicate.NPC {
 	return predicate.NPC(sql.FieldContainsFold(FieldNpcType, v))
 }
 
+// PersonalityPathEQ applies the EQ predicate on the "personality_path" field.
+func PersonalityPathEQ(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldEQ(FieldPersonalityPath, v))
+}
+
+// PersonalityPathNEQ applies the NEQ predicate on the "personality_path" field.
+func PersonalityPathNEQ(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldNEQ(FieldPersonalityPath, v))
+}
+
+// PersonalityPathIn applies the In predicate on the "personality_path" field.
+func PersonalityPathIn(vs ...string) predicate.NPC {
+	return predicate.NPC(sql.FieldIn(FieldPersonalityPath, vs...))
+}
+
+// PersonalityPathNotIn applies the NotIn predicate on the "personality_path" field.
+func PersonalityPathNotIn(vs ...string) predicate.NPC {
+	return predicate.NPC(sql.FieldNotIn(FieldPersonalityPath, vs...))
+}
+
+// PersonalityPathGT applies the GT predicate on the "personality_path" field.
+func PersonalityPathGT(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldGT(FieldPersonalityPath, v))
+}
+
+// PersonalityPathGTE applies the GTE predicate on the "personality_path" field.
+func PersonalityPathGTE(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldGTE(FieldPersonalityPath, v))
+}
+
+// PersonalityPathLT applies the LT predicate on the "personality_path" field.
+func PersonalityPathLT(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldLT(FieldPersonalityPath, v))
+}
+
+// PersonalityPathLTE applies the LTE predicate on the "personality_path" field.
+func PersonalityPathLTE(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldLTE(FieldPersonalityPath, v))
+}
+
+// PersonalityPathContains applies the Contains predicate on the "personality_path" field.
+func PersonalityPathContains(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldContains(FieldPersonalityPath, v))
+}
+
+// PersonalityPathHasPrefix applies the HasPrefix predicate on the "personality_path" field.
+func PersonalityPathHasPrefix(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldHasPrefix(FieldPersonalityPath, v))
+}
+
+// PersonalityPathHasSuffix applies the HasSuffix predicate on the "personality_path" field.
+func PersonalityPathHasSuffix(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldHasSuffix(FieldPersonalityPath, v))
+}
+
+// PersonalityPathEqualFold applies the EqualFold predicate on the "personality_path" field.
+func PersonalityPathEqualFold(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldEqualFold(FieldPersonalityPath, v))
+}
+
+// PersonalityPathContainsFold applies the ContainsFold predicate on the "personality_path" field.
+func PersonalityPathContainsFold(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldContainsFold(FieldPersonalityPath, v))
+}
+
+// BackstoryPathEQ applies the EQ predicate on the "backstory_path" field.
+func BackstoryPathEQ(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldEQ(FieldBackstoryPath, v))
+}
+
+// BackstoryPathNEQ applies the NEQ predicate on the "backstory_path" field.
+func BackstoryPathNEQ(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldNEQ(FieldBackstoryPath, v))
+}
+
+// BackstoryPathIn applies the In predicate on the "backstory_path" field.
+func BackstoryPathIn(vs ...string) predicate.NPC {
+	return predicate.NPC(sql.FieldIn(FieldBackstoryPath, vs...))
+}
+
+// BackstoryPathNotIn applies the NotIn predicate on the "backstory_path" field.
+func BackstoryPathNotIn(vs ...string) predicate.NPC {
+	return predicate.NPC(sql.FieldNotIn(FieldBackstoryPath, vs...))
+}
+
+// BackstoryPathGT applies the GT predicate on the "backstory_path" field.
+func BackstoryPathGT(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldGT(FieldBackstoryPath, v))
+}
+
+// BackstoryPathGTE applies the GTE predicate on the "backstory_path" field.
+func BackstoryPathGTE(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldGTE(FieldBackstoryPath, v))
+}
+
+// BackstoryPathLT applies the LT predicate on the "backstory_path" field.
+func BackstoryPathLT(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldLT(FieldBackstoryPath, v))
+}
+
+// BackstoryPathLTE applies the LTE predicate on the "backstory_path" field.
+func BackstoryPathLTE(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldLTE(FieldBackstoryPath, v))
+}
+
+// BackstoryPathContains applies the Contains predicate on the "backstory_path" field.
+func BackstoryPathContains(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldContains(FieldBackstoryPath, v))
+}
+
+// BackstoryPathHasPrefix applies the HasPrefix predicate on the "backstory_path" field.
+func BackstoryPathHasPrefix(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldHasPrefix(FieldBackstoryPath, v))
+}
+
+// BackstoryPathHasSuffix applies the HasSuffix predicate on the "backstory_path" field.
+func BackstoryPathHasSuffix(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldHasSuffix(FieldBackstoryPath, v))
+}
+
+// BackstoryPathEqualFold applies the EqualFold predicate on the "backstory_path" field.
+func BackstoryPathEqualFold(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldEqualFold(FieldBackstoryPath, v))
+}
+
+// BackstoryPathContainsFold applies the ContainsFold predicate on the "backstory_path" field.
+func BackstoryPathContainsFold(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldContainsFold(FieldBackstoryPath, v))
+}
+
+// LorePathEQ applies the EQ predicate on the "lore_path" field.
+func LorePathEQ(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldEQ(FieldLorePath, v))
+}
+
+// LorePathNEQ applies the NEQ predicate on the "lore_path" field.
+func LorePathNEQ(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldNEQ(FieldLorePath, v))
+}
+
+// LorePathIn applies the In predicate on the "lore_path" field.
+func LorePathIn(vs ...string) predicate.NPC {
+	return predicate.NPC(sql.FieldIn(FieldLorePath, vs...))
+}
+
+// LorePathNotIn applies the NotIn predicate on the "lore_path" field.
+func LorePathNotIn(vs ...string) predicate.NPC {
+	return predicate.NPC(sql.FieldNotIn(FieldLorePath, vs...))
+}
+
+// LorePathGT applies the GT predicate on the "lore_path" field.
+func LorePathGT(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldGT(FieldLorePath, v))
+}
+
+// LorePathGTE applies the GTE predicate on the "lore_path" field.
+func LorePathGTE(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldGTE(FieldLorePath, v))
+}
+
+// LorePathLT applies the LT predicate on the "lore_path" field.
+func LorePathLT(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldLT(FieldLorePath, v))
+}
+
+// LorePathLTE applies the LTE predicate on the "lore_path" field.
+func LorePathLTE(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldLTE(FieldLorePath, v))
+}
+
+// LorePathContains applies the Contains predicate on the "lore_path" field.
+func LorePathContains(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldContains(FieldLorePath, v))
+}
+
+// LorePathHasPrefix applies the HasPrefix predicate on the "lore_path" field.
+func LorePathHasPrefix(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldHasPrefix(FieldLorePath, v))
+}
+
+// LorePathHasSuffix applies the HasSuffix predicate on the "lore_path" field.
+func LorePathHasSuffix(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldHasSuffix(FieldLorePath, v))
+}
+
+// LorePathEqualFold applies the EqualFold predicate on the "lore_path" field.
+func LorePathEqualFold(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldEqualFold(FieldLorePath, v))
+}
+
+// LorePathContainsFold applies the ContainsFold predicate on the "lore_path" field.
+func LorePathContainsFold(v string) predicate.NPC {
+	return predicate.NPC(sql.FieldContainsFold(FieldLorePath, v))
+}
+
 // CurrentGoalsIsNil applies the IsNil predicate on the "current_goals" field.
 func CurrentGoalsIsNil() predicate.NPC {
 	return predicate.NPC(sql.FieldIsNull(FieldCurrentGoals))
@@ -220,6 +430,29 @@ func HasMemories() predicate.NPC {
 func HasMemoriesWith(preds ...predicate.Memory) predicate.NPC {
 	return predicate.NPC(func(s *sql.Selector) {
 		step := newMemoriesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasPlayerRelationships applies the HasEdge predicate on the "player_relationships" edge.
+func HasPlayerRelationships() predicate.NPC {
+	return predicate.NPC(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PlayerRelationshipsTable, PlayerRelationshipsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPlayerRelationshipsWith applies the HasEdge predicate on the "player_relationships" edge with a given conditions (other predicates).
+func HasPlayerRelationshipsWith(preds ...predicate.PlayerNPCRelationship) predicate.NPC {
+	return predicate.NPC(func(s *sql.Selector) {
+		step := newPlayerRelationshipsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

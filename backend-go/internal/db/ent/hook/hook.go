@@ -8,6 +8,30 @@ import (
 	"fmt"
 )
 
+// The InventoryItemFunc type is an adapter to allow the use of ordinary
+// function as InventoryItem mutator.
+type InventoryItemFunc func(context.Context, *ent.InventoryItemMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f InventoryItemFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.InventoryItemMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.InventoryItemMutation", m)
+}
+
+// The ItemFunc type is an adapter to allow the use of ordinary
+// function as Item mutator.
+type ItemFunc func(context.Context, *ent.ItemMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ItemFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ItemMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ItemMutation", m)
+}
+
 // The MemoryFunc type is an adapter to allow the use of ordinary
 // function as Memory mutator.
 type MemoryFunc func(context.Context, *ent.MemoryMutation) (ent.Value, error)
@@ -30,6 +54,54 @@ func (f NPCFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) 
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.NPCMutation", m)
+}
+
+// The PlayerFunc type is an adapter to allow the use of ordinary
+// function as Player mutator.
+type PlayerFunc func(context.Context, *ent.PlayerMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PlayerFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PlayerMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PlayerMutation", m)
+}
+
+// The PlayerNPCRelationshipFunc type is an adapter to allow the use of ordinary
+// function as PlayerNPCRelationship mutator.
+type PlayerNPCRelationshipFunc func(context.Context, *ent.PlayerNPCRelationshipMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PlayerNPCRelationshipFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PlayerNPCRelationshipMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PlayerNPCRelationshipMutation", m)
+}
+
+// The PlayerQuestStateFunc type is an adapter to allow the use of ordinary
+// function as PlayerQuestState mutator.
+type PlayerQuestStateFunc func(context.Context, *ent.PlayerQuestStateMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PlayerQuestStateFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.PlayerQuestStateMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PlayerQuestStateMutation", m)
+}
+
+// The QuestFunc type is an adapter to allow the use of ordinary
+// function as Quest mutator.
+type QuestFunc func(context.Context, *ent.QuestMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f QuestFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.QuestMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.QuestMutation", m)
 }
 
 // Condition is a hook condition function.

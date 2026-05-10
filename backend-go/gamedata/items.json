@@ -1,0 +1,116 @@
+[
+  {
+    "item_id": "apple",
+    "name": "Apple",
+    "rarity": "usable",
+    "base_trust_value": 0.01
+  },
+  {
+    "item_id": "bread_loaf",
+    "name": "Loaf of Bread",
+    "rarity": "usable",
+    "base_trust_value": 0.01
+  },
+  {
+    "item_id": "rotten_fish",
+    "name": "Rotten Fish",
+    "rarity": "trash",
+    "base_trust_value": -0.1
+  },
+  {
+    "item_id": "old_boot",
+    "name": "Old Boot",
+    "rarity": "trash",
+    "base_trust_value": -0.1
+  },
+  {
+    "item_id": "axe",
+    "name": "Woodcutter's Axe",
+    "rarity": "common",
+    "base_trust_value": 0.1
+  },
+  {
+    "item_id": "rusty_sword",
+    "name": "Rusty Sword",
+    "rarity": "common",
+    "base_trust_value": 0.1
+  },
+  {
+    "item_id": "guard_spear",
+    "name": "Guard's Spear",
+    "rarity": "common",
+    "base_trust_value": 0.1
+  },
+  {
+    "item_id": "sunpetal_herb",
+    "name": "Sunpetal Herb",
+    "rarity": "common",
+    "base_trust_value": 0.1,
+    "quest_item": true
+  },
+  {
+    "item_id": "kingsfoil_leaf",
+    "name": "Kingsfoil Leaf",
+    "rarity": "uncommon",
+    "base_trust_value": 0.2
+  },
+  {
+    "item_id": "iron_longsword",
+    "name": "Iron Longsword",
+    "rarity": "uncommon",
+    "base_trust_value": 0.2
+  },
+  {
+    "item_id": "shadow_iron_ore",
+    "name": "Shadow-Iron Ore",
+    "rarity": "uncommon",
+    "base_trust_value": 0.2,
+    "quest_item": true
+  },
+  {
+    "item_id": "rooks_dagger",
+    "name": "Rook's Dagger",
+    "rarity": "rare",
+    "base_trust_value": 0.0,
+    "quest_item": true
+  },
+  {
+    "item_id": "moonshadow_petal",
+    "name": "Moonshadow Petal",
+    "rarity": "rare",
+    "base_trust_value": 0.5
+  },
+  {
+    "item_id": "glimmering_trowel",
+    "name": "Glimmering Trowel",
+    "rarity": "epic",
+    "base_trust_value": 0.0,
+    "quest_item": true
+  },
+  {
+    "item_id": "mithril_ingot",
+    "name": "Mithril Ingot",
+    "rarity": "epic",
+    "base_trust_value": 1.0
+  },
+  {
+    "item_id": "mindbloom_petal",
+    "name": "Mindbloom Petal",
+    "rarity": "legendary",
+    "base_trust_value": 0.0,
+    "quest_item": true
+  },
+  {
+    "item_id": "dragon_heartscale",
+    "name": "Dragon Heartscale",
+    "rarity": "legendary",
+    "base_trust_value": 2.0
+  },
+  {
+    "item_id": "shard_of_the_first_star",
+    "name": "Shard of the First Star",
+    "rarity": "mythic",
+    "base_trust_value": 5.0
+  }
+]
+

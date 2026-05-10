@@ -19,12 +19,20 @@ const (
 	FieldName = "name"
 	// FieldNpcType holds the string denoting the npc_type field in the database.
 	FieldNpcType = "npc_type"
+	// FieldPersonalityPath holds the string denoting the personality_path field in the database.
+	FieldPersonalityPath = "personality_path"
+	// FieldBackstoryPath holds the string denoting the backstory_path field in the database.
+	FieldBackstoryPath = "backstory_path"
+	// FieldLorePath holds the string denoting the lore_path field in the database.
+	FieldLorePath = "lore_path"
 	// FieldEmotions holds the string denoting the emotions field in the database.
 	FieldEmotions = "emotions"
 	// FieldCurrentGoals holds the string denoting the current_goals field in the database.
 	FieldCurrentGoals = "current_goals"
 	// EdgeMemories holds the string denoting the memories edge name in mutations.
 	EdgeMemories = "memories"
+	// EdgePlayerRelationships holds the string denoting the player_relationships edge name in mutations.
+	EdgePlayerRelationships = "player_relationships"
 	// Table holds the table name of the npc in the database.
 	Table = "np_cs"
 	// MemoriesTable is the table that holds the memories relation/edge.
@@ -34,6 +42,13 @@ const (
 	MemoriesInverseTable = "memories"
 	// MemoriesColumn is the table column denoting the memories relation/edge.
 	MemoriesColumn = "npc_memories"
+	// PlayerRelationshipsTable is the table that holds the player_relationships relation/edge.
+	PlayerRelationshipsTable = "player_npc_relationships"
+	// PlayerRelationshipsInverseTable is the table name for the PlayerNPCRelationship entity.
+	// It exists in this package in order to avoid circular dependency with the "playernpcrelationship" package.
+	PlayerRelationshipsInverseTable = "player_npc_relationships"
+	// PlayerRelationshipsColumn is the table column denoting the player_relationships relation/edge.
+	PlayerRelationshipsColumn = "npc_player_relationships"
 )
 
 // Columns holds all SQL columns for npc fields.
@@ -41,6 +56,9 @@ var Columns = []string{
 	FieldID,
 	FieldName,
 	FieldNpcType,
+	FieldPersonalityPath,
+	FieldBackstoryPath,
+	FieldLorePath,
 	FieldEmotions,
 	FieldCurrentGoals,
 }
@@ -60,6 +78,12 @@ var (
 	NameValidator func(string) error
 	// DefaultNpcType holds the default value on creation for the "npc_type" field.
 	DefaultNpcType string
+	// PersonalityPathValidator is a validator for the "personality_path" field. It is called by the builders before save.
+	PersonalityPathValidator func(string) error
+	// BackstoryPathValidator is a validator for the "backstory_path" field. It is called by the builders before save.
+	BackstoryPathValidator func(string) error
+	// LorePathValidator is a validator for the "lore_path" field. It is called by the builders before save.
+	LorePathValidator func(string) error
 	// DefaultEmotions holds the default value on creation for the "emotions" field.
 	DefaultEmotions *schema.EmotionState
 	// DefaultID holds the default value on creation for the "id" field.
@@ -84,6 +108,21 @@ func ByNpcType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldNpcType, opts...).ToFunc()
 }
 
+// ByPersonalityPath orders the results by the personality_path field.
+func ByPersonalityPath(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPersonalityPath, opts...).ToFunc()
+}
+
+// ByBackstoryPath orders the results by the backstory_path field.
+func ByBackstoryPath(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBackstoryPath, opts...).ToFunc()
+}
+
+// ByLorePath orders the results by the lore_path field.
+func ByLorePath(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLorePath, opts...).ToFunc()
+}
+
 // ByMemoriesCount orders the results by memories count.
 func ByMemoriesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -97,10 +136,31 @@ func ByMemories(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newMemoriesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByPlayerRelationshipsCount orders the results by player_relationships count.
+func ByPlayerRelationshipsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPlayerRelationshipsStep(), opts...)
+	}
+}
+
+// ByPlayerRelationships orders the results by player_relationships terms.
+func ByPlayerRelationships(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPlayerRelationshipsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newMemoriesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(MemoriesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, MemoriesTable, MemoriesColumn),
+	)
+}
+func newPlayerRelationshipsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PlayerRelationshipsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PlayerRelationshipsTable, PlayerRelationshipsColumn),
 	)
 }

@@ -1,0 +1,13 @@
+{
+  "name": "Lian",
+  "occupation": ["Villager", "Dumb Brother"],
+  "persona": "You are Lian, Elian's twin brother.",
+  "traits": [
+    "simple",
+    "vacant",
+    "non-verbal",
+    "peaceful",
+    "harmless"
+  ],
+  "behavior_script": "This NPC is not run by the AI. His logic is defined by a simple, repeating Behavior Tree in Unreal Engine (e.g., 'Walk from home to the village well. Wait one minute. Walk back.')"
+}

@@ -1,0 +1,44 @@
+{
+  "quest_id": "sq_0_prove_your_worth",
+  "name": "A Growing Threat",
+  "description": "The Village Leader, Kaelen, is looking for a capable adventurer to deal with a bandit leader named Rook, who has been harassing the merchants.",
+
+  "steps": {
+    "1": {
+      "name": "Speak to Magistrate Kaelen",
+      "description": "Find Magistrate Kaelen, who is usually near the village hall, and offer your services.",
+      "completion_trigger": {
+        "event_type": "PLAYER_INTERACT",
+        "target_npc_name": "Kaelen"
+      },
+      "rewards": {
+        "unlocks_step": "2"
+      }
+    },
+    "2": {
+      "name": "Defeat Rook the Bandit",
+      "description": "Kaelen has marked the location of the bandit, Rook, on my map. I need to deal with him and bring back proof of his defeat.",
+
+      "completion_trigger": {
+        "event_type": "PLAYER_SUBMITTED_QUEST_ITEM",
+        "target_npc_name": "Kaelen",
+        "keyword": "Rook's Dagger"
+      },
+
+      "completion_logic": {
+        "type": "CALCULATE_DYNAMIC_DIFFICULTY",
+        "parameters": {
+          "base_completion_rate": 0.5,
+          "bonus_objectives": [
+            { "type": "EVENT_LOGGED", "event_type": "CLEARED_BANDIT_CAMP", "rate_increase": 0.5 }
+          ]
+        }
+      },
+
+      "rewards": {
+        "xp": 200,
+        "unlocks_quest_id": "sq_1_elian_intro"
+      }
+    }
+  }
+}

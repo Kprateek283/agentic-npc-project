@@ -1,0 +1,15 @@
+{
+  "PLAYER_INTERACT": {
+    "joy": 0.02,
+    "trust": 0.01
+  },
+  "PLAYER_GAVE_GIFT": {
+    "joy": 0.15
+  },
+  "PLAYER_ATTACKED": {
+    "joy": -1.0,
+    "anger": 0.6,
+    "fear": 0.4,
+    "trust": -0.5
+  }
+}

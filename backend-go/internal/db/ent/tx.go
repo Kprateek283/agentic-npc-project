@@ -12,10 +12,22 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// InventoryItem is the client for interacting with the InventoryItem builders.
+	InventoryItem *InventoryItemClient
+	// Item is the client for interacting with the Item builders.
+	Item *ItemClient
 	// Memory is the client for interacting with the Memory builders.
 	Memory *MemoryClient
 	// NPC is the client for interacting with the NPC builders.
 	NPC *NPCClient
+	// Player is the client for interacting with the Player builders.
+	Player *PlayerClient
+	// PlayerNPCRelationship is the client for interacting with the PlayerNPCRelationship builders.
+	PlayerNPCRelationship *PlayerNPCRelationshipClient
+	// PlayerQuestState is the client for interacting with the PlayerQuestState builders.
+	PlayerQuestState *PlayerQuestStateClient
+	// Quest is the client for interacting with the Quest builders.
+	Quest *QuestClient
 
 	// lazily loaded.
 	client     *Client
@@ -147,8 +159,14 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.InventoryItem = NewInventoryItemClient(tx.config)
+	tx.Item = NewItemClient(tx.config)
 	tx.Memory = NewMemoryClient(tx.config)
 	tx.NPC = NewNPCClient(tx.config)
+	tx.Player = NewPlayerClient(tx.config)
+	tx.PlayerNPCRelationship = NewPlayerNPCRelationshipClient(tx.config)
+	tx.PlayerQuestState = NewPlayerQuestStateClient(tx.config)
+	tx.Quest = NewQuestClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.
@@ -158,7 +176,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: Memory.QueryXXX(), the query will be executed
+// applies a query, for example: InventoryItem.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

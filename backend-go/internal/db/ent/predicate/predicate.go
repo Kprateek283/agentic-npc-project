@@ -6,8 +6,26 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// InventoryItem is the predicate function for inventoryitem builders.
+type InventoryItem func(*sql.Selector)
+
+// Item is the predicate function for item builders.
+type Item func(*sql.Selector)
+
 // Memory is the predicate function for memory builders.
 type Memory func(*sql.Selector)
 
 // NPC is the predicate function for npc builders.
 type NPC func(*sql.Selector)
+
+// Player is the predicate function for player builders.
+type Player func(*sql.Selector)
+
+// PlayerNPCRelationship is the predicate function for playernpcrelationship builders.
+type PlayerNPCRelationship func(*sql.Selector)
+
+// PlayerQuestState is the predicate function for playerqueststate builders.
+type PlayerQuestState func(*sql.Selector)
+
+// Quest is the predicate function for quest builders.
+type Quest func(*sql.Selector)

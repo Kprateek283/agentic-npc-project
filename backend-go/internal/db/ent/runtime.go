@@ -3,8 +3,14 @@
 package ent
 
 import (
+	"agentic-npc-backend/internal/db/ent/inventoryitem"
+	"agentic-npc-backend/internal/db/ent/item"
 	"agentic-npc-backend/internal/db/ent/memory"
 	"agentic-npc-backend/internal/db/ent/npc"
+	"agentic-npc-backend/internal/db/ent/player"
+	"agentic-npc-backend/internal/db/ent/playernpcrelationship"
+	"agentic-npc-backend/internal/db/ent/playerqueststate"
+	"agentic-npc-backend/internal/db/ent/quest"
 	"agentic-npc-backend/internal/db/ent/schema"
 	"time"
 
@@ -15,6 +21,34 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	inventoryitemFields := schema.InventoryItem{}.Fields()
+	_ = inventoryitemFields
+	// inventoryitemDescQuantity is the schema descriptor for quantity field.
+	inventoryitemDescQuantity := inventoryitemFields[0].Descriptor()
+	// inventoryitem.DefaultQuantity holds the default value on creation for the quantity field.
+	inventoryitem.DefaultQuantity = inventoryitemDescQuantity.Default.(int)
+	itemFields := schema.Item{}.Fields()
+	_ = itemFields
+	// itemDescItemID is the schema descriptor for item_id field.
+	itemDescItemID := itemFields[0].Descriptor()
+	// item.ItemIDValidator is a validator for the "item_id" field. It is called by the builders before save.
+	item.ItemIDValidator = itemDescItemID.Validators[0].(func(string) error)
+	// itemDescName is the schema descriptor for name field.
+	itemDescName := itemFields[1].Descriptor()
+	// item.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	item.NameValidator = itemDescName.Validators[0].(func(string) error)
+	// itemDescRarity is the schema descriptor for rarity field.
+	itemDescRarity := itemFields[2].Descriptor()
+	// item.RarityValidator is a validator for the "rarity" field. It is called by the builders before save.
+	item.RarityValidator = itemDescRarity.Validators[0].(func(string) error)
+	// itemDescBaseTrustValue is the schema descriptor for base_trust_value field.
+	itemDescBaseTrustValue := itemFields[3].Descriptor()
+	// item.DefaultBaseTrustValue holds the default value on creation for the base_trust_value field.
+	item.DefaultBaseTrustValue = itemDescBaseTrustValue.Default.(float64)
+	// itemDescQuestItem is the schema descriptor for quest_item field.
+	itemDescQuestItem := itemFields[4].Descriptor()
+	// item.DefaultQuestItem holds the default value on creation for the quest_item field.
+	item.DefaultQuestItem = itemDescQuestItem.Default.(bool)
 	memoryFields := schema.Memory{}.Fields()
 	_ = memoryFields
 	// memoryDescCreatedAt is the schema descriptor for created_at field.
@@ -35,12 +69,86 @@ func init() {
 	npcDescNpcType := npcFields[2].Descriptor()
 	// npc.DefaultNpcType holds the default value on creation for the npc_type field.
 	npc.DefaultNpcType = npcDescNpcType.Default.(string)
+	// npcDescPersonalityPath is the schema descriptor for personality_path field.
+	npcDescPersonalityPath := npcFields[3].Descriptor()
+	// npc.PersonalityPathValidator is a validator for the "personality_path" field. It is called by the builders before save.
+	npc.PersonalityPathValidator = npcDescPersonalityPath.Validators[0].(func(string) error)
+	// npcDescBackstoryPath is the schema descriptor for backstory_path field.
+	npcDescBackstoryPath := npcFields[4].Descriptor()
+	// npc.BackstoryPathValidator is a validator for the "backstory_path" field. It is called by the builders before save.
+	npc.BackstoryPathValidator = npcDescBackstoryPath.Validators[0].(func(string) error)
+	// npcDescLorePath is the schema descriptor for lore_path field.
+	npcDescLorePath := npcFields[5].Descriptor()
+	// npc.LorePathValidator is a validator for the "lore_path" field. It is called by the builders before save.
+	npc.LorePathValidator = npcDescLorePath.Validators[0].(func(string) error)
 	// npcDescEmotions is the schema descriptor for emotions field.
-	npcDescEmotions := npcFields[3].Descriptor()
+	npcDescEmotions := npcFields[6].Descriptor()
 	// npc.DefaultEmotions holds the default value on creation for the emotions field.
 	npc.DefaultEmotions = npcDescEmotions.Default.(*schema.EmotionState)
 	// npcDescID is the schema descriptor for id field.
 	npcDescID := npcFields[0].Descriptor()
 	// npc.DefaultID holds the default value on creation for the id field.
 	npc.DefaultID = npcDescID.Default.(func() uuid.UUID)
+	playerFields := schema.Player{}.Fields()
+	_ = playerFields
+	// playerDescPlayerID is the schema descriptor for player_id field.
+	playerDescPlayerID := playerFields[1].Descriptor()
+	// player.PlayerIDValidator is a validator for the "player_id" field. It is called by the builders before save.
+	player.PlayerIDValidator = playerDescPlayerID.Validators[0].(func(string) error)
+	// playerDescPlayerName is the schema descriptor for player_name field.
+	playerDescPlayerName := playerFields[2].Descriptor()
+	// player.DefaultPlayerName holds the default value on creation for the player_name field.
+	player.DefaultPlayerName = playerDescPlayerName.Default.(string)
+	// playerDescPassword is the schema descriptor for password field.
+	playerDescPassword := playerFields[3].Descriptor()
+	// player.PasswordValidator is a validator for the "password" field. It is called by the builders before save.
+	player.PasswordValidator = playerDescPassword.Validators[0].(func(string) error)
+	// playerDescID is the schema descriptor for id field.
+	playerDescID := playerFields[0].Descriptor()
+	// player.DefaultID holds the default value on creation for the id field.
+	player.DefaultID = playerDescID.Default.(func() uuid.UUID)
+	playernpcrelationshipFields := schema.PlayerNPCRelationship{}.Fields()
+	_ = playernpcrelationshipFields
+	// playernpcrelationshipDescTrustLevel is the schema descriptor for trust_level field.
+	playernpcrelationshipDescTrustLevel := playernpcrelationshipFields[0].Descriptor()
+	// playernpcrelationship.DefaultTrustLevel holds the default value on creation for the trust_level field.
+	playernpcrelationship.DefaultTrustLevel = playernpcrelationshipDescTrustLevel.Default.(float64)
+	// playernpcrelationshipDescGiftCount is the schema descriptor for gift_count field.
+	playernpcrelationshipDescGiftCount := playernpcrelationshipFields[1].Descriptor()
+	// playernpcrelationship.DefaultGiftCount holds the default value on creation for the gift_count field.
+	playernpcrelationship.DefaultGiftCount = playernpcrelationshipDescGiftCount.Default.(int)
+	playerqueststateFields := schema.PlayerQuestState{}.Fields()
+	_ = playerqueststateFields
+	// playerqueststateDescQuestIdentifier is the schema descriptor for quest_identifier field.
+	playerqueststateDescQuestIdentifier := playerqueststateFields[0].Descriptor()
+	// playerqueststate.QuestIdentifierValidator is a validator for the "quest_identifier" field. It is called by the builders before save.
+	playerqueststate.QuestIdentifierValidator = playerqueststateDescQuestIdentifier.Validators[0].(func(string) error)
+	// playerqueststateDescCurrentStep is the schema descriptor for current_step field.
+	playerqueststateDescCurrentStep := playerqueststateFields[1].Descriptor()
+	// playerqueststate.DefaultCurrentStep holds the default value on creation for the current_step field.
+	playerqueststate.DefaultCurrentStep = playerqueststateDescCurrentStep.Default.(int)
+	// playerqueststateDescIsCompleted is the schema descriptor for is_completed field.
+	playerqueststateDescIsCompleted := playerqueststateFields[2].Descriptor()
+	// playerqueststate.DefaultIsCompleted holds the default value on creation for the is_completed field.
+	playerqueststate.DefaultIsCompleted = playerqueststateDescIsCompleted.Default.(bool)
+	// playerqueststateDescCompletionRate is the schema descriptor for completion_rate field.
+	playerqueststateDescCompletionRate := playerqueststateFields[3].Descriptor()
+	// playerqueststate.DefaultCompletionRate holds the default value on creation for the completion_rate field.
+	playerqueststate.DefaultCompletionRate = playerqueststateDescCompletionRate.Default.(float32)
+	questFields := schema.Quest{}.Fields()
+	_ = questFields
+	// questDescName is the schema descriptor for name field.
+	questDescName := questFields[1].Descriptor()
+	// quest.DefaultName holds the default value on creation for the name field.
+	quest.DefaultName = questDescName.Default.(string)
+	// quest.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	quest.NameValidator = questDescName.Validators[0].(func(string) error)
+	// questDescStaticDataPath is the schema descriptor for static_data_path field.
+	questDescStaticDataPath := questFields[2].Descriptor()
+	// quest.StaticDataPathValidator is a validator for the "static_data_path" field. It is called by the builders before save.
+	quest.StaticDataPathValidator = questDescStaticDataPath.Validators[0].(func(string) error)
+	// questDescID is the schema descriptor for id field.
+	questDescID := questFields[0].Descriptor()
+	// quest.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	quest.IDValidator = questDescID.Validators[0].(func(string) error)
 }

@@ -23,6 +23,12 @@ type NPC struct {
 	Name string `json:"name,omitempty"`
 	// NpcType holds the value of the "npc_type" field.
 	NpcType string `json:"npc_type,omitempty"`
+	// The file path to the NPC's static personality.json file.
+	PersonalityPath string `json:"personality_path,omitempty"`
+	// The file path to the NPC's static backstory.json file.
+	BackstoryPath string `json:"backstory_path,omitempty"`
+	// The file path to the NPC's static lore.json file.
+	LorePath string `json:"lore_path,omitempty"`
 	// Emotions holds the value of the "emotions" field.
 	Emotions *schema.EmotionState `json:"emotions,omitempty"`
 	// CurrentGoals holds the value of the "current_goals" field.
@@ -37,9 +43,11 @@ type NPC struct {
 type NPCEdges struct {
 	// Memories holds the value of the memories edge.
 	Memories []*Memory `json:"memories,omitempty"`
+	// PlayerRelationships holds the value of the player_relationships edge.
+	PlayerRelationships []*PlayerNPCRelationship `json:"player_relationships,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // MemoriesOrErr returns the Memories value or an error if the edge
@@ -51,6 +59,15 @@ func (e NPCEdges) MemoriesOrErr() ([]*Memory, error) {
 	return nil, &NotLoadedError{edge: "memories"}
 }
 
+// PlayerRelationshipsOrErr returns the PlayerRelationships value or an error if the edge
+// was not loaded in eager-loading.
+func (e NPCEdges) PlayerRelationshipsOrErr() ([]*PlayerNPCRelationship, error) {
+	if e.loadedTypes[1] {
+		return e.PlayerRelationships, nil
+	}
+	return nil, &NotLoadedError{edge: "player_relationships"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*NPC) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -58,7 +75,7 @@ func (*NPC) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case npc.FieldEmotions, npc.FieldCurrentGoals:
 			values[i] = new([]byte)
-		case npc.FieldName, npc.FieldNpcType:
+		case npc.FieldName, npc.FieldNpcType, npc.FieldPersonalityPath, npc.FieldBackstoryPath, npc.FieldLorePath:
 			values[i] = new(sql.NullString)
 		case npc.FieldID:
 			values[i] = new(uuid.UUID)
@@ -95,6 +112,24 @@ func (_m *NPC) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.NpcType = value.String
 			}
+		case npc.FieldPersonalityPath:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field personality_path", values[i])
+			} else if value.Valid {
+				_m.PersonalityPath = value.String
+			}
+		case npc.FieldBackstoryPath:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field backstory_path", values[i])
+			} else if value.Valid {
+				_m.BackstoryPath = value.String
+			}
+		case npc.FieldLorePath:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field lore_path", values[i])
+			} else if value.Valid {
+				_m.LorePath = value.String
+			}
 		case npc.FieldEmotions:
 			if value, ok := values[i].(*[]byte); !ok {
 				return fmt.Errorf("unexpected type %T for field emotions", values[i])
@@ -129,6 +164,11 @@ func (_m *NPC) QueryMemories() *MemoryQuery {
 	return NewNPCClient(_m.config).QueryMemories(_m)
 }
 
+// QueryPlayerRelationships queries the "player_relationships" edge of the NPC entity.
+func (_m *NPC) QueryPlayerRelationships() *PlayerNPCRelationshipQuery {
+	return NewNPCClient(_m.config).QueryPlayerRelationships(_m)
+}
+
 // Update returns a builder for updating this NPC.
 // Note that you need to call NPC.Unwrap() before calling this method if this NPC
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -157,6 +197,15 @@ func (_m *NPC) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("npc_type=")
 	builder.WriteString(_m.NpcType)
+	builder.WriteString(", ")
+	builder.WriteString("personality_path=")
+	builder.WriteString(_m.PersonalityPath)
+	builder.WriteString(", ")
+	builder.WriteString("backstory_path=")
+	builder.WriteString(_m.BackstoryPath)
+	builder.WriteString(", ")
+	builder.WriteString("lore_path=")
+	builder.WriteString(_m.LorePath)
 	builder.WriteString(", ")
 	builder.WriteString("emotions=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Emotions))

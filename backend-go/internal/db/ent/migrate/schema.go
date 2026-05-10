@@ -8,6 +8,55 @@ import (
 )
 
 var (
+	// InventoryItemsColumns holds the columns for the "inventory_items" table.
+	InventoryItemsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "quantity", Type: field.TypeInt, Default: 1},
+		{Name: "item_inventory_items", Type: field.TypeInt},
+		{Name: "player_inventory", Type: field.TypeUUID},
+	}
+	// InventoryItemsTable holds the schema information for the "inventory_items" table.
+	InventoryItemsTable = &schema.Table{
+		Name:       "inventory_items",
+		Columns:    InventoryItemsColumns,
+		PrimaryKey: []*schema.Column{InventoryItemsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "inventory_items_items_inventory_items",
+				Columns:    []*schema.Column{InventoryItemsColumns[2]},
+				RefColumns: []*schema.Column{ItemsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "inventory_items_players_inventory",
+				Columns:    []*schema.Column{InventoryItemsColumns[3]},
+				RefColumns: []*schema.Column{PlayersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "inventoryitem_player_inventory_item_inventory_items",
+				Unique:  true,
+				Columns: []*schema.Column{InventoryItemsColumns[3], InventoryItemsColumns[2]},
+			},
+		},
+	}
+	// ItemsColumns holds the columns for the "items" table.
+	ItemsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "item_id", Type: field.TypeString, Unique: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "rarity", Type: field.TypeString},
+		{Name: "base_trust_value", Type: field.TypeFloat64, Default: 0},
+		{Name: "quest_item", Type: field.TypeBool, Default: false},
+	}
+	// ItemsTable holds the schema information for the "items" table.
+	ItemsTable = &schema.Table{
+		Name:       "items",
+		Columns:    ItemsColumns,
+		PrimaryKey: []*schema.Column{ItemsColumns[0]},
+	}
 	// MemoriesColumns holds the columns for the "memories" table.
 	MemoriesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -35,8 +84,11 @@ var (
 	// NpCsColumns holds the columns for the "np_cs" table.
 	NpCsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
-		{Name: "name", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "npc_type", Type: field.TypeString, Default: "villager"},
+		{Name: "personality_path", Type: field.TypeString},
+		{Name: "backstory_path", Type: field.TypeString},
+		{Name: "lore_path", Type: field.TypeString},
 		{Name: "emotions", Type: field.TypeJSON},
 		{Name: "current_goals", Type: field.TypeJSON, Nullable: true},
 	}
@@ -46,13 +98,122 @@ var (
 		Columns:    NpCsColumns,
 		PrimaryKey: []*schema.Column{NpCsColumns[0]},
 	}
+	// PlayersColumns holds the columns for the "players" table.
+	PlayersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "player_id", Type: field.TypeString, Unique: true},
+		{Name: "player_name", Type: field.TypeString, Default: "Adventurer"},
+		{Name: "password", Type: field.TypeString},
+	}
+	// PlayersTable holds the schema information for the "players" table.
+	PlayersTable = &schema.Table{
+		Name:       "players",
+		Columns:    PlayersColumns,
+		PrimaryKey: []*schema.Column{PlayersColumns[0]},
+	}
+	// PlayerNpcRelationshipsColumns holds the columns for the "player_npc_relationships" table.
+	PlayerNpcRelationshipsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "trust_level", Type: field.TypeFloat64, Default: 0},
+		{Name: "gift_count", Type: field.TypeInt, Default: 0},
+		{Name: "npc_player_relationships", Type: field.TypeUUID},
+		{Name: "player_npc_relationships", Type: field.TypeUUID},
+	}
+	// PlayerNpcRelationshipsTable holds the schema information for the "player_npc_relationships" table.
+	PlayerNpcRelationshipsTable = &schema.Table{
+		Name:       "player_npc_relationships",
+		Columns:    PlayerNpcRelationshipsColumns,
+		PrimaryKey: []*schema.Column{PlayerNpcRelationshipsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "player_npc_relationships_np_cs_player_relationships",
+				Columns:    []*schema.Column{PlayerNpcRelationshipsColumns[3]},
+				RefColumns: []*schema.Column{NpCsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "player_npc_relationships_players_npc_relationships",
+				Columns:    []*schema.Column{PlayerNpcRelationshipsColumns[4]},
+				RefColumns: []*schema.Column{PlayersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "playernpcrelationship_player_npc_relationships_npc_player_relationships",
+				Unique:  true,
+				Columns: []*schema.Column{PlayerNpcRelationshipsColumns[4], PlayerNpcRelationshipsColumns[3]},
+			},
+		},
+	}
+	// PlayerQuestStatesColumns holds the columns for the "player_quest_states" table.
+	PlayerQuestStatesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "quest_identifier", Type: field.TypeString},
+		{Name: "current_step", Type: field.TypeInt, Default: 1},
+		{Name: "is_completed", Type: field.TypeBool, Default: false},
+		{Name: "completion_rate", Type: field.TypeFloat32, Default: 0},
+		{Name: "player_quest_states", Type: field.TypeUUID},
+		{Name: "quest_player_quest_states", Type: field.TypeString},
+	}
+	// PlayerQuestStatesTable holds the schema information for the "player_quest_states" table.
+	PlayerQuestStatesTable = &schema.Table{
+		Name:       "player_quest_states",
+		Columns:    PlayerQuestStatesColumns,
+		PrimaryKey: []*schema.Column{PlayerQuestStatesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "player_quest_states_players_quest_states",
+				Columns:    []*schema.Column{PlayerQuestStatesColumns[5]},
+				RefColumns: []*schema.Column{PlayersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "player_quest_states_quests_player_quest_states",
+				Columns:    []*schema.Column{PlayerQuestStatesColumns[6]},
+				RefColumns: []*schema.Column{QuestsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "playerqueststate_player_quest_states_quest_player_quest_states",
+				Unique:  true,
+				Columns: []*schema.Column{PlayerQuestStatesColumns[5], PlayerQuestStatesColumns[6]},
+			},
+		},
+	}
+	// QuestsColumns holds the columns for the "quests" table.
+	QuestsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "name", Type: field.TypeString, Default: "Untitled Quest"},
+		{Name: "static_data_path", Type: field.TypeString},
+	}
+	// QuestsTable holds the schema information for the "quests" table.
+	QuestsTable = &schema.Table{
+		Name:       "quests",
+		Columns:    QuestsColumns,
+		PrimaryKey: []*schema.Column{QuestsColumns[0]},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		InventoryItemsTable,
+		ItemsTable,
 		MemoriesTable,
 		NpCsTable,
+		PlayersTable,
+		PlayerNpcRelationshipsTable,
+		PlayerQuestStatesTable,
+		QuestsTable,
 	}
 )
 
 func init() {
+	InventoryItemsTable.ForeignKeys[0].RefTable = ItemsTable
+	InventoryItemsTable.ForeignKeys[1].RefTable = PlayersTable
 	MemoriesTable.ForeignKeys[0].RefTable = NpCsTable
+	PlayerNpcRelationshipsTable.ForeignKeys[0].RefTable = NpCsTable
+	PlayerNpcRelationshipsTable.ForeignKeys[1].RefTable = PlayersTable
+	PlayerQuestStatesTable.ForeignKeys[0].RefTable = PlayersTable
+	PlayerQuestStatesTable.ForeignKeys[1].RefTable = QuestsTable
 }

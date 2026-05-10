@@ -26,7 +26,8 @@ if _version_not_supported:
 
 
 class AIBrainStub(object):
-    """Missing associated documentation comment in .proto file."""
+    """The AIBrain service definition.
+    """
 
     def __init__(self, channel):
         """Constructor.
@@ -42,7 +43,8 @@ class AIBrainStub(object):
 
 
 class AIBrainServicer(object):
-    """Missing associated documentation comment in .proto file."""
+    """The AIBrain service definition.
+    """
 
     def Think(self, request, context):
         """Missing associated documentation comment in .proto file."""
@@ -67,7 +69,8 @@ def add_AIBrainServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class AIBrain(object):
-    """Missing associated documentation comment in .proto file."""
+    """The AIBrain service definition.
+    """
 
     @staticmethod
     def Think(request,

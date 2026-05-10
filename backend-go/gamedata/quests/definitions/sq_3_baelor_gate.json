@@ -1,0 +1,38 @@
+{
+  "quest_id": "sq_3_baelor_gate",
+  "name": "The Distrustful Blacksmith",
+  "description": "Elara told me I need a special, non-metallic tool to harvest the Mindbloom Petal. She said only Baelor the Blacksmith knows how to make one from obsidian, but he's wary of strangers.",
+
+  "steps": {
+    "1": {
+      "name": "Commission the Glimmering Trowel",
+      "description": "I need to ask Baelor about crafting an 'obsidian tool'.",
+
+      "preconditions": [
+        {
+          "type": "RELATIONSHIP_TRUST",
+          "target_npc_name": "Baelor",
+          "operator": "GREATER_THAN",
+          "value": 0.4
+        }
+      ],
+
+      "completion_trigger": {
+        "event_type": "PLAYER_ASKED_QUESTION",
+        "target_npc_name": "Baelor",
+        "keyword": "obsidian"
+      },
+
+      "fail_response": {
+        "action_type": "SPEAK",
+        "content": "An obsidian tool? Why would I make a rare thing like that for a stranger? I'm busy. Get lost."
+      },
+
+      "rewards": {
+        "xp": 150,
+        "gives_item": "Glimmering Trowel",
+        "unlocks_quest_id": "sq_5_petal_return"
+      }
+    }
+  }
+}

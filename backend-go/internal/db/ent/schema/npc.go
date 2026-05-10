@@ -25,27 +25,45 @@ type NPC struct {
 // Fields of the NPC.
 func (NPC) Fields() []ent.Field {
 	return []ent.Field{
-		// The primary key will be a UUID for uniqueness across systems.
+		// The unique ID for this NPC
 		field.UUID("id", uuid.UUID{}).
 			Default(uuid.New).
 			Unique(),
 
-		// The NPC's given name.
+		// The unique in-game name, e.g., "Elian", "Baelor"
 		field.String("name").
-			NotEmpty(),
+			NotEmpty().
+			Unique(),
 
-		// The NPC's type or role, e.g., "merchant", "guard".
+		// The "occupation" or role, e.g., "Herbalist", "Blacksmith"
 		field.String("npc_type").
 			Default("villager"),
 
-		// We will store the complex EmotionState struct as a JSON field.
-		// `ent` will automatically handle marshalling/unmarshalling.
-		// This is the new version
-		field.JSON("emotions", &EmotionState{}).
-			Default(new(EmotionState)), // Set a default value for new NPCs
+		// --- STATIC DATA PATHS (Your New Design) ---
+		// The Python AI service will load these files on startup.
 
-		// We will store the NPC's current goals as an array of strings.
-		// This will also be stored as a JSON array.
+		// Path to the .txt file containing the NPC's personality.
+		field.String("personality_path").
+			NotEmpty().
+			Comment("The file path to the NPC's static personality.json file."),
+
+		// Path to the .txt file containing the NPC's backstory.
+		field.String("backstory_path").
+			NotEmpty().
+			Comment("The file path to the NPC's static backstory.json file."),
+
+		// Path to the .txt file containing the NPC's specific lore knowledge.
+		field.String("lore_path").
+			NotEmpty().
+			Comment("The file path to the NPC's static lore.json file."),
+
+		// --- DYNAMIC STATE ---
+
+		// The NPC's current, changing emotional state.
+		field.JSON("emotions", new(EmotionState)).
+			Default(new(EmotionState)),
+
+		// The NPC's current, changing list of active goals.
 		field.Strings("current_goals").
 			Optional(),
 	}
@@ -53,9 +71,12 @@ func (NPC) Fields() []ent.Field {
 
 // Edges of the NPC.
 func (NPC) Edges() []ent.Edge {
-	// This defines a "one-to-many" relationship.
-	// One NPC can have many memories.
 	return []ent.Edge{
-		edge.To("memories", Memory.Type), // The edge is named "memories" and connects to the Memory type.
+		// An NPC can have many memories.
+		edge.To("memories", Memory.Type),
+
+		// --- THIS IS THE FIX ---
+		// An NPC can have many relationships (one for each player).
+		edge.To("player_relationships", PlayerNPCRelationship.Type),
 	}
 }

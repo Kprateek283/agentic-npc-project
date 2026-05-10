@@ -5,6 +5,7 @@ package ent
 import (
 	"agentic-npc-backend/internal/db/ent/memory"
 	"agentic-npc-backend/internal/db/ent/npc"
+	"agentic-npc-backend/internal/db/ent/playernpcrelationship"
 	"agentic-npc-backend/internal/db/ent/predicate"
 	"context"
 	"database/sql/driver"
@@ -21,11 +22,12 @@ import (
 // NPCQuery is the builder for querying NPC entities.
 type NPCQuery struct {
 	config
-	ctx          *QueryContext
-	order        []npc.OrderOption
-	inters       []Interceptor
-	predicates   []predicate.NPC
-	withMemories *MemoryQuery
+	ctx                     *QueryContext
+	order                   []npc.OrderOption
+	inters                  []Interceptor
+	predicates              []predicate.NPC
+	withMemories            *MemoryQuery
+	withPlayerRelationships *PlayerNPCRelationshipQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -77,6 +79,28 @@ func (_q *NPCQuery) QueryMemories() *MemoryQuery {
 			sqlgraph.From(npc.Table, npc.FieldID, selector),
 			sqlgraph.To(memory.Table, memory.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, npc.MemoriesTable, npc.MemoriesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPlayerRelationships chains the current query on the "player_relationships" edge.
+func (_q *NPCQuery) QueryPlayerRelationships() *PlayerNPCRelationshipQuery {
+	query := (&PlayerNPCRelationshipClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(npc.Table, npc.FieldID, selector),
+			sqlgraph.To(playernpcrelationship.Table, playernpcrelationship.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, npc.PlayerRelationshipsTable, npc.PlayerRelationshipsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -271,12 +295,13 @@ func (_q *NPCQuery) Clone() *NPCQuery {
 		return nil
 	}
 	return &NPCQuery{
-		config:       _q.config,
-		ctx:          _q.ctx.Clone(),
-		order:        append([]npc.OrderOption{}, _q.order...),
-		inters:       append([]Interceptor{}, _q.inters...),
-		predicates:   append([]predicate.NPC{}, _q.predicates...),
-		withMemories: _q.withMemories.Clone(),
+		config:                  _q.config,
+		ctx:                     _q.ctx.Clone(),
+		order:                   append([]npc.OrderOption{}, _q.order...),
+		inters:                  append([]Interceptor{}, _q.inters...),
+		predicates:              append([]predicate.NPC{}, _q.predicates...),
+		withMemories:            _q.withMemories.Clone(),
+		withPlayerRelationships: _q.withPlayerRelationships.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -291,6 +316,17 @@ func (_q *NPCQuery) WithMemories(opts ...func(*MemoryQuery)) *NPCQuery {
 		opt(query)
 	}
 	_q.withMemories = query
+	return _q
+}
+
+// WithPlayerRelationships tells the query-builder to eager-load the nodes that are connected to
+// the "player_relationships" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *NPCQuery) WithPlayerRelationships(opts ...func(*PlayerNPCRelationshipQuery)) *NPCQuery {
+	query := (&PlayerNPCRelationshipClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withPlayerRelationships = query
 	return _q
 }
 
@@ -372,8 +408,9 @@ func (_q *NPCQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*NPC, err
 	var (
 		nodes       = []*NPC{}
 		_spec       = _q.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			_q.withMemories != nil,
+			_q.withPlayerRelationships != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -398,6 +435,15 @@ func (_q *NPCQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*NPC, err
 		if err := _q.loadMemories(ctx, query, nodes,
 			func(n *NPC) { n.Edges.Memories = []*Memory{} },
 			func(n *NPC, e *Memory) { n.Edges.Memories = append(n.Edges.Memories, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withPlayerRelationships; query != nil {
+		if err := _q.loadPlayerRelationships(ctx, query, nodes,
+			func(n *NPC) { n.Edges.PlayerRelationships = []*PlayerNPCRelationship{} },
+			func(n *NPC, e *PlayerNPCRelationship) {
+				n.Edges.PlayerRelationships = append(n.Edges.PlayerRelationships, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -430,6 +476,37 @@ func (_q *NPCQuery) loadMemories(ctx context.Context, query *MemoryQuery, nodes 
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "npc_memories" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *NPCQuery) loadPlayerRelationships(ctx context.Context, query *PlayerNPCRelationshipQuery, nodes []*NPC, init func(*NPC), assign func(*NPC, *PlayerNPCRelationship)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*NPC)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.PlayerNPCRelationship(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(npc.PlayerRelationshipsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.npc_player_relationships
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "npc_player_relationships" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "npc_player_relationships" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

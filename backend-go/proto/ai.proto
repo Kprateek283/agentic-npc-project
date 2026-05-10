@@ -3,10 +3,12 @@ syntax = "proto3";
 package ai;
 option go_package = "./internal/proto";
 
+// The AIBrain service definition.
 service AIBrain {
   rpc Think(EventRequest) returns (ActionResponse) {}
 }
 
+// --- (MemoryMessage and EmotionStateMessage are unchanged) ---
 message MemoryMessage {
   string description = 1;
   double importance = 2;
@@ -22,19 +24,32 @@ message EmotionStateMessage {
   double trust = 5;
 }
 
-message EventRequest {
-  string event_type = 1;
-  string target_npc_id = 2;
-  repeated MemoryMessage recent_memories = 3;
-  EmotionStateMessage current_emotions = 4;
 
-  // --- NEW FIELD ---
-  // The text of the player's question. This will be empty for simple events.
-  string question_text = 5;
-  // -----------------
+// --- THIS IS THE UPDATED REQUEST MESSAGE ---
+message EventRequest {
+  // Static paths (the "key" for the Python agent)
+  string personality_path = 1;
+  string backstory_path = 2;
+  string lore_path = 3;
+
+  // Dynamic context (the "payload")
+  EmotionStateMessage current_emotions = 4;
+  repeated MemoryMessage recent_memories = 5;
+
+  // Event details
+  string event_type = 6;
+  string question_text = 7;
+  string source_entity_id = 8;
+
+  // --- NEW FIELDS FOR QUEST CONTEXT ---
+  int32 current_quest_step = 9;
+  float completion_rate = 10;
+  // ------------------------------------
 }
+// ------------------------------------------
 
 message ActionResponse {
   string action_type = 1;
   string content = 2;
 }
+

@@ -1,0 +1,41 @@
+{
+  "quest_id": "sq_1_elian_intro",
+  "name": "An Anxious Brother",
+  "description": "Elian, the villager, seems deeply troubled. Perhaps if I prove myself as a capable person, he might trust me with what's wrong.",
+
+  "steps": {
+    "1": {
+      "name": "Talk to Elian",
+      "description": "Elian is often seen muttering to himself near the village square. I should try to speak with him.",
+
+      "preconditions": [
+        {
+          "type": "QUEST_COMPLETED",
+          "quest_id": "sq_0_prove_your_worth"
+        },
+        {
+          "type": "RELATIONSHIP_TRUST",
+          "target_npc_name": "Elian",
+          "operator": "GREATER_THAN",
+          "value": 0.3
+        }
+      ],
+
+      "completion_trigger": {
+        "event_type": "PLAYER_INTERACT",
+        "target_npc_name": "Elian"
+      },
+
+      "fail_response": {
+        "action_type": "SPEAK",
+        "content": "I... I can't talk right now. I'm sorry. I have too much on my mind."
+      },
+
+      "rewards": {
+        "xp": 50,
+        "unlocks_quest_id": "sq_2_elara_research"
+      }
+    }
+  }
+}
+

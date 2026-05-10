@@ -5,6 +5,7 @@ package ent
 import (
 	"agentic-npc-backend/internal/db/ent/memory"
 	"agentic-npc-backend/internal/db/ent/npc"
+	"agentic-npc-backend/internal/db/ent/playernpcrelationship"
 	"agentic-npc-backend/internal/db/ent/predicate"
 	"agentic-npc-backend/internal/db/ent/schema"
 	"context"
@@ -58,6 +59,48 @@ func (_u *NPCUpdate) SetNillableNpcType(v *string) *NPCUpdate {
 	return _u
 }
 
+// SetPersonalityPath sets the "personality_path" field.
+func (_u *NPCUpdate) SetPersonalityPath(v string) *NPCUpdate {
+	_u.mutation.SetPersonalityPath(v)
+	return _u
+}
+
+// SetNillablePersonalityPath sets the "personality_path" field if the given value is not nil.
+func (_u *NPCUpdate) SetNillablePersonalityPath(v *string) *NPCUpdate {
+	if v != nil {
+		_u.SetPersonalityPath(*v)
+	}
+	return _u
+}
+
+// SetBackstoryPath sets the "backstory_path" field.
+func (_u *NPCUpdate) SetBackstoryPath(v string) *NPCUpdate {
+	_u.mutation.SetBackstoryPath(v)
+	return _u
+}
+
+// SetNillableBackstoryPath sets the "backstory_path" field if the given value is not nil.
+func (_u *NPCUpdate) SetNillableBackstoryPath(v *string) *NPCUpdate {
+	if v != nil {
+		_u.SetBackstoryPath(*v)
+	}
+	return _u
+}
+
+// SetLorePath sets the "lore_path" field.
+func (_u *NPCUpdate) SetLorePath(v string) *NPCUpdate {
+	_u.mutation.SetLorePath(v)
+	return _u
+}
+
+// SetNillableLorePath sets the "lore_path" field if the given value is not nil.
+func (_u *NPCUpdate) SetNillableLorePath(v *string) *NPCUpdate {
+	if v != nil {
+		_u.SetLorePath(*v)
+	}
+	return _u
+}
+
 // SetEmotions sets the "emotions" field.
 func (_u *NPCUpdate) SetEmotions(v *schema.EmotionState) *NPCUpdate {
 	_u.mutation.SetEmotions(v)
@@ -97,6 +140,21 @@ func (_u *NPCUpdate) AddMemories(v ...*Memory) *NPCUpdate {
 	return _u.AddMemoryIDs(ids...)
 }
 
+// AddPlayerRelationshipIDs adds the "player_relationships" edge to the PlayerNPCRelationship entity by IDs.
+func (_u *NPCUpdate) AddPlayerRelationshipIDs(ids ...int) *NPCUpdate {
+	_u.mutation.AddPlayerRelationshipIDs(ids...)
+	return _u
+}
+
+// AddPlayerRelationships adds the "player_relationships" edges to the PlayerNPCRelationship entity.
+func (_u *NPCUpdate) AddPlayerRelationships(v ...*PlayerNPCRelationship) *NPCUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPlayerRelationshipIDs(ids...)
+}
+
 // Mutation returns the NPCMutation object of the builder.
 func (_u *NPCUpdate) Mutation() *NPCMutation {
 	return _u.mutation
@@ -121,6 +179,27 @@ func (_u *NPCUpdate) RemoveMemories(v ...*Memory) *NPCUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveMemoryIDs(ids...)
+}
+
+// ClearPlayerRelationships clears all "player_relationships" edges to the PlayerNPCRelationship entity.
+func (_u *NPCUpdate) ClearPlayerRelationships() *NPCUpdate {
+	_u.mutation.ClearPlayerRelationships()
+	return _u
+}
+
+// RemovePlayerRelationshipIDs removes the "player_relationships" edge to PlayerNPCRelationship entities by IDs.
+func (_u *NPCUpdate) RemovePlayerRelationshipIDs(ids ...int) *NPCUpdate {
+	_u.mutation.RemovePlayerRelationshipIDs(ids...)
+	return _u
+}
+
+// RemovePlayerRelationships removes "player_relationships" edges to PlayerNPCRelationship entities.
+func (_u *NPCUpdate) RemovePlayerRelationships(v ...*PlayerNPCRelationship) *NPCUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePlayerRelationshipIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -157,6 +236,21 @@ func (_u *NPCUpdate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "NPC.name": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.PersonalityPath(); ok {
+		if err := npc.PersonalityPathValidator(v); err != nil {
+			return &ValidationError{Name: "personality_path", err: fmt.Errorf(`ent: validator failed for field "NPC.personality_path": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.BackstoryPath(); ok {
+		if err := npc.BackstoryPathValidator(v); err != nil {
+			return &ValidationError{Name: "backstory_path", err: fmt.Errorf(`ent: validator failed for field "NPC.backstory_path": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.LorePath(); ok {
+		if err := npc.LorePathValidator(v); err != nil {
+			return &ValidationError{Name: "lore_path", err: fmt.Errorf(`ent: validator failed for field "NPC.lore_path": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -177,6 +271,15 @@ func (_u *NPCUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.NpcType(); ok {
 		_spec.SetField(npc.FieldNpcType, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.PersonalityPath(); ok {
+		_spec.SetField(npc.FieldPersonalityPath, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.BackstoryPath(); ok {
+		_spec.SetField(npc.FieldBackstoryPath, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.LorePath(); ok {
+		_spec.SetField(npc.FieldLorePath, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Emotions(); ok {
 		_spec.SetField(npc.FieldEmotions, field.TypeJSON, value)
@@ -237,6 +340,51 @@ func (_u *NPCUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.PlayerRelationshipsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   npc.PlayerRelationshipsTable,
+			Columns: []string{npc.PlayerRelationshipsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(playernpcrelationship.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPlayerRelationshipsIDs(); len(nodes) > 0 && !_u.mutation.PlayerRelationshipsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   npc.PlayerRelationshipsTable,
+			Columns: []string{npc.PlayerRelationshipsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(playernpcrelationship.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PlayerRelationshipsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   npc.PlayerRelationshipsTable,
+			Columns: []string{npc.PlayerRelationshipsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(playernpcrelationship.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{npc.Label}
@@ -285,6 +433,48 @@ func (_u *NPCUpdateOne) SetNillableNpcType(v *string) *NPCUpdateOne {
 	return _u
 }
 
+// SetPersonalityPath sets the "personality_path" field.
+func (_u *NPCUpdateOne) SetPersonalityPath(v string) *NPCUpdateOne {
+	_u.mutation.SetPersonalityPath(v)
+	return _u
+}
+
+// SetNillablePersonalityPath sets the "personality_path" field if the given value is not nil.
+func (_u *NPCUpdateOne) SetNillablePersonalityPath(v *string) *NPCUpdateOne {
+	if v != nil {
+		_u.SetPersonalityPath(*v)
+	}
+	return _u
+}
+
+// SetBackstoryPath sets the "backstory_path" field.
+func (_u *NPCUpdateOne) SetBackstoryPath(v string) *NPCUpdateOne {
+	_u.mutation.SetBackstoryPath(v)
+	return _u
+}
+
+// SetNillableBackstoryPath sets the "backstory_path" field if the given value is not nil.
+func (_u *NPCUpdateOne) SetNillableBackstoryPath(v *string) *NPCUpdateOne {
+	if v != nil {
+		_u.SetBackstoryPath(*v)
+	}
+	return _u
+}
+
+// SetLorePath sets the "lore_path" field.
+func (_u *NPCUpdateOne) SetLorePath(v string) *NPCUpdateOne {
+	_u.mutation.SetLorePath(v)
+	return _u
+}
+
+// SetNillableLorePath sets the "lore_path" field if the given value is not nil.
+func (_u *NPCUpdateOne) SetNillableLorePath(v *string) *NPCUpdateOne {
+	if v != nil {
+		_u.SetLorePath(*v)
+	}
+	return _u
+}
+
 // SetEmotions sets the "emotions" field.
 func (_u *NPCUpdateOne) SetEmotions(v *schema.EmotionState) *NPCUpdateOne {
 	_u.mutation.SetEmotions(v)
@@ -324,6 +514,21 @@ func (_u *NPCUpdateOne) AddMemories(v ...*Memory) *NPCUpdateOne {
 	return _u.AddMemoryIDs(ids...)
 }
 
+// AddPlayerRelationshipIDs adds the "player_relationships" edge to the PlayerNPCRelationship entity by IDs.
+func (_u *NPCUpdateOne) AddPlayerRelationshipIDs(ids ...int) *NPCUpdateOne {
+	_u.mutation.AddPlayerRelationshipIDs(ids...)
+	return _u
+}
+
+// AddPlayerRelationships adds the "player_relationships" edges to the PlayerNPCRelationship entity.
+func (_u *NPCUpdateOne) AddPlayerRelationships(v ...*PlayerNPCRelationship) *NPCUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddPlayerRelationshipIDs(ids...)
+}
+
 // Mutation returns the NPCMutation object of the builder.
 func (_u *NPCUpdateOne) Mutation() *NPCMutation {
 	return _u.mutation
@@ -348,6 +553,27 @@ func (_u *NPCUpdateOne) RemoveMemories(v ...*Memory) *NPCUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveMemoryIDs(ids...)
+}
+
+// ClearPlayerRelationships clears all "player_relationships" edges to the PlayerNPCRelationship entity.
+func (_u *NPCUpdateOne) ClearPlayerRelationships() *NPCUpdateOne {
+	_u.mutation.ClearPlayerRelationships()
+	return _u
+}
+
+// RemovePlayerRelationshipIDs removes the "player_relationships" edge to PlayerNPCRelationship entities by IDs.
+func (_u *NPCUpdateOne) RemovePlayerRelationshipIDs(ids ...int) *NPCUpdateOne {
+	_u.mutation.RemovePlayerRelationshipIDs(ids...)
+	return _u
+}
+
+// RemovePlayerRelationships removes "player_relationships" edges to PlayerNPCRelationship entities.
+func (_u *NPCUpdateOne) RemovePlayerRelationships(v ...*PlayerNPCRelationship) *NPCUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemovePlayerRelationshipIDs(ids...)
 }
 
 // Where appends a list predicates to the NPCUpdate builder.
@@ -397,6 +623,21 @@ func (_u *NPCUpdateOne) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "NPC.name": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.PersonalityPath(); ok {
+		if err := npc.PersonalityPathValidator(v); err != nil {
+			return &ValidationError{Name: "personality_path", err: fmt.Errorf(`ent: validator failed for field "NPC.personality_path": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.BackstoryPath(); ok {
+		if err := npc.BackstoryPathValidator(v); err != nil {
+			return &ValidationError{Name: "backstory_path", err: fmt.Errorf(`ent: validator failed for field "NPC.backstory_path": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.LorePath(); ok {
+		if err := npc.LorePathValidator(v); err != nil {
+			return &ValidationError{Name: "lore_path", err: fmt.Errorf(`ent: validator failed for field "NPC.lore_path": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -434,6 +675,15 @@ func (_u *NPCUpdateOne) sqlSave(ctx context.Context) (_node *NPC, err error) {
 	}
 	if value, ok := _u.mutation.NpcType(); ok {
 		_spec.SetField(npc.FieldNpcType, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.PersonalityPath(); ok {
+		_spec.SetField(npc.FieldPersonalityPath, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.BackstoryPath(); ok {
+		_spec.SetField(npc.FieldBackstoryPath, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.LorePath(); ok {
+		_spec.SetField(npc.FieldLorePath, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Emotions(); ok {
 		_spec.SetField(npc.FieldEmotions, field.TypeJSON, value)
@@ -487,6 +737,51 @@ func (_u *NPCUpdateOne) sqlSave(ctx context.Context) (_node *NPC, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(memory.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.PlayerRelationshipsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   npc.PlayerRelationshipsTable,
+			Columns: []string{npc.PlayerRelationshipsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(playernpcrelationship.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedPlayerRelationshipsIDs(); len(nodes) > 0 && !_u.mutation.PlayerRelationshipsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   npc.PlayerRelationshipsTable,
+			Columns: []string{npc.PlayerRelationshipsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(playernpcrelationship.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.PlayerRelationshipsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   npc.PlayerRelationshipsTable,
+			Columns: []string{npc.PlayerRelationshipsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(playernpcrelationship.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

@@ -1,0 +1,42 @@
+{
+  "quest_id": "sq_b1_proof_of_mettle",
+  "name": "Proof of Mettle",
+  "description": "Baelor the Blacksmith is a grump and won't talk to me. He mentioned needing 'Shadow-Iron Ore' from the old, collapsed mine. Maybe if I can retrieve some, he'll see I'm not useless.",
+  "quest_giver_name": "Baelor",
+  "steps": {
+    "1": {
+      "name": "Get the task from Baelor",
+      "description": "Speak to Baelor and try to get him to open up.",
+      "completion_trigger": {
+        "event_type": "PLAYER_INTERACT",
+        "target_npc_name": "Baelor"
+      },
+      "preconditions": [
+        {
+          "type": "QUEST_COMPLETED",
+          "quest_id": "sq_0_prove_your_worth"
+        }
+      ],
+      "fail_response": {"action_type":"SPEAK","content":"What do you want? I'm busy. Don't waste my time, adventurer."},
+      "rewards": {
+        "unlocks_step": "2"
+      }
+    },
+    "2": {
+      "name": "Retrieve Shadow-Iron Ore",
+      "description": "Baelor needs 3 pieces of Shadow-Iron Ore from the collapsed mine. It's dangerous, but it's the only way he'll respect me.",
+      "completion_trigger": {
+        "event_type": "PLAYER_SUBMITTED_QUEST_ITEM",
+        "target_npc_name": "Baelor",
+        "keyword": "Shadow-Iron Ore"
+      },
+      "rewards": {
+        "xp": 150,
+        "relationship_change": {
+          "target_npc_name": "Baelor",
+          "trust": "+0.5"
+        }
+      }
+    }
+  }
+}

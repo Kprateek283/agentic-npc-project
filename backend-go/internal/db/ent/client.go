@@ -11,8 +11,14 @@ import (
 
 	"agentic-npc-backend/internal/db/ent/migrate"
 
+	"agentic-npc-backend/internal/db/ent/inventoryitem"
+	"agentic-npc-backend/internal/db/ent/item"
 	"agentic-npc-backend/internal/db/ent/memory"
 	"agentic-npc-backend/internal/db/ent/npc"
+	"agentic-npc-backend/internal/db/ent/player"
+	"agentic-npc-backend/internal/db/ent/playernpcrelationship"
+	"agentic-npc-backend/internal/db/ent/playerqueststate"
+	"agentic-npc-backend/internal/db/ent/quest"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
@@ -26,10 +32,22 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// InventoryItem is the client for interacting with the InventoryItem builders.
+	InventoryItem *InventoryItemClient
+	// Item is the client for interacting with the Item builders.
+	Item *ItemClient
 	// Memory is the client for interacting with the Memory builders.
 	Memory *MemoryClient
 	// NPC is the client for interacting with the NPC builders.
 	NPC *NPCClient
+	// Player is the client for interacting with the Player builders.
+	Player *PlayerClient
+	// PlayerNPCRelationship is the client for interacting with the PlayerNPCRelationship builders.
+	PlayerNPCRelationship *PlayerNPCRelationshipClient
+	// PlayerQuestState is the client for interacting with the PlayerQuestState builders.
+	PlayerQuestState *PlayerQuestStateClient
+	// Quest is the client for interacting with the Quest builders.
+	Quest *QuestClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -41,8 +59,14 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.InventoryItem = NewInventoryItemClient(c.config)
+	c.Item = NewItemClient(c.config)
 	c.Memory = NewMemoryClient(c.config)
 	c.NPC = NewNPCClient(c.config)
+	c.Player = NewPlayerClient(c.config)
+	c.PlayerNPCRelationship = NewPlayerNPCRelationshipClient(c.config)
+	c.PlayerQuestState = NewPlayerQuestStateClient(c.config)
+	c.Quest = NewQuestClient(c.config)
 }
 
 type (
@@ -133,10 +157,16 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:    ctx,
-		config: cfg,
-		Memory: NewMemoryClient(cfg),
-		NPC:    NewNPCClient(cfg),
+		ctx:                   ctx,
+		config:                cfg,
+		InventoryItem:         NewInventoryItemClient(cfg),
+		Item:                  NewItemClient(cfg),
+		Memory:                NewMemoryClient(cfg),
+		NPC:                   NewNPCClient(cfg),
+		Player:                NewPlayerClient(cfg),
+		PlayerNPCRelationship: NewPlayerNPCRelationshipClient(cfg),
+		PlayerQuestState:      NewPlayerQuestStateClient(cfg),
+		Quest:                 NewQuestClient(cfg),
 	}, nil
 }
 
@@ -154,17 +184,23 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:    ctx,
-		config: cfg,
-		Memory: NewMemoryClient(cfg),
-		NPC:    NewNPCClient(cfg),
+		ctx:                   ctx,
+		config:                cfg,
+		InventoryItem:         NewInventoryItemClient(cfg),
+		Item:                  NewItemClient(cfg),
+		Memory:                NewMemoryClient(cfg),
+		NPC:                   NewNPCClient(cfg),
+		Player:                NewPlayerClient(cfg),
+		PlayerNPCRelationship: NewPlayerNPCRelationshipClient(cfg),
+		PlayerQuestState:      NewPlayerQuestStateClient(cfg),
+		Quest:                 NewQuestClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Memory.
+//		InventoryItem.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -186,26 +222,360 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.Memory.Use(hooks...)
-	c.NPC.Use(hooks...)
+	for _, n := range []interface{ Use(...Hook) }{
+		c.InventoryItem, c.Item, c.Memory, c.NPC, c.Player, c.PlayerNPCRelationship,
+		c.PlayerQuestState, c.Quest,
+	} {
+		n.Use(hooks...)
+	}
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.Memory.Intercept(interceptors...)
-	c.NPC.Intercept(interceptors...)
+	for _, n := range []interface{ Intercept(...Interceptor) }{
+		c.InventoryItem, c.Item, c.Memory, c.NPC, c.Player, c.PlayerNPCRelationship,
+		c.PlayerQuestState, c.Quest,
+	} {
+		n.Intercept(interceptors...)
+	}
 }
 
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *InventoryItemMutation:
+		return c.InventoryItem.mutate(ctx, m)
+	case *ItemMutation:
+		return c.Item.mutate(ctx, m)
 	case *MemoryMutation:
 		return c.Memory.mutate(ctx, m)
 	case *NPCMutation:
 		return c.NPC.mutate(ctx, m)
+	case *PlayerMutation:
+		return c.Player.mutate(ctx, m)
+	case *PlayerNPCRelationshipMutation:
+		return c.PlayerNPCRelationship.mutate(ctx, m)
+	case *PlayerQuestStateMutation:
+		return c.PlayerQuestState.mutate(ctx, m)
+	case *QuestMutation:
+		return c.Quest.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// InventoryItemClient is a client for the InventoryItem schema.
+type InventoryItemClient struct {
+	config
+}
+
+// NewInventoryItemClient returns a client for the InventoryItem from the given config.
+func NewInventoryItemClient(c config) *InventoryItemClient {
+	return &InventoryItemClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `inventoryitem.Hooks(f(g(h())))`.
+func (c *InventoryItemClient) Use(hooks ...Hook) {
+	c.hooks.InventoryItem = append(c.hooks.InventoryItem, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `inventoryitem.Intercept(f(g(h())))`.
+func (c *InventoryItemClient) Intercept(interceptors ...Interceptor) {
+	c.inters.InventoryItem = append(c.inters.InventoryItem, interceptors...)
+}
+
+// Create returns a builder for creating a InventoryItem entity.
+func (c *InventoryItemClient) Create() *InventoryItemCreate {
+	mutation := newInventoryItemMutation(c.config, OpCreate)
+	return &InventoryItemCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of InventoryItem entities.
+func (c *InventoryItemClient) CreateBulk(builders ...*InventoryItemCreate) *InventoryItemCreateBulk {
+	return &InventoryItemCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *InventoryItemClient) MapCreateBulk(slice any, setFunc func(*InventoryItemCreate, int)) *InventoryItemCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &InventoryItemCreateBulk{err: fmt.Errorf("calling to InventoryItemClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*InventoryItemCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &InventoryItemCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for InventoryItem.
+func (c *InventoryItemClient) Update() *InventoryItemUpdate {
+	mutation := newInventoryItemMutation(c.config, OpUpdate)
+	return &InventoryItemUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *InventoryItemClient) UpdateOne(_m *InventoryItem) *InventoryItemUpdateOne {
+	mutation := newInventoryItemMutation(c.config, OpUpdateOne, withInventoryItem(_m))
+	return &InventoryItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *InventoryItemClient) UpdateOneID(id int) *InventoryItemUpdateOne {
+	mutation := newInventoryItemMutation(c.config, OpUpdateOne, withInventoryItemID(id))
+	return &InventoryItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for InventoryItem.
+func (c *InventoryItemClient) Delete() *InventoryItemDelete {
+	mutation := newInventoryItemMutation(c.config, OpDelete)
+	return &InventoryItemDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *InventoryItemClient) DeleteOne(_m *InventoryItem) *InventoryItemDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *InventoryItemClient) DeleteOneID(id int) *InventoryItemDeleteOne {
+	builder := c.Delete().Where(inventoryitem.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &InventoryItemDeleteOne{builder}
+}
+
+// Query returns a query builder for InventoryItem.
+func (c *InventoryItemClient) Query() *InventoryItemQuery {
+	return &InventoryItemQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeInventoryItem},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a InventoryItem entity by its id.
+func (c *InventoryItemClient) Get(ctx context.Context, id int) (*InventoryItem, error) {
+	return c.Query().Where(inventoryitem.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *InventoryItemClient) GetX(ctx context.Context, id int) *InventoryItem {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryPlayer queries the player edge of a InventoryItem.
+func (c *InventoryItemClient) QueryPlayer(_m *InventoryItem) *PlayerQuery {
+	query := (&PlayerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(inventoryitem.Table, inventoryitem.FieldID, id),
+			sqlgraph.To(player.Table, player.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, inventoryitem.PlayerTable, inventoryitem.PlayerColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryItem queries the item edge of a InventoryItem.
+func (c *InventoryItemClient) QueryItem(_m *InventoryItem) *ItemQuery {
+	query := (&ItemClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(inventoryitem.Table, inventoryitem.FieldID, id),
+			sqlgraph.To(item.Table, item.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, inventoryitem.ItemTable, inventoryitem.ItemColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *InventoryItemClient) Hooks() []Hook {
+	return c.hooks.InventoryItem
+}
+
+// Interceptors returns the client interceptors.
+func (c *InventoryItemClient) Interceptors() []Interceptor {
+	return c.inters.InventoryItem
+}
+
+func (c *InventoryItemClient) mutate(ctx context.Context, m *InventoryItemMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&InventoryItemCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&InventoryItemUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&InventoryItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&InventoryItemDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown InventoryItem mutation op: %q", m.Op())
+	}
+}
+
+// ItemClient is a client for the Item schema.
+type ItemClient struct {
+	config
+}
+
+// NewItemClient returns a client for the Item from the given config.
+func NewItemClient(c config) *ItemClient {
+	return &ItemClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `item.Hooks(f(g(h())))`.
+func (c *ItemClient) Use(hooks ...Hook) {
+	c.hooks.Item = append(c.hooks.Item, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `item.Intercept(f(g(h())))`.
+func (c *ItemClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Item = append(c.inters.Item, interceptors...)
+}
+
+// Create returns a builder for creating a Item entity.
+func (c *ItemClient) Create() *ItemCreate {
+	mutation := newItemMutation(c.config, OpCreate)
+	return &ItemCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Item entities.
+func (c *ItemClient) CreateBulk(builders ...*ItemCreate) *ItemCreateBulk {
+	return &ItemCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ItemClient) MapCreateBulk(slice any, setFunc func(*ItemCreate, int)) *ItemCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ItemCreateBulk{err: fmt.Errorf("calling to ItemClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ItemCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ItemCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Item.
+func (c *ItemClient) Update() *ItemUpdate {
+	mutation := newItemMutation(c.config, OpUpdate)
+	return &ItemUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ItemClient) UpdateOne(_m *Item) *ItemUpdateOne {
+	mutation := newItemMutation(c.config, OpUpdateOne, withItem(_m))
+	return &ItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ItemClient) UpdateOneID(id int) *ItemUpdateOne {
+	mutation := newItemMutation(c.config, OpUpdateOne, withItemID(id))
+	return &ItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Item.
+func (c *ItemClient) Delete() *ItemDelete {
+	mutation := newItemMutation(c.config, OpDelete)
+	return &ItemDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ItemClient) DeleteOne(_m *Item) *ItemDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ItemClient) DeleteOneID(id int) *ItemDeleteOne {
+	builder := c.Delete().Where(item.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ItemDeleteOne{builder}
+}
+
+// Query returns a query builder for Item.
+func (c *ItemClient) Query() *ItemQuery {
+	return &ItemQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeItem},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Item entity by its id.
+func (c *ItemClient) Get(ctx context.Context, id int) (*Item, error) {
+	return c.Query().Where(item.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ItemClient) GetX(ctx context.Context, id int) *Item {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryInventoryItems queries the inventory_items edge of a Item.
+func (c *ItemClient) QueryInventoryItems(_m *Item) *InventoryItemQuery {
+	query := (&InventoryItemClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(item.Table, item.FieldID, id),
+			sqlgraph.To(inventoryitem.Table, inventoryitem.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, item.InventoryItemsTable, item.InventoryItemsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ItemClient) Hooks() []Hook {
+	return c.hooks.Item
+}
+
+// Interceptors returns the client interceptors.
+func (c *ItemClient) Interceptors() []Interceptor {
+	return c.inters.Item
+}
+
+func (c *ItemClient) mutate(ctx context.Context, m *ItemMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ItemCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ItemUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ItemDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Item mutation op: %q", m.Op())
 	}
 }
 
@@ -482,6 +852,22 @@ func (c *NPCClient) QueryMemories(_m *NPC) *MemoryQuery {
 	return query
 }
 
+// QueryPlayerRelationships queries the player_relationships edge of a NPC.
+func (c *NPCClient) QueryPlayerRelationships(_m *NPC) *PlayerNPCRelationshipQuery {
+	query := (&PlayerNPCRelationshipClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(npc.Table, npc.FieldID, id),
+			sqlgraph.To(playernpcrelationship.Table, playernpcrelationship.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, npc.PlayerRelationshipsTable, npc.PlayerRelationshipsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *NPCClient) Hooks() []Hook {
 	return c.hooks.NPC
@@ -507,12 +893,674 @@ func (c *NPCClient) mutate(ctx context.Context, m *NPCMutation) (Value, error) {
 	}
 }
 
+// PlayerClient is a client for the Player schema.
+type PlayerClient struct {
+	config
+}
+
+// NewPlayerClient returns a client for the Player from the given config.
+func NewPlayerClient(c config) *PlayerClient {
+	return &PlayerClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `player.Hooks(f(g(h())))`.
+func (c *PlayerClient) Use(hooks ...Hook) {
+	c.hooks.Player = append(c.hooks.Player, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `player.Intercept(f(g(h())))`.
+func (c *PlayerClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Player = append(c.inters.Player, interceptors...)
+}
+
+// Create returns a builder for creating a Player entity.
+func (c *PlayerClient) Create() *PlayerCreate {
+	mutation := newPlayerMutation(c.config, OpCreate)
+	return &PlayerCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Player entities.
+func (c *PlayerClient) CreateBulk(builders ...*PlayerCreate) *PlayerCreateBulk {
+	return &PlayerCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PlayerClient) MapCreateBulk(slice any, setFunc func(*PlayerCreate, int)) *PlayerCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PlayerCreateBulk{err: fmt.Errorf("calling to PlayerClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PlayerCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PlayerCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Player.
+func (c *PlayerClient) Update() *PlayerUpdate {
+	mutation := newPlayerMutation(c.config, OpUpdate)
+	return &PlayerUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PlayerClient) UpdateOne(_m *Player) *PlayerUpdateOne {
+	mutation := newPlayerMutation(c.config, OpUpdateOne, withPlayer(_m))
+	return &PlayerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PlayerClient) UpdateOneID(id uuid.UUID) *PlayerUpdateOne {
+	mutation := newPlayerMutation(c.config, OpUpdateOne, withPlayerID(id))
+	return &PlayerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Player.
+func (c *PlayerClient) Delete() *PlayerDelete {
+	mutation := newPlayerMutation(c.config, OpDelete)
+	return &PlayerDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PlayerClient) DeleteOne(_m *Player) *PlayerDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PlayerClient) DeleteOneID(id uuid.UUID) *PlayerDeleteOne {
+	builder := c.Delete().Where(player.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PlayerDeleteOne{builder}
+}
+
+// Query returns a query builder for Player.
+func (c *PlayerClient) Query() *PlayerQuery {
+	return &PlayerQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePlayer},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Player entity by its id.
+func (c *PlayerClient) Get(ctx context.Context, id uuid.UUID) (*Player, error) {
+	return c.Query().Where(player.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PlayerClient) GetX(ctx context.Context, id uuid.UUID) *Player {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryQuestStates queries the quest_states edge of a Player.
+func (c *PlayerClient) QueryQuestStates(_m *Player) *PlayerQuestStateQuery {
+	query := (&PlayerQuestStateClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(player.Table, player.FieldID, id),
+			sqlgraph.To(playerqueststate.Table, playerqueststate.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, player.QuestStatesTable, player.QuestStatesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryInventory queries the inventory edge of a Player.
+func (c *PlayerClient) QueryInventory(_m *Player) *InventoryItemQuery {
+	query := (&InventoryItemClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(player.Table, player.FieldID, id),
+			sqlgraph.To(inventoryitem.Table, inventoryitem.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, player.InventoryTable, player.InventoryColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryNpcRelationships queries the npc_relationships edge of a Player.
+func (c *PlayerClient) QueryNpcRelationships(_m *Player) *PlayerNPCRelationshipQuery {
+	query := (&PlayerNPCRelationshipClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(player.Table, player.FieldID, id),
+			sqlgraph.To(playernpcrelationship.Table, playernpcrelationship.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, player.NpcRelationshipsTable, player.NpcRelationshipsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PlayerClient) Hooks() []Hook {
+	return c.hooks.Player
+}
+
+// Interceptors returns the client interceptors.
+func (c *PlayerClient) Interceptors() []Interceptor {
+	return c.inters.Player
+}
+
+func (c *PlayerClient) mutate(ctx context.Context, m *PlayerMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PlayerCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PlayerUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PlayerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PlayerDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Player mutation op: %q", m.Op())
+	}
+}
+
+// PlayerNPCRelationshipClient is a client for the PlayerNPCRelationship schema.
+type PlayerNPCRelationshipClient struct {
+	config
+}
+
+// NewPlayerNPCRelationshipClient returns a client for the PlayerNPCRelationship from the given config.
+func NewPlayerNPCRelationshipClient(c config) *PlayerNPCRelationshipClient {
+	return &PlayerNPCRelationshipClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `playernpcrelationship.Hooks(f(g(h())))`.
+func (c *PlayerNPCRelationshipClient) Use(hooks ...Hook) {
+	c.hooks.PlayerNPCRelationship = append(c.hooks.PlayerNPCRelationship, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `playernpcrelationship.Intercept(f(g(h())))`.
+func (c *PlayerNPCRelationshipClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PlayerNPCRelationship = append(c.inters.PlayerNPCRelationship, interceptors...)
+}
+
+// Create returns a builder for creating a PlayerNPCRelationship entity.
+func (c *PlayerNPCRelationshipClient) Create() *PlayerNPCRelationshipCreate {
+	mutation := newPlayerNPCRelationshipMutation(c.config, OpCreate)
+	return &PlayerNPCRelationshipCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PlayerNPCRelationship entities.
+func (c *PlayerNPCRelationshipClient) CreateBulk(builders ...*PlayerNPCRelationshipCreate) *PlayerNPCRelationshipCreateBulk {
+	return &PlayerNPCRelationshipCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PlayerNPCRelationshipClient) MapCreateBulk(slice any, setFunc func(*PlayerNPCRelationshipCreate, int)) *PlayerNPCRelationshipCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PlayerNPCRelationshipCreateBulk{err: fmt.Errorf("calling to PlayerNPCRelationshipClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PlayerNPCRelationshipCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PlayerNPCRelationshipCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PlayerNPCRelationship.
+func (c *PlayerNPCRelationshipClient) Update() *PlayerNPCRelationshipUpdate {
+	mutation := newPlayerNPCRelationshipMutation(c.config, OpUpdate)
+	return &PlayerNPCRelationshipUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PlayerNPCRelationshipClient) UpdateOne(_m *PlayerNPCRelationship) *PlayerNPCRelationshipUpdateOne {
+	mutation := newPlayerNPCRelationshipMutation(c.config, OpUpdateOne, withPlayerNPCRelationship(_m))
+	return &PlayerNPCRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PlayerNPCRelationshipClient) UpdateOneID(id int) *PlayerNPCRelationshipUpdateOne {
+	mutation := newPlayerNPCRelationshipMutation(c.config, OpUpdateOne, withPlayerNPCRelationshipID(id))
+	return &PlayerNPCRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PlayerNPCRelationship.
+func (c *PlayerNPCRelationshipClient) Delete() *PlayerNPCRelationshipDelete {
+	mutation := newPlayerNPCRelationshipMutation(c.config, OpDelete)
+	return &PlayerNPCRelationshipDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PlayerNPCRelationshipClient) DeleteOne(_m *PlayerNPCRelationship) *PlayerNPCRelationshipDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PlayerNPCRelationshipClient) DeleteOneID(id int) *PlayerNPCRelationshipDeleteOne {
+	builder := c.Delete().Where(playernpcrelationship.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PlayerNPCRelationshipDeleteOne{builder}
+}
+
+// Query returns a query builder for PlayerNPCRelationship.
+func (c *PlayerNPCRelationshipClient) Query() *PlayerNPCRelationshipQuery {
+	return &PlayerNPCRelationshipQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePlayerNPCRelationship},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PlayerNPCRelationship entity by its id.
+func (c *PlayerNPCRelationshipClient) Get(ctx context.Context, id int) (*PlayerNPCRelationship, error) {
+	return c.Query().Where(playernpcrelationship.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PlayerNPCRelationshipClient) GetX(ctx context.Context, id int) *PlayerNPCRelationship {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryPlayer queries the player edge of a PlayerNPCRelationship.
+func (c *PlayerNPCRelationshipClient) QueryPlayer(_m *PlayerNPCRelationship) *PlayerQuery {
+	query := (&PlayerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(playernpcrelationship.Table, playernpcrelationship.FieldID, id),
+			sqlgraph.To(player.Table, player.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, playernpcrelationship.PlayerTable, playernpcrelationship.PlayerColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryNpc queries the npc edge of a PlayerNPCRelationship.
+func (c *PlayerNPCRelationshipClient) QueryNpc(_m *PlayerNPCRelationship) *NPCQuery {
+	query := (&NPCClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(playernpcrelationship.Table, playernpcrelationship.FieldID, id),
+			sqlgraph.To(npc.Table, npc.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, playernpcrelationship.NpcTable, playernpcrelationship.NpcColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PlayerNPCRelationshipClient) Hooks() []Hook {
+	return c.hooks.PlayerNPCRelationship
+}
+
+// Interceptors returns the client interceptors.
+func (c *PlayerNPCRelationshipClient) Interceptors() []Interceptor {
+	return c.inters.PlayerNPCRelationship
+}
+
+func (c *PlayerNPCRelationshipClient) mutate(ctx context.Context, m *PlayerNPCRelationshipMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PlayerNPCRelationshipCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PlayerNPCRelationshipUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PlayerNPCRelationshipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PlayerNPCRelationshipDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown PlayerNPCRelationship mutation op: %q", m.Op())
+	}
+}
+
+// PlayerQuestStateClient is a client for the PlayerQuestState schema.
+type PlayerQuestStateClient struct {
+	config
+}
+
+// NewPlayerQuestStateClient returns a client for the PlayerQuestState from the given config.
+func NewPlayerQuestStateClient(c config) *PlayerQuestStateClient {
+	return &PlayerQuestStateClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `playerqueststate.Hooks(f(g(h())))`.
+func (c *PlayerQuestStateClient) Use(hooks ...Hook) {
+	c.hooks.PlayerQuestState = append(c.hooks.PlayerQuestState, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `playerqueststate.Intercept(f(g(h())))`.
+func (c *PlayerQuestStateClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PlayerQuestState = append(c.inters.PlayerQuestState, interceptors...)
+}
+
+// Create returns a builder for creating a PlayerQuestState entity.
+func (c *PlayerQuestStateClient) Create() *PlayerQuestStateCreate {
+	mutation := newPlayerQuestStateMutation(c.config, OpCreate)
+	return &PlayerQuestStateCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PlayerQuestState entities.
+func (c *PlayerQuestStateClient) CreateBulk(builders ...*PlayerQuestStateCreate) *PlayerQuestStateCreateBulk {
+	return &PlayerQuestStateCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PlayerQuestStateClient) MapCreateBulk(slice any, setFunc func(*PlayerQuestStateCreate, int)) *PlayerQuestStateCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PlayerQuestStateCreateBulk{err: fmt.Errorf("calling to PlayerQuestStateClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PlayerQuestStateCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PlayerQuestStateCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PlayerQuestState.
+func (c *PlayerQuestStateClient) Update() *PlayerQuestStateUpdate {
+	mutation := newPlayerQuestStateMutation(c.config, OpUpdate)
+	return &PlayerQuestStateUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PlayerQuestStateClient) UpdateOne(_m *PlayerQuestState) *PlayerQuestStateUpdateOne {
+	mutation := newPlayerQuestStateMutation(c.config, OpUpdateOne, withPlayerQuestState(_m))
+	return &PlayerQuestStateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PlayerQuestStateClient) UpdateOneID(id int) *PlayerQuestStateUpdateOne {
+	mutation := newPlayerQuestStateMutation(c.config, OpUpdateOne, withPlayerQuestStateID(id))
+	return &PlayerQuestStateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PlayerQuestState.
+func (c *PlayerQuestStateClient) Delete() *PlayerQuestStateDelete {
+	mutation := newPlayerQuestStateMutation(c.config, OpDelete)
+	return &PlayerQuestStateDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PlayerQuestStateClient) DeleteOne(_m *PlayerQuestState) *PlayerQuestStateDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PlayerQuestStateClient) DeleteOneID(id int) *PlayerQuestStateDeleteOne {
+	builder := c.Delete().Where(playerqueststate.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PlayerQuestStateDeleteOne{builder}
+}
+
+// Query returns a query builder for PlayerQuestState.
+func (c *PlayerQuestStateClient) Query() *PlayerQuestStateQuery {
+	return &PlayerQuestStateQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePlayerQuestState},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PlayerQuestState entity by its id.
+func (c *PlayerQuestStateClient) Get(ctx context.Context, id int) (*PlayerQuestState, error) {
+	return c.Query().Where(playerqueststate.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PlayerQuestStateClient) GetX(ctx context.Context, id int) *PlayerQuestState {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryPlayer queries the player edge of a PlayerQuestState.
+func (c *PlayerQuestStateClient) QueryPlayer(_m *PlayerQuestState) *PlayerQuery {
+	query := (&PlayerClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(playerqueststate.Table, playerqueststate.FieldID, id),
+			sqlgraph.To(player.Table, player.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, playerqueststate.PlayerTable, playerqueststate.PlayerColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryQuest queries the quest edge of a PlayerQuestState.
+func (c *PlayerQuestStateClient) QueryQuest(_m *PlayerQuestState) *QuestQuery {
+	query := (&QuestClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(playerqueststate.Table, playerqueststate.FieldID, id),
+			sqlgraph.To(quest.Table, quest.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, playerqueststate.QuestTable, playerqueststate.QuestColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PlayerQuestStateClient) Hooks() []Hook {
+	return c.hooks.PlayerQuestState
+}
+
+// Interceptors returns the client interceptors.
+func (c *PlayerQuestStateClient) Interceptors() []Interceptor {
+	return c.inters.PlayerQuestState
+}
+
+func (c *PlayerQuestStateClient) mutate(ctx context.Context, m *PlayerQuestStateMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PlayerQuestStateCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PlayerQuestStateUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PlayerQuestStateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PlayerQuestStateDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown PlayerQuestState mutation op: %q", m.Op())
+	}
+}
+
+// QuestClient is a client for the Quest schema.
+type QuestClient struct {
+	config
+}
+
+// NewQuestClient returns a client for the Quest from the given config.
+func NewQuestClient(c config) *QuestClient {
+	return &QuestClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `quest.Hooks(f(g(h())))`.
+func (c *QuestClient) Use(hooks ...Hook) {
+	c.hooks.Quest = append(c.hooks.Quest, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `quest.Intercept(f(g(h())))`.
+func (c *QuestClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Quest = append(c.inters.Quest, interceptors...)
+}
+
+// Create returns a builder for creating a Quest entity.
+func (c *QuestClient) Create() *QuestCreate {
+	mutation := newQuestMutation(c.config, OpCreate)
+	return &QuestCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Quest entities.
+func (c *QuestClient) CreateBulk(builders ...*QuestCreate) *QuestCreateBulk {
+	return &QuestCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *QuestClient) MapCreateBulk(slice any, setFunc func(*QuestCreate, int)) *QuestCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &QuestCreateBulk{err: fmt.Errorf("calling to QuestClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*QuestCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &QuestCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Quest.
+func (c *QuestClient) Update() *QuestUpdate {
+	mutation := newQuestMutation(c.config, OpUpdate)
+	return &QuestUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *QuestClient) UpdateOne(_m *Quest) *QuestUpdateOne {
+	mutation := newQuestMutation(c.config, OpUpdateOne, withQuest(_m))
+	return &QuestUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *QuestClient) UpdateOneID(id string) *QuestUpdateOne {
+	mutation := newQuestMutation(c.config, OpUpdateOne, withQuestID(id))
+	return &QuestUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Quest.
+func (c *QuestClient) Delete() *QuestDelete {
+	mutation := newQuestMutation(c.config, OpDelete)
+	return &QuestDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *QuestClient) DeleteOne(_m *Quest) *QuestDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *QuestClient) DeleteOneID(id string) *QuestDeleteOne {
+	builder := c.Delete().Where(quest.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &QuestDeleteOne{builder}
+}
+
+// Query returns a query builder for Quest.
+func (c *QuestClient) Query() *QuestQuery {
+	return &QuestQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeQuest},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Quest entity by its id.
+func (c *QuestClient) Get(ctx context.Context, id string) (*Quest, error) {
+	return c.Query().Where(quest.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *QuestClient) GetX(ctx context.Context, id string) *Quest {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryPlayerQuestStates queries the player_quest_states edge of a Quest.
+func (c *QuestClient) QueryPlayerQuestStates(_m *Quest) *PlayerQuestStateQuery {
+	query := (&PlayerQuestStateClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(quest.Table, quest.FieldID, id),
+			sqlgraph.To(playerqueststate.Table, playerqueststate.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, quest.PlayerQuestStatesTable, quest.PlayerQuestStatesColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *QuestClient) Hooks() []Hook {
+	return c.hooks.Quest
+}
+
+// Interceptors returns the client interceptors.
+func (c *QuestClient) Interceptors() []Interceptor {
+	return c.inters.Quest
+}
+
+func (c *QuestClient) mutate(ctx context.Context, m *QuestMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&QuestCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&QuestUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&QuestUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&QuestDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Quest mutation op: %q", m.Op())
+	}
+}
+
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Memory, NPC []ent.Hook
+		InventoryItem, Item, Memory, NPC, Player, PlayerNPCRelationship,
+		PlayerQuestState, Quest []ent.Hook
 	}
 	inters struct {
-		Memory, NPC []ent.Interceptor
+		InventoryItem, Item, Memory, NPC, Player, PlayerNPCRelationship,
+		PlayerQuestState, Quest []ent.Interceptor
 	}
 )
