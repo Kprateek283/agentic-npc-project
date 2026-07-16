@@ -134,8 +134,9 @@ func New() (*App, error) {
 
 // Run starts the application's HTTP server.
 func (a *App) Run() error {
-	log.Println("Starting server on :8080")
-	err := a.Server.Run(":8080")
+	addr := ":" + a.Config.ServerPort
+	log.Printf("Starting server on %s", addr)
+	err := a.Server.Run(addr)
 	if err != nil {
 		return fmt.Errorf("failed to start server: %w", err)
 	}

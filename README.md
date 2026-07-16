@@ -42,6 +42,40 @@ The Python service encapsulates all LLM logic and cognitive processes.
 - Client-to-Backend: JSON-based events over persistent WebSockets.
 - Inter-Service: Binary Protocol Buffers over gRPC (HTTP/2), ensuring low-latency and strict type safety between the Go and Python layers.
 
+### Inference Provider Configuration
+
+The chat provider is selected at startup by environment variable — no code changes. See
+`ai-service-python/.env.example` for the full set of variables and their defaults.
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `LLM_PROVIDER` | `gemini` | `gemini` (cloud) or `ollama` (local) |
+| `GEMINI_API_KEY` | — | Required only when `LLM_PROVIDER=gemini` |
+| `GEMINI_MODEL` | `gemini-2.5-flash` | Cloud chat model |
+| `OLLAMA_MODEL_HEAVY` | `llama3:8b` | Local chat model for the LangGraph agent |
+| `OLLAMA_MODEL_LIGHT` | = `OLLAMA_MODEL_HEAVY` | Local chat model for the RAG path |
+| `EMBEDDING_MODEL` | `nomic-embed-text` | Embedding model (always local via Ollama) |
+| `OLLAMA_HOST` | `http://localhost:11434` | Ollama endpoint |
+
+Embeddings always run locally on Ollama regardless of the chat provider, so Ollama is a
+dependency in both modes:
+
+```bash
+# Install Ollama (https://ollama.com/download), then:
+ollama pull nomic-embed-text   # embeddings — required in both modes
+ollama pull llama3:8b          # chat — only needed for LLM_PROVIDER=ollama
+```
+
+```bash
+# Cloud mode (default)
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=your-key-here
+
+# Local mode — no API key needed
+LLM_PROVIDER=ollama
+OLLAMA_MODEL_HEAVY=llama3:8b
+```
+
 ### Performance Benchmarks (Empirical Results)
 - Go Logic & State Validation: < 50ms.
 - Database Cache Hit (Redis): ~8ms.

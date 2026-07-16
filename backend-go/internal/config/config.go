@@ -8,6 +8,7 @@ import (
 type Config struct {
 	PostgresDSN string
 	RedisAddr   string
+	ServerPort  string
 }
 
 func Load() (*Config, error) {
@@ -21,8 +22,14 @@ func Load() (*Config, error) {
 		redisAddr = "localhost:6379"
 	}
 
+	serverPort := os.Getenv("SERVER_PORT")
+	if serverPort == "" {
+		serverPort = "8080"
+	}
+
 	return &Config{
 		PostgresDSN: postgresDSN,
 		RedisAddr:   redisAddr,
+		ServerPort:  serverPort,
 	}, nil
 }
