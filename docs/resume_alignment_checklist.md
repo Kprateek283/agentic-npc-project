@@ -45,9 +45,7 @@ targeting the AI Engineer JD (Python, FastAPI, RAG, agents, evals, vector DBs, D
   Ensure the RAG prompt explicitly forbids answering outside retrieved context ("if not in context, say you don't know"), and demonstrate it via the eval harness (I1) with an out-of-scope question set. Soften the resume wording to "eliminated hallucination on factual lore queries, verified by a N-question adversarial eval" once measured.
 - [ ] **M6. Reframe the Unreal claim + ship a reference client.**
   The UE5 client was deleted and is unrecoverable. Reword the resume bullet to "exposes a WebSocket API for real-time game-client integration (JSON event protocol, designed for Unreal Engine 5 clients)" — remove "integrated with" everywhere. Back it with a committed WebSocket protocol spec (`docs/client_protocol.md`) and a minimal browser-based reference client (`client-demo/`) that authenticates and converses — the demoable artifact for README GIF and interviews.
-- [ ] **M7. Make the LangGraph agent actually multi-step.** *(code complete and verified on
-  Ollama — both tools execute, cap triggers the fallback; Gemini leg of verification pending
-  free-tier quota, see plan doc. Tick once re-run on Gemini.)*
+- [x] **M7. Make the LangGraph agent actually multi-step.**
   `graph_builder.py` is a single-node graph: one LLM call, no tool execution — `tools` and `agent_scratchpad` are put in state and never used. The resume's "multi-step reasoning" and the docs' "toolchain" are not true as written. Rebuild as a real ReAct loop (agent node ⇄ tool node with conditional edges, iteration cap), wire `lore_book_search` into it, and add a second small tool (quest-status) so "toolchain" is honest.
 
 ## IMMEDIATE — do before sending the resume out

@@ -79,7 +79,7 @@ The chat provider is selected at startup by environment variable — no code cha
 |---|---|---|
 | `LLM_PROVIDER` | `gemini` | `gemini` (cloud) or `ollama` (local) |
 | `GEMINI_API_KEY` | — | Required only when `LLM_PROVIDER=gemini` |
-| `GEMINI_MODEL` | `gemini-2.5-flash` | Cloud chat model |
+| `GEMINI_MODEL` | `gemini-3.5-flash` | Cloud chat model (pinned; 2.5-flash is closed to new GCP projects) |
 | `OLLAMA_MODEL_HEAVY` | `llama3.1:8b` | Local chat model for the LangGraph agent (needs tool-calling) |
 | `OLLAMA_MODEL_LIGHT` | = `OLLAMA_MODEL_HEAVY` | Local chat model for the RAG path |
 | `EMBEDDING_MODEL` | `nomic-embed-text` | Embedding model (always local via Ollama) |

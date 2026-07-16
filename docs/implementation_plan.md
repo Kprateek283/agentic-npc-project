@@ -181,16 +181,23 @@ I4 still owns the remaining address plumbing (`AI_SERVICE_ADDR`, container netwo
 ~3s brain latency) and the resume asserts more (2.3x cloud vs local, PG 42ms), but there
 is no measurement code anywhere in the repo.
 
-**!! Blocker discovered 2026-07-16 — Gemini free-tier quota.** The `GEMINI_API_KEY` in use
-is on the free tier: **20 `generateContent` requests per day** for gemini-2.5-flash
-(`GenerateRequestsPerDayPerProjectPerModel-FreeTier`), exhausted by routine verification.
-This makes the cloud half of M4 (10 lore questions + 5 quest events × N repetitions × 2
-paths) and I1 (~50 questions + ~50 judge calls) impossible as specified — both need
-hundreds of cloud calls. Options, for the repo owner to choose: (a) enable billing on the
-Gemini key; (b) run evals/benchmarks entirely on Ollama and drop the cloud-vs-local ratio
-to a documented "not measured"; (c) shrink the cloud sample to fit ~20 calls/day and state
-the sample size honestly (medians from n≈5 are weak but not dishonest if labelled).
-Resolve before recording any cloud number.
+**!! Constraint — Gemini free-tier quota (confirmed 2026-07-17, decided).** The key is free
+tier: **20 `generateContent` requests per day**, quota id
+`GenerateRequestsPerDayPerProjectPerModel-FreeTier`. Facts established the hard way:
+- The counter is **per project**, not per key — issuing a new key in the same project
+  inherits the exhausted counter (tested).
+- It is **per model**, but `gemini-flash-latest` is an *alias* for `gemini-3.5-flash` and
+  shares its counter (tested) — aliases buy no extra budget.
+- **`gemini-2.5-flash` and `gemini-2.5-flash-lite` now 404 for newly-created projects**
+  ("no longer available to new users"), so the model this repo claimed is unreachable on a
+  fresh project. Default is now **`gemini-3.5-flash`**, pinned rather than `-latest` so a
+  committed number always names the model that produced it.
+
+**Decision (repo owner, 2026-07-17): option (c) — tiny labelled cloud sample.** The cloud
+side of M4/I1 runs within the ~20/day cap and every cloud figure must state its sample size
+inline (e.g. "gemini-3.5-flash, n=5, free-tier cap") wherever it appears — `docs/benchmarks.md`,
+`evals/results.md`, README and resume. Ollama-side samples are unconstrained. A median from
+n≈5 is weak but honest when labelled; an unlabelled one is not.
 
 **Plan.** Create a `benchmarks/` directory with three deliverables plus a results doc.
 
@@ -365,9 +372,22 @@ LangSmith trace), the loop terminates on the cap, and both providers complete th
   cloud-vs-local figure must be labelled with the model that actually ran.
 - `quest_status` reads game context through `InjectedState`, so the LLM never sees or
   fabricates the argument — it is filled from state by the graph.
-- **Gemini leg of verification is PENDING** (free-tier quota exhausted, all models on the
-  key return 429; see the M4 blocker note). The Ollama leg is fully verified. Re-run one
-  quest event on Gemini once quota is restored, then tick the checklist item.
+- **Gemini leg verified 2026-07-17** on `gemini-3.5-flash`: a `PLAYER_SUBMITTED_QUEST_ITEM`
+  event executed **both** tools (`lore_book_search`, then `quest_status` with step=2 /
+  completion=0.66 injected from state) and returned a final in-character answer. Both
+  providers therefore complete a tool-using flow.
+- Two defects surfaced only on Gemini and are fixed here:
+  1. **Gemini 3.x requires `thought_signature` round-tripping** on multi-turn tool calls.
+     `langchain-google-genai==3.0.0` did not do it: the first tool call succeeded and the
+     follow-up turn died with `400 Function call is missing a thought_signature in
+     functionCall parts`. Fixed by upgrading to 4.2.7 (which pulls langchain-core 1.4.9,
+     so langchain-ollama was upgraded to 1.1.0 to match; `pip check` is clean and the
+     Ollama path was re-verified after).
+  2. **Gemini 3.x returns `content` as a list of content blocks**, not a string, so
+     `run_quest_agent` returned a Python list — which the protobuf `content` string field
+     would reject. `_message_text` now normalises via the `.text` property; checked against
+     both providers' real message shapes, including that the thought signature never leaks
+     into dialogue.
 
 ---
 

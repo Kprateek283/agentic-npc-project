@@ -7,7 +7,10 @@ load_dotenv()
 
 # --- Provider selection (env-driven; see .env.example) ---
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "gemini").lower()
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+# Pinned to a concrete model (not the moving `gemini-flash-latest` alias) so a committed
+# benchmark number always names the model that produced it. Note: gemini-2.5-flash, which
+# this project used to hardcode, now 404s for newly-created Google Cloud projects.
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 # llama3.1:8b, not llama3:8b: the LangGraph agent needs native tool-calling, which
 # llama3:8b does not have (`ollama show llama3:8b` reports capability "completion" only).

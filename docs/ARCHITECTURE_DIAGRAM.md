@@ -77,7 +77,7 @@
           │              │      │             │                       │
           │              │      │  ┌──────────▼──────────────────┐   │
           │              │      │  │   LLM Providers             │   │
-          │              │      │  │  • Gemini 2.5 Flash (Cloud) │   │
+          │              │      │  │  • Gemini 3.5 Flash (Cloud) │   │
           │              │      │  │  • Llama 3 (Local/Ollama)   │   │
           │              │      │  └─────────────────────────────┘   │
           │              │      │             │                       │
@@ -209,7 +209,7 @@
 │        │  8d. Call LLM                                 │         │
 │        │      └─ ChatGoogleGenerativeAI (Gemini)      │         │
 │        │         Temperature: 0.7                      │         │
-│        │         Model: gemini-2.5-flash               │         │
+│        │         Model: gemini-3.5-flash               │         │
 │        │                                               │         │
 │        │  8e. Parse Output                             │         │
 │        │      └─ StrOutputParser()                     │         │

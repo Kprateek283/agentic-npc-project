@@ -7,6 +7,7 @@ Both transports dispatch through router.route_event.
 """
 
 import os
+import traceback
 
 import config
 from agent_manager import live_agents
@@ -64,7 +65,9 @@ def _dispatch(npc: str, event_type: str, text: str, context: DynamicContext) -> 
     except UnknownAgentError:
         raise HTTPException(status_code=404, detail=f"No agent loaded for key '{npc}'")
     except Exception as exc:
-        # Provider/LLM failure: report the type, never a stack trace.
+        # Provider/LLM failure: log it in full for operators, return only the type to the
+        # caller — a stack trace must never reach a game client.
+        traceback.print_exc()
         raise HTTPException(status_code=502, detail=f"AI provider call failed: {type(exc).__name__}") from exc
     return ActionResponse(action_type=action_type, content=content)
 

@@ -20,6 +20,16 @@ AGENT_MAX_ITERATIONS = int(os.getenv("AGENT_MAX_ITERATIONS", "5"))
 _RECURSION_LIMIT = 2 * AGENT_MAX_ITERATIONS + 1
 
 
+def _message_text(message) -> str:
+    """The spoken text of a message, as a plain string.
+
+    Gemini 3.x returns `content` as a list of content blocks (text plus a thought
+    signature), where Ollama returns a plain string. Both transports need a string —
+    the protobuf `content` field will not accept a list.
+    """
+    return str(message.text)
+
+
 class NpcAgent:
     """
     A single, "live" stateful agent instance.
@@ -90,4 +100,4 @@ class NpcAgent:
         tool_calls = sum(len(getattr(m, "tool_calls", []) or []) for m in result["messages"])
         print(f"--- LangGraph Agent execution took: {end_time - start_time:.2f} seconds "
               f"({tool_calls} tool call(s), {len(result['messages'])} messages) ---")
-        return result["messages"][-1].content
+        return _message_text(result["messages"][-1])
