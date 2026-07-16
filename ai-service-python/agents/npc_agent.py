@@ -57,10 +57,11 @@ class NpcAgent:
         """Runs the fast RAG chain for simple questions."""
         start_time = time.time()
 
-        # The RAG chain now only needs the question.
-        # The static prompt is already built into the chain.
+        # The question drives retrieval; the dynamic context conditions tone. The static
+        # persona prompt and grounding rules are already built into the chain.
         input_dict = {
-            "question": player_question
+            "question": player_question,
+            **format_dynamic_context(dynamic_context),
         }
         response = self.rag_chain.invoke(input_dict)
 

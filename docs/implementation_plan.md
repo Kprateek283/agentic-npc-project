@@ -255,6 +255,25 @@ every number that appears in the README and on the resume.
 **Done when.** Eval run shows the refusal behavior working; the unused-prompt duplication
 is gone; a RAG response demonstrably changes when emotions/memories in the request change.
 
+**Notes from execution (2026-07-17).**
+- Duplication gone: `prompts/rag_prompt.py` is the only RAG prompt; `rag_builder` imports it
+  and the inline copy is deleted. Retrieved docs are now joined as plain facts rather than
+  interpolated as repr'd `Document` objects.
+- `dynamic_context` is threaded into the chain inputs via `format_dynamic_context`, and the
+  prompt instructs that emotions/memories colour *tone*, never facts.
+- Emotion/memory conditioning demonstrated (llama3.1:8b, identical question, identical
+  retrieval): joy=0.9/trust=0.9 + "player saved his daughter" → "You know me well! I'm a
+  blacksmith through and through…"; anger=0.95/trust=0.0 + "player stole from his forge" →
+  "(scoffs) Ah, you think you can just waltz into my forge after stealing from me?"
+- Refusal needed **two** iterations. The first draft (answer-only-from-context + refuse in
+  character) still invented a mayor ("Thorne") and an NPC to ask ("Gorin") — neither string
+  exists anywhere in gamedata. Adding an explicit *never invent a proper name* rule plus
+  "never suggest asking someone else unless they are named in the lore facts" took manual
+  out-of-scope probes from 3/4 to **4/4**, with no over-refusal on in-scope questions.
+- **This is n=4 on one provider — not a measured refusal rate.** The headline number must
+  come from I1's adversarial set, per provider (llama3.1:8b hallucinated where Gemini
+  refused pre-M5, so one number will not cover both). Tick this item when I1 reports it.
+
 ---
 
 ### M6. Reframe the Unreal Engine claim + ship a reference client
