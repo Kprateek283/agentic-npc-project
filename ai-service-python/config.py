@@ -41,8 +41,30 @@ else:
 # --- Embeddings always run locally on Ollama, regardless of chat provider ---
 embeddings = OllamaEmbeddings(model=EMBEDDING_MODEL, base_url=OLLAMA_HOST)
 
+# --- Vector store: faiss (default, in-process) | qdrant (scale-out) ---
+VECTOR_STORE = os.getenv("VECTOR_STORE", "faiss").lower()
+QDRANT_URL = os.getenv("QDRANT_URL", "http://localhost:6333")
+RETRIEVER_K = int(os.getenv("RETRIEVER_K", "3"))
+
+if VECTOR_STORE not in ("faiss", "qdrant"):
+    raise ValueError(f"Unsupported VECTOR_STORE={VECTOR_STORE!r} (expected 'faiss' or 'qdrant')")
+
+if VECTOR_STORE == "qdrant":
+    # Fail fast and loudly: a silent fall back to FAISS would make benchmark and eval
+    # results lie about which backend produced them.
+    from qdrant_client import QdrantClient
+
+    try:
+        QdrantClient(url=QDRANT_URL, timeout=5).get_collections()
+    except Exception as exc:
+        raise RuntimeError(
+            f"VECTOR_STORE=qdrant but Qdrant is unreachable at {QDRANT_URL}: {exc}. "
+            f"Start it with `docker compose up -d qdrant`."
+        ) from exc
+
 print("--- AI Config Loaded ---")
 print(f"Chat Provider: {LLM_PROVIDER}")
 print(f"Chat Model (light/heavy): {CHAT_MODEL_LIGHT} / {CHAT_MODEL_HEAVY}")
 print(f"Embedding Model: {EMBEDDING_MODEL} (local via Ollama at {OLLAMA_HOST})")
+print(f"Vector Store: {VECTOR_STORE}" + (f" ({QDRANT_URL})" if VECTOR_STORE == "qdrant" else "") + f", retriever k={RETRIEVER_K}")
 print("------------------------")

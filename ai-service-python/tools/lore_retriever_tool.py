@@ -5,10 +5,37 @@ from langchain_community.vectorstores import FAISS
 from langchain.tools import tool
 # ---------------------
 from langchain_core.documents import Document
-from config import embeddings
+from config import QDRANT_URL, RETRIEVER_K, VECTOR_STORE, embeddings
 import json
 import os
-from io import StringIO
+
+
+def _collection_name(lore_file_path: str) -> str:
+    """Deterministic per-NPC collection name, e.g. gamedata/npcs/elara/lore.json -> lore_elara."""
+    return f"lore_{os.path.basename(os.path.dirname(lore_file_path))}"
+
+
+def _build_vector_store(texts, lore_file_path: str):
+    """Builds the vector index for one NPC on the configured backend.
+
+    Embedding dimension is inferred from the embedding model by the integration —
+    never hardcoded, so swapping EMBEDDING_MODEL just works.
+    """
+    if VECTOR_STORE == "faiss":
+        return FAISS.from_documents(texts, embeddings)
+
+    # ponytail: drop-and-rebuild each startup. Lore is static and tiny (tens of facts per
+    # NPC), so a full re-embed costs less than reconciling. If lore grows or becomes
+    # player-writable (S1), switch to an upsert keyed on a content hash.
+    from langchain_qdrant import QdrantVectorStore
+
+    return QdrantVectorStore.from_documents(
+        texts,
+        embeddings,
+        url=QDRANT_URL,
+        collection_name=_collection_name(lore_file_path),
+        force_recreate=True,
+    )
 
 
 def create_lore_tool_from_file(lore_file_path: str):
@@ -43,9 +70,9 @@ def create_lore_tool_from_file(lore_file_path: str):
         print(f"  WARNING: Text splitting resulted in no texts for {lore_file_path}.")
         return None, None
 
-    vectorstore = FAISS.from_documents(texts, embeddings)
-    retriever = vectorstore.as_retriever(search_kwargs={"k": 1})
-    print(f"Successfully built retriever for: {lore_file_path}")
+    vectorstore = _build_vector_store(texts, lore_file_path)
+    retriever = vectorstore.as_retriever(search_kwargs={"k": RETRIEVER_K})
+    print(f"Successfully built retriever for: {lore_file_path} (backend={VECTOR_STORE}, k={RETRIEVER_K})")
 
     # --- THE NEW, CORRECT TOOL DEFINITION ---
     # We manually define our tool using the @tool decorator.

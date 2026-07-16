@@ -109,6 +109,25 @@ appears nowhere.
 **Done when.** Full flow (REST and gRPC) works with each backend selected via env var;
 Qdrant dashboard shows one populated collection per NPC; evals (I1) can run against both.
 
+**Notes from execution (2026-07-16).**
+- Qdrant pinned to `v1.18.2` (not `latest`) so benchmark runs stay reproducible; host ports
+  are `${QDRANT_HTTP_PORT:-6333}` / `${QDRANT_GRPC_PORT:-6334}` per global rule 2.
+- `k=3` verified against `k=1` before adopting the default: rank-1 documents are identical
+  (k widens the result set, it does not reorder), and answers were equal or better — e.g.
+  elara's "who has the pure heart" went from "I don't know anything about forging" at k=1
+  to a grounded answer at k=3. No regression.
+- Fail-fast verified by pointing `QDRANT_URL` at a dead port: startup raises with the
+  remediation command, never falls back to FAISS.
+
+**!! Metric caveat for I1 — the lore corpus is tiny.** Facts per NPC: baelor 5, elara 5,
+elian 5, kaelen 5, marcus 4, rook 3, silas 3, **lian 1** — 31 total. With `k=3`, a query
+returns 60–100% of an NPC's entire lore, so **hit@3 is close to meaningless here** (for
+lian, k=3 returns the only fact, making hit@3 unconditionally 100%). Reporting "hit@3 = 9x%"
+on a resume would be technically true and materially misleading. I1 must therefore either:
+(a) report hit@1 as the headline retrieval metric and state the corpus size honestly beside
+hit@3, and/or (b) expand the lore corpus first so retrieval is a real discrimination task.
+Decide before recording any retrieval number.
+
 ---
 
 ### M3. Restore local Ollama inference as a first-class provider
@@ -161,6 +180,17 @@ I4 still owns the remaining address plumbing (`AI_SERVICE_ADDR`, container netwo
 **Current state.** README asserts numbers (Redis ~8ms, gRPC ~14ms, <50ms overhead, ~1s /
 ~3s brain latency) and the resume asserts more (2.3x cloud vs local, PG 42ms), but there
 is no measurement code anywhere in the repo.
+
+**!! Blocker discovered 2026-07-16 — Gemini free-tier quota.** The `GEMINI_API_KEY` in use
+is on the free tier: **20 `generateContent` requests per day** for gemini-2.5-flash
+(`GenerateRequestsPerDayPerProjectPerModel-FreeTier`), exhausted by routine verification.
+This makes the cloud half of M4 (10 lore questions + 5 quest events × N repetitions × 2
+paths) and I1 (~50 questions + ~50 judge calls) impossible as specified — both need
+hundreds of cloud calls. Options, for the repo owner to choose: (a) enable billing on the
+Gemini key; (b) run evals/benchmarks entirely on Ollama and drop the cloud-vs-local ratio
+to a documented "not measured"; (c) shrink the cloud sample to fit ~20 calls/day and state
+the sample size honestly (medians from n≈5 are weak but not dishonest if labelled).
+Resolve before recording any cloud number.
 
 **Plan.** Create a `benchmarks/` directory with three deliverables plus a results doc.
 

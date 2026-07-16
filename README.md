@@ -26,7 +26,7 @@ The Python service encapsulates all LLM logic and cognitive processes.
 - gRPC Interface: Exposes specialized methods for RAG-based retrieval and LangGraph-driven reasoning.
 - REST Interface (FastAPI): A second transport over the same agents, for evals, benchmarks, healthchecks and demos.
 - LangChain Integration: Orchestrates model prompts, output parsers, and tool-calling chains.
-- Vector Store (FAISS): Provides efficient similarity search for NPC lore and background information.
+- Vector Store (pluggable): FAISS or Qdrant, selected by env var, for similarity search over NPC lore.
 - Dynamic Context Injection: Formats real-time game state (emotions, memories, quest progress) into the LLM context window to ensure situational awareness.
 
 ## Technical Specifications
@@ -84,6 +84,9 @@ The chat provider is selected at startup by environment variable — no code cha
 | `OLLAMA_MODEL_LIGHT` | = `OLLAMA_MODEL_HEAVY` | Local chat model for the RAG path |
 | `EMBEDDING_MODEL` | `nomic-embed-text` | Embedding model (always local via Ollama) |
 | `OLLAMA_HOST` | `http://localhost:11434` | Ollama endpoint |
+| `VECTOR_STORE` | `faiss` | `faiss` (in-process) or `qdrant` (scale-out) |
+| `QDRANT_URL` | `http://localhost:6333` | Qdrant endpoint, used when `VECTOR_STORE=qdrant` |
+| `RETRIEVER_K` | `3` | Lore documents retrieved per query |
 
 Embeddings always run locally on Ollama regardless of the chat provider, so Ollama is a
 dependency in both modes:
@@ -103,6 +106,23 @@ GEMINI_API_KEY=your-key-here
 LLM_PROVIDER=ollama
 OLLAMA_MODEL_HEAVY=llama3:8b
 ```
+
+### Vector Store
+
+**FAISS is the default** — in-process, zero infrastructure, rebuilt from `lore.json` at
+startup. **Qdrant is the scale-out path**: a real vector database that survives restarts
+and can be shared by multiple AI-service replicas. It stores one collection per NPC
+(`lore_elara`, `lore_baelor`, …), and the embedding dimension is taken from the embedding
+model rather than hardcoded.
+
+```bash
+docker compose up -d qdrant           # start it first
+VECTOR_STORE=qdrant                   # then select it
+```
+
+If `VECTOR_STORE=qdrant` and Qdrant is unreachable, the service **fails at startup** with a
+clear error rather than falling back to FAISS — a silent fallback would make benchmark and
+eval results lie about which backend produced them.
 
 ### Performance Benchmarks (Empirical Results)
 - Go Logic & State Validation: < 50ms.

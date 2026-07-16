@@ -23,5 +23,17 @@ services:
       - "6379:6379"
     restart: unless-stopped
 
+  # Optional vector store: only used when VECTOR_STORE=qdrant (FAISS is the default).
+  qdrant:
+    image: qdrant/qdrant:v1.18.2
+    container_name: qdrant_vectors
+    ports:
+      - "${QDRANT_HTTP_PORT:-6333}:6333"
+      - "${QDRANT_GRPC_PORT:-6334}:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    restart: unless-stopped
+
 volumes:
   postgres_data:
+  qdrant_data:

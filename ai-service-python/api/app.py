@@ -77,6 +77,8 @@ def health() -> dict:
         "llm_provider": config.LLM_PROVIDER,
         "chat_model": config.CHAT_MODEL_HEAVY,
         "embedding_model": config.EMBEDDING_MODEL,
+        "vector_store": config.VECTOR_STORE,
+        "retriever_k": config.RETRIEVER_K,
     }
 
 

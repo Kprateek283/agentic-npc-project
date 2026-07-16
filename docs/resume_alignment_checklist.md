@@ -29,7 +29,7 @@ targeting the AI Engineer JD (Python, FastAPI, RAG, agents, evals, vector DBs, D
 
 - [x] **M1. Add a real FastAPI layer to the Python service.**
   Run FastAPI alongside the gRPC server: `/health`, `/v1/chat` (direct REST access to RAG/agent for testing and demos), `/v1/npcs` (list loaded agents), and later `/v1/eval` endpoints. Serve with uvicorn from `main.py`. This also gives you a REST surface to demo without the Go stack.
-- [ ] **M2. Add Qdrant as a supported vector store.**
+- [x] **M2. Add Qdrant as a supported vector store.**
   Make `lore_retriever_tool.py` backend-pluggable (env var: `VECTOR_STORE=faiss|qdrant`), add Qdrant to `docker-compose.yml`, use `langchain-qdrant`. FAISS stays the default; Qdrant path must actually work end-to-end.
 - [x] **M3. Restore the local Ollama inference path.**
   Un-comment and gate behind env config (`LLM_PROVIDER=gemini|ollama`, model name configurable). Verify `llama3:8b` works through both RAG and LangGraph paths. Also fixes the stale "Gemini 1.5 Flash" print (code uses 2.5).
