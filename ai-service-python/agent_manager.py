@@ -44,5 +44,12 @@ def load_agents_on_startup():
 def get_agent(agent_key: str):
     """
     Safely retrieves an agent from the registry.
+
+    The canonical key is the personality path the Go orchestrator sends
+    ("gamedata/npcs/elara/personality.json"); exact matches win. As a convenience for
+    REST/eval callers, a bare NPC directory name ("elara") also resolves.
     """
-    return live_agents.get(agent_key)
+    agent = live_agents.get(agent_key)
+    if agent is not None:
+        return agent
+    return live_agents.get(os.path.join("gamedata", "npcs", agent_key, "personality.json"))

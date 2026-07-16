@@ -11,7 +11,10 @@ def load_static_prompt(personality_path: str, backstory_path: str) -> (str, str,
             backstory_text = "\n".join(fact["fact"] for fact in json.load(f).get("core_facts", []))
 
         npc_name = personality.get("name", "Unknown NPC")
-        npc_occupation = personality.get("occupation", "Villager")
+        # gamedata authors occupation as either a string or a list of roles
+        # (e.g. ["Villager", "Dumb Brother"]); the Go seeder normalises it too.
+        occupation = personality.get("occupation", "Villager")
+        npc_occupation = ", ".join(occupation) if isinstance(occupation, list) else occupation
         personality_summary = personality.get("summary", "A standard villager.")
 
         static_system_prompt = f"""

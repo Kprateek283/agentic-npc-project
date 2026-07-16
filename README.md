@@ -24,6 +24,7 @@ The Go service acts as the authoritative source of truth and the central hub for
 ### 2. Python AI Service (The Brain)
 The Python service encapsulates all LLM logic and cognitive processes.
 - gRPC Interface: Exposes specialized methods for RAG-based retrieval and LangGraph-driven reasoning.
+- REST Interface (FastAPI): A second transport over the same agents, for evals, benchmarks, healthchecks and demos.
 - LangChain Integration: Orchestrates model prompts, output parsers, and tool-calling chains.
 - Vector Store (FAISS): Provides efficient similarity search for NPC lore and background information.
 - Dynamic Context Injection: Formats real-time game state (emotions, memories, quest progress) into the LLM context window to ensure situational awareness.
@@ -41,6 +42,33 @@ The Python service encapsulates all LLM logic and cognitive processes.
 ### Communication Protocols
 - Client-to-Backend: JSON-based events over persistent WebSockets.
 - Inter-Service: Binary Protocol Buffers over gRPC (HTTP/2), ensuring low-latency and strict type safety between the Go and Python layers.
+
+### Service Transports
+
+The AI service runs two transports in one process, sharing a single in-memory agent
+registry. Both dispatch through the same routing function (`router.py`), so REST and gRPC
+cannot drift apart.
+
+| Transport | Port | Who uses it |
+|---|---|---|
+| gRPC (`AIBrain.Think`) | `50051` | The Go orchestrator — the production path |
+| REST (FastAPI) | `API_PORT`, default `8000` | Evals, benchmarks, container healthchecks, demos |
+
+| REST endpoint | Purpose |
+|---|---|
+| `GET /health` | Status, agent count, active provider and models |
+| `GET /v1/npcs` | Loaded agents (key, name, occupation) |
+| `POST /v1/chat` | Ask an NPC a lore question (RAG path) |
+| `POST /v1/event` | Send a game event (LangGraph path) |
+
+Errors: unknown NPC → `404`, unknown/invalid event → `422`, provider failure → `502`.
+The Go orchestrator's HTTP/WebSocket port is `SERVER_PORT` (default `8080`).
+
+```bash
+curl localhost:8000/health
+curl -X POST localhost:8000/v1/chat -H 'Content-Type: application/json' \
+  -d '{"npc":"elara","question":"Who is the mayor?"}'
+```
 
 ### Inference Provider Configuration
 

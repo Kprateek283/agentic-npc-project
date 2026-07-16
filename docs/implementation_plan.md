@@ -60,6 +60,23 @@ FastAPI and uvicorn are installed but unused. All request routing logic lives in
 Go→gRPC→Python flow is verified unchanged; unknown-NPC and bad-event cases return the
 documented status codes.
 
+**Notes from execution (2026-07-16).**
+- `/health` reports provider, models and agent count; the **vector-store backend field is
+  added by M2**, which is what introduces `VECTOR_STORE` config.
+- The transport-agnostic dynamic context is plain data — `{"emotions": {5 floats},
+  "memories": [str], "quest_step": int, "completion_rate": float}`. Only `.description`
+  of memories and the five emotion floats were ever consumed, so the protobuf-shaped
+  objects stopped at the servicer and `context_formatter` was updated to the plain shape.
+- `agent_manager.get_agent` now also resolves a bare NPC directory name ("elara") after an
+  exact-key miss, so REST/eval callers need not spell out personality paths. Exact matches
+  still win, so the Go path is untouched.
+- **Data-shape bug found and fixed here:** 3 of 8 NPCs author `occupation` as a *list*
+  (e.g. `["Villager", "Dumb Brother"]`). Go already normalised this (`occupationToString`
+  in `seeder.go`); Python did not, so the raw list was being rendered into every static
+  system prompt as `['Villager', 'Dumb Brother']`. Normalised in `prompt_loader.py`
+  (joined with ", "). This changes prompt text, so it had to land before I1/M4 measure
+  anything.
+
 ---
 
 ### M2. Pluggable vector store: FAISS (default) + Qdrant

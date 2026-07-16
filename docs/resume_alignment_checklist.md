@@ -27,7 +27,7 @@ targeting the AI Engineer JD (Python, FastAPI, RAG, agents, evals, vector DBs, D
 
 ## MANDATORY — resume is untruthful without these
 
-- [ ] **M1. Add a real FastAPI layer to the Python service.**
+- [x] **M1. Add a real FastAPI layer to the Python service.**
   Run FastAPI alongside the gRPC server: `/health`, `/v1/chat` (direct REST access to RAG/agent for testing and demos), `/v1/npcs` (list loaded agents), and later `/v1/eval` endpoints. Serve with uvicorn from `main.py`. This also gives you a REST surface to demo without the Go stack.
 - [ ] **M2. Add Qdrant as a supported vector store.**
   Make `lore_retriever_tool.py` backend-pluggable (env var: `VECTOR_STORE=faiss|qdrant`), add Qdrant to `docker-compose.yml`, use `langchain-qdrant`. FAISS stays the default; Qdrant path must actually work end-to-end.
