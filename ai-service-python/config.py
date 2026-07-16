@@ -9,7 +9,9 @@ load_dotenv()
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "gemini").lower()
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
-OLLAMA_MODEL_HEAVY = os.getenv("OLLAMA_MODEL_HEAVY", "llama3:8b")
+# llama3.1:8b, not llama3:8b: the LangGraph agent needs native tool-calling, which
+# llama3:8b does not have (`ollama show llama3:8b` reports capability "completion" only).
+OLLAMA_MODEL_HEAVY = os.getenv("OLLAMA_MODEL_HEAVY", "llama3.1:8b")
 OLLAMA_MODEL_LIGHT = os.getenv("OLLAMA_MODEL_LIGHT", OLLAMA_MODEL_HEAVY)
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "nomic-embed-text")
 

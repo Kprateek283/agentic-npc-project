@@ -331,6 +331,25 @@ not true.
 **Done when.** A quest event observably triggers ≥1 tool execution (visible in logs /
 LangSmith trace), the loop terminates on the cap, and both providers complete the flow.
 
+**Notes from execution (2026-07-16/17).**
+- **Prebuilt chosen.** `langgraph.prebuilt.create_react_agent` accommodates both the custom
+  persona prompt (via a `prompt` callable re-rendered each LLM call) and the dynamic context
+  (via a custom `state_schema`), so the graph was not hand-rolled. It supplies the agent
+  node, tool node, conditional edge and loop; the iteration cap is applied by the caller as
+  `recursion_limit = 2 * AGENT_MAX_ITERATIONS + 1` (one loop = agent + tools super-steps),
+  and `GraphRecursionError` is caught in `run_quest_agent` for the in-character fallback.
+- **Step 5 of this plan was wrong about the model: `llama3:8b` cannot do tool-calling.**
+  `ollama show llama3:8b` reports capability `completion` only — no `tools` — so it can
+  never satisfy "completes an event requiring at least one tool call". `OLLAMA_MODEL_HEAVY`
+  now defaults to **`llama3.1:8b`** (same 8B class, `tools` capability, already local).
+  Consequence for M4 and the resume: the local model is llama3.1:8b, not llama3:8b — the
+  cloud-vs-local figure must be labelled with the model that actually ran.
+- `quest_status` reads game context through `InjectedState`, so the LLM never sees or
+  fabricates the argument — it is filled from state by the graph.
+- **Gemini leg of verification is PENDING** (free-tier quota exhausted, all models on the
+  key return 429; see the M4 blocker note). The Ollama leg is fully verified. Re-run one
+  quest event on Gemini once quota is restored, then tick the checklist item.
+
 ---
 
 ## IMMEDIATE

@@ -1,33 +1,35 @@
-from langchain_core.output_parsers import StrOutputParser
-from langgraph.graph import StateGraph, END
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.messages import SystemMessage
+from langgraph.prebuilt import create_react_agent
 
-from config import llm_heavy
-from prompts.react_prompt import react_prompt  # Our new, DYNAMIC quest prompt
 from agents.agent_state import LangGraphAgentState
+from config import llm_heavy
+from prompts.react_prompt import react_prompt
 
-def build_langgraph_agent(static_system_prompt: str):
-    """Builds the complex, stateful LangGraph agent for quests."""
 
-    # We combine our STATIC prompt and the DYNAMIC react_prompt
-    quest_prompt = ChatPromptTemplate.from_messages([
-        ("system", static_system_prompt +
-         "\n" + react_prompt.template),  # react_prompt is our DYNAMIC prompt
-        ("human", "{input}"),
-        MessagesPlaceholder(variable_name="agent_scratchpad"),
-    ])
+def build_langgraph_agent(static_system_prompt: str, tools: list):
+    """Builds the stateful multi-step ReAct agent for quest events.
 
-    # This is an inner function, defined *inside* build_langgraph_agent
-    def simple_quest_node(state: LangGraphAgentState):
-        print("---NODE: LangGraph (Simple) is processing quest step...---")
-        # It closes over the 'quest_prompt' variable from the outer scope
-        chain = quest_prompt | llm_heavy | StrOutputParser()
-        response = chain.invoke(state)
-        return {"agent_outcome": response}
+    Uses LangGraph's prebuilt ReAct constructor rather than a hand-rolled graph: it already
+    provides the agent node, the tool node, the conditional edge between them and the loop
+    back, and it accommodates both the custom persona prompt and the dynamic context (via
+    the prompt callable and the custom state schema). The iteration cap is applied by the
+    caller through the graph's recursion_limit.
+    """
 
-    workflow = StateGraph(LangGraphAgentState)
-    workflow.add_node("thinker", simple_quest_node)
-    workflow.set_entry_point("thinker")
-    workflow.add_edge("thinker", END)
+    def prompt(state: LangGraphAgentState) -> list:
+        # Re-rendered on every LLM call, so the NPC keeps its persona and the current game
+        # context in view across tool-calling turns.
+        dynamic_block = react_prompt.format(
+            emotions=state["emotions"],
+            npc_memories=state["npc_memories"],
+            current_quest_step=state["current_quest_step"],
+            completion_rate=state["completion_rate"],
+        )
+        return [SystemMessage(content=static_system_prompt + dynamic_block), *state["messages"]]
 
-    return workflow.compile()
+    return create_react_agent(
+        llm_heavy,
+        tools,
+        prompt=prompt,
+        state_schema=LangGraphAgentState,
+    )

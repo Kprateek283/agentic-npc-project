@@ -1,15 +1,16 @@
-from typing import TypedDict, Sequence, List, Any
-from langchain_core.messages import BaseMessage
+from langgraph.prebuilt.chat_agent_executor import AgentState
 
-# --- LangGraph State Definition ---
-# This state now correctly matches our DYNAMIC react_prompt
-class LangGraphAgentState(TypedDict):
-    input: str
+
+class LangGraphAgentState(AgentState):
+    """State for the ReAct quest agent.
+
+    `messages` (the real scratchpad: the player's event, the LLM's tool calls and the
+    tool observations) and `remaining_steps` are inherited from AgentState. The fields
+    below carry the per-request game context: they are rendered into the system prompt
+    on every LLM call, and the quest_status tool reads them via InjectedState.
+    """
+
     emotions: str
     npc_memories: str
     current_quest_step: int
     completion_rate: float
-    agent_outcome: str
-    agent_scratchpad: Sequence[BaseMessage]
-    tools: List[Any]
-    tool_names: str

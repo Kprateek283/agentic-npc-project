@@ -35,7 +35,7 @@ The Python service encapsulates all LLM logic and cognitive processes.
 - Backend: Go (Golang), Gin, Ent ORM, gRPC-Go, Go-Redis.
 - AI Service: Python, LangChain, LangGraph, FAISS, gRPC-Python.
 - Data Management: PostgreSQL, Redis.
-- Inference: Google Gemini API (Cloud) and Ollama/Llama 3 (Local).
+- Inference: Google Gemini API (Cloud) and Ollama/Llama 3.1 (Local).
 - Infrastructure: Docker, Docker Compose, Protocol Buffers.
 - Client Target: Unreal Engine 5 (C++/Blueprints).
 
@@ -80,7 +80,7 @@ The chat provider is selected at startup by environment variable — no code cha
 | `LLM_PROVIDER` | `gemini` | `gemini` (cloud) or `ollama` (local) |
 | `GEMINI_API_KEY` | — | Required only when `LLM_PROVIDER=gemini` |
 | `GEMINI_MODEL` | `gemini-2.5-flash` | Cloud chat model |
-| `OLLAMA_MODEL_HEAVY` | `llama3:8b` | Local chat model for the LangGraph agent |
+| `OLLAMA_MODEL_HEAVY` | `llama3.1:8b` | Local chat model for the LangGraph agent (needs tool-calling) |
 | `OLLAMA_MODEL_LIGHT` | = `OLLAMA_MODEL_HEAVY` | Local chat model for the RAG path |
 | `EMBEDDING_MODEL` | `nomic-embed-text` | Embedding model (always local via Ollama) |
 | `OLLAMA_HOST` | `http://localhost:11434` | Ollama endpoint |
@@ -94,7 +94,7 @@ dependency in both modes:
 ```bash
 # Install Ollama (https://ollama.com/download), then:
 ollama pull nomic-embed-text   # embeddings — required in both modes
-ollama pull llama3:8b          # chat — only needed for LLM_PROVIDER=ollama
+ollama pull llama3.1:8b        # chat — only needed for LLM_PROVIDER=ollama
 ```
 
 ```bash
@@ -104,7 +104,7 @@ GEMINI_API_KEY=your-key-here
 
 # Local mode — no API key needed
 LLM_PROVIDER=ollama
-OLLAMA_MODEL_HEAVY=llama3:8b
+OLLAMA_MODEL_HEAVY=llama3.1:8b
 ```
 
 ### Vector Store
