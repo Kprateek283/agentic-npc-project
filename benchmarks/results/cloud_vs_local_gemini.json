@@ -1,0 +1,57 @@
+{
+  "benchmark": "cloud_vs_local_gemini",
+  "run_date": "2026-07-18",
+  "hardware": {
+    "platform": "Linux-6.14.0-33-generic-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "cpus": "16",
+    "cpu": "12th Gen Intel(R) Core(TM) i5-1240P",
+    "memory": "16072112 kB",
+    "gpu": "NVIDIA GeForce RTX 2050"
+  },
+  "description": "Inference latency through the FastAPI endpoints, per brain. Timing only; no answer scoring.",
+  "provider": "gemini",
+  "service_health": {
+    "status": "ok",
+    "agents_loaded": 8,
+    "llm_provider": "gemini",
+    "chat_model": "gemini-3.5-flash",
+    "embedding_model": "nomic-embed-text",
+    "vector_store": "faiss",
+    "retriever_k": 3
+  },
+  "sample": {
+    "questions": 3,
+    "events": 2,
+    "reps": 1,
+    "rag_n": 3,
+    "agent_n": 1
+  },
+  "rag": {
+    "n": 3,
+    "median_ms": 2868.33,
+    "p95_ms": 3681.06,
+    "min_ms": 2289.15,
+    "max_ms": 3681.06,
+    "mean_ms": 2946.18
+  },
+  "agent": {
+    "n": 1,
+    "median_ms": 5425.14,
+    "p95_ms": 5425.14,
+    "min_ms": 5425.14,
+    "max_ms": 5425.14,
+    "mean_ms": 5425.14
+  },
+  "errors": [
+    "event/baelor: HTTP 502: {\"detail\":\"AI provider call failed: ChatGoogleGenerativeAIError\"}"
+  ],
+  "rag_samples_ms": [
+    3681.06,
+    2868.33,
+    2289.15
+  ],
+  "agent_samples_ms": [
+    5425.14
+  ]
+}

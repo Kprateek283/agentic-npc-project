@@ -124,12 +124,22 @@ If `VECTOR_STORE=qdrant` and Qdrant is unreachable, the service **fails at start
 clear error rather than falling back to FAISS — a silent fallback would make benchmark and
 eval results lie about which backend produced them.
 
-### Performance Benchmarks (Empirical Results)
-- Go Logic & State Validation: < 50ms.
-- Database Cache Hit (Redis): ~8ms.
-- gRPC Round-trip (No LLM): ~14ms.
-- Fast Brain Response (Cloud): ~1.0s (Inference-dominated).
-- Complex Brain Response (Cloud): ~3.0s (Multi-step reasoning).
+### Performance Benchmarks (measured)
+
+Every figure below comes from a committed, re-runnable script — see
+[`docs/benchmarks.md`](docs/benchmarks.md) for methodology, hardware and full tables.
+
+| Path | Median | What it measures |
+|---|---|---|
+| gRPC round-trip (no LLM) | **0.14 ms** | protobuf + HTTP/2 + routing, no inference |
+| End-to-end infra (WebSocket → Go → gRPC → Python) | **7.37 ms** | full orchestration, no inference |
+| Cache hit (Redis + Postgres PK) vs miss (Postgres lookup) | **0.15 / 0.20 ms** | cache-aside read path |
+| Fast brain — RAG (cloud, gemini-3.5-flash) | **~2.9 s** | inference-dominated (n=3, free-tier cap) |
+
+**Headline:** infrastructure is sub-10 ms; inference is seconds. The Go/gRPC/Redis
+orchestration is ~0.2% of a cloud RAG turn — **latency is inference-dominated, not an
+infrastructure bottleneck.** (Earlier README figures of ~14 ms gRPC and ~8/42 ms cache were
+never measured; the real values above are 50–200× lower.)
 
 ## Data Persistence & Schema Design
 

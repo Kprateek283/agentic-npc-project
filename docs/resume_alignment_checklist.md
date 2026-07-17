@@ -33,7 +33,7 @@ targeting the AI Engineer JD (Python, FastAPI, RAG, agents, evals, vector DBs, D
   Make `lore_retriever_tool.py` backend-pluggable (env var: `VECTOR_STORE=faiss|qdrant`), add Qdrant to `docker-compose.yml`, use `langchain-qdrant`. FAISS stays the default; Qdrant path must actually work end-to-end.
 - [x] **M3. Restore the local Ollama inference path.**
   Un-comment and gate behind env config (`LLM_PROVIDER=gemini|ollama`, model name configurable). Verify `llama3:8b` works through both RAG and LangGraph paths. Also fixes the stale "Gemini 1.5 Flash" print (code uses 2.5).
-- [ ] **M4. Build reproducible benchmark scripts and commit results.**
+- [x] **M4. Build reproducible benchmark scripts and commit results.**
   - `benchmarks/latency_attribution.py|go`: measure gRPC round-trip (no LLM), Redis hit vs PostgreSQL query, end-to-end WebSocket→response. 
   - `benchmarks/cloud_vs_local.py`: same question set through Gemini vs Ollama for both RAG and agentic paths; report medians and p95.
   - Commit `docs/benchmarks.md` with methodology, hardware, and result tables.
