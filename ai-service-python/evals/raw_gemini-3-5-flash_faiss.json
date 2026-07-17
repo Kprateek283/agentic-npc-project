@@ -1,0 +1,125 @@
+{
+  "run_date": "2026-07-17",
+  "tag": "cloud sample (free-tier 20/day cap), gemini-3.5-flash answers + judge",
+  "config": {
+    "llm_provider": "gemini",
+    "chat_model": "gemini-3.5-flash",
+    "embedding_model": "nomic-embed-text",
+    "vector_store": "faiss",
+    "retriever_k": 3,
+    "judge_provider": "gemini",
+    "judge_model": "gemini-3.5-flash"
+  },
+  "sample": {
+    "scored": 6,
+    "requested": 6,
+    "dataset_total": 50,
+    "is_subset": true,
+    "complete": true
+  },
+  "summary": {
+    "in_scope_n": 2,
+    "out_of_scope_n": 2,
+    "hit@1_pct": 50.0,
+    "hit@3_pct": 100.0,
+    "grounded_correct_pct": 50.0,
+    "grounded_incorrect_pct": 0.0,
+    "hallucinated_in_scope_pct": 0.0,
+    "refusal_rate_out_of_scope_pct": 100.0,
+    "hallucinated_out_of_scope_pct": 0.0,
+    "unparsed_verdicts": 0,
+    "judge_errors": 1,
+    "errors": 2,
+    "median_latency_s": 25.13
+  },
+  "results": [
+    {
+      "id": "elara_01",
+      "npc": "elara",
+      "category": "in_scope",
+      "question": "What happens to the Mindbloom Petal if it touches ordinary metal?",
+      "retrieved": [
+        "The Mindbloom Petal can restore a mind, but it can also shatter it if the harvester's intent is not pure.",
+        "CRITICAL KNOWLEDGE: The petal is etheric and will be destroyed by any contact with mundane metal. It must be harvested with a tool of pure, natural materials, such as polished obsidian or ancient bone.",
+        "The legend is not just about the petal, but about the 'balance' it represents."
+      ],
+      "hit@1": false,
+      "hit@3": true,
+      "answer": "The Mindbloom Petal is etheric, you see. If it makes any contact with mundane metal, it will be immediately destroyed. \n\nIf you intend to harvest it, you must use a tool made of pure, natural materials instead, such as polished obsidian or ancient bone.",
+      "latency_s": 18.05,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer accurately conveys all the facts from the reference answer, stating that the petal is destroyed by mundane metal and must be harvested with tools of natural materials like obsidian or bone."
+    },
+    {
+      "id": "oos_global_01",
+      "npc": "elara",
+      "category": "out_of_scope_global",
+      "question": "Who is the mayor of this village?",
+      "retrieved": [
+        "I know that Baelor the Blacksmith is the only one in the village who has the 'pure heart' and 'steady hands' required to craft an obsidian tool, though I doubt he remembers the ancient technique.",
+        "Moonpetal Salve, brewed from silverleaf and morning dew, closes a wound overnight, but only if it is applied before the wound festers.",
+        "The deepest chamber of the Whispering Caves is called the Hollow, and no lantern will stay lit inside it."
+      ],
+      "answer": "I'm afraid I don't know. I have never heard of anyone holding the title of mayor in our village.",
+      "latency_s": 25.13,
+      "verdict": "appropriate_refusal",
+      "judge_reason": "The NPC correctly declined to name a mayor, as no such position exists in the village."
+    },
+    {
+      "id": "oos_other_01",
+      "npc": "marcus",
+      "category": "out_of_scope_other_npc",
+      "question": "What is the technique for cold-forging obsidian?",
+      "retrieved": [
+        "Baelor the Blacksmith is a good man, but don't get on his bad side.",
+        "The bandits never strike the village itself; they hit the trade road two miles east, near the split oak.",
+        "There are two ways into this village: the main gate, and the old drainage culvert behind the mill that everyone pretends does not exist."
+      ],
+      "answer": "I haven't the faintest clue about cold-forging obsidian. I'm just a guard. You could try asking Baelor the Blacksmith\u2014he's a good man, though you best not get on his bad side\u2014but I've never heard of any such technique myself.",
+      "latency_s": 31.04,
+      "verdict": "appropriate_refusal",
+      "judge_reason": "The NPC correctly declined to answer the question while pointing the player to Baelor, who is mentioned in the retrieved lore."
+    },
+    {
+      "id": "elara_02",
+      "npc": "elara",
+      "category": "in_scope",
+      "question": "Who in this village could craft an obsidian tool?",
+      "retrieved": [
+        "I know that Baelor the Blacksmith is the only one in the village who has the 'pure heart' and 'steady hands' required to craft an obsidian tool, though I doubt he remembers the ancient technique.",
+        "CRITICAL KNOWLEDGE: The petal is etheric and will be destroyed by any contact with mundane metal. It must be harvested with a tool of pure, natural materials, such as polished obsidian or ancient bone.",
+        "The Whispering Caves where the petal grows are dangerous and filled with deceptive echoes."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "Baelor the Blacksmith is the only one in the village who has the 'pure heart' and 'steady hands' required to craft an obsidian tool. Though, I doubt he remembers the ancient technique.",
+      "latency_s": 13.48,
+      "verdict": "judge_error",
+      "judge_reason": "ChatGoogleGenerativeAIError: Error calling model 'gemini-3.5-flash' (RESOURCE_EXHAUSTED): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': "
+    },
+    {
+      "id": "oos_global_02",
+      "npc": "baelor",
+      "category": "out_of_scope_global",
+      "question": "What is the capital city of France?",
+      "retrieved": [
+        "A blade quenched in oil holds its edge longer than one quenched in water, but water is faster, and the village pays for speed.",
+        "My forge burns hottest with charcoal cut from the ironwood grove east of the village.",
+        "I made Marcus's guard spear myself, and I re-sharpen it free of charge every spring."
+      ],
+      "error": "ChatGoogleGenerativeAIError: Error calling model 'gemini-3.5-flash' (RESOURCE_EXHAUSTED): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. Fo"
+    },
+    {
+      "id": "oos_other_02",
+      "npc": "silas",
+      "category": "out_of_scope_other_npc",
+      "question": "Where does Baelor hide his grandfather's journal?",
+      "retrieved": [
+        "Baelor has not bought a single thing from me in nine years.",
+        "I hear those bandits, led by Rook, have a new camp somewhere in the old ruins. Bad for business.",
+        "The east road is the fastest way to the city and the most robbed; the south road adds four days but you keep your goods."
+      ],
+      "error": "ChatGoogleGenerativeAIError: Error calling model 'gemini-3.5-flash' (RESOURCE_EXHAUSTED): 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. Fo"
+    }
+  ]
+}

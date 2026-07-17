@@ -18,6 +18,12 @@ OLLAMA_MODEL_HEAVY = os.getenv("OLLAMA_MODEL_HEAVY", "llama3.1:8b")
 OLLAMA_MODEL_LIGHT = os.getenv("OLLAMA_MODEL_LIGHT", OLLAMA_MODEL_HEAVY)
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "nomic-embed-text")
 
+# The library default is 6 retries. On a free-tier key that is actively harmful: the first
+# 429 triggers a retry storm that burns the rest of the daily quota (it cost a whole eval
+# sample once). Retrying a per-day quota error cannot succeed anyway. Read at module level
+# because the eval judge may be Gemini even when the answering provider is Ollama.
+GEMINI_MAX_RETRIES = int(os.getenv("GEMINI_MAX_RETRIES", "1"))
+
 # --- Chat models: llm_light (fast RAG) and llm_heavy (LangGraph agent) ---
 if LLM_PROVIDER == "gemini":
     from langchain_google_genai import ChatGoogleGenerativeAI
@@ -30,6 +36,7 @@ if LLM_PROVIDER == "gemini":
         model=GEMINI_MODEL,
         google_api_key=GEMINI_API_KEY,
         temperature=0.7,
+        max_retries=GEMINI_MAX_RETRIES,
     )
     CHAT_MODEL_LIGHT = CHAT_MODEL_HEAVY = GEMINI_MODEL
 

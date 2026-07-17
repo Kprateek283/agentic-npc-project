@@ -38,10 +38,10 @@ targeting the AI Engineer JD (Python, FastAPI, RAG, agents, evals, vector DBs, D
   - `benchmarks/cloud_vs_local.py`: same question set through Gemini vs Ollama for both RAG and agentic paths; report medians and p95.
   - Commit `docs/benchmarks.md` with methodology, hardware, and result tables.
   - **Re-run and put the *measured* numbers on the resume** — if they differ from 2.3x / 14ms / 8ms / 42ms, update the resume, don't keep the old figures.
-- [ ] **M5. Make the grounding claim defensible.** *(code complete: single grounded prompt
-  with refusal + no-invented-names rules, `dynamic_context` wired into the RAG chain, both
-  verified by hand on Ollama. Its "Done when" requires the I1 eval run for the refusal
-  number — tick then, per provider.)*
+- [x] **M5. Make the grounding claim defensible.** *(Verified by I1: llama3.1:8b, independent
+  qwen2.5:14b judge — 95% grounded on-topic, 90% refusal on out-of-scope, 0% in-scope
+  hallucination. See `evals/results.md`, including the judge's known blind spot for incidental
+  persona contradictions. Cloud not measured, per free-tier cap.)*
   Ensure the RAG prompt explicitly forbids answering outside retrieved context ("if not in context, say you don't know"), and demonstrate it via the eval harness (I1) with an out-of-scope question set. Soften the resume wording to "eliminated hallucination on factual lore queries, verified by a N-question adversarial eval" once measured.
 - [ ] **M6. Reframe the Unreal claim + ship a reference client.**
   The UE5 client was deleted and is unrecoverable. Reword the resume bullet to "exposes a WebSocket API for real-time game-client integration (JSON event protocol, designed for Unreal Engine 5 clients)" — remove "integrated with" everywhere. Back it with a committed WebSocket protocol spec (`docs/client_protocol.md`) and a minimal browser-based reference client (`client-demo/`) that authenticates and converses — the demoable artifact for README GIF and interviews.
@@ -50,7 +50,7 @@ targeting the AI Engineer JD (Python, FastAPI, RAG, agents, evals, vector DBs, D
 
 ## IMMEDIATE — do before sending the resume out
 
-- [ ] **I1. Build the 50-question eval harness** (this unlocks the commented resume bullet and directly matches JD responsibility #5 "evaluation frameworks").
+- [x] **I1. Build the 50-question eval harness** (this unlocks the commented resume bullet and directly matches JD responsibility #5 "evaluation frameworks").
   - `evals/dataset.json`: ~50 questions across NPCs/lore domains, each with expected source chunk + reference answer; include 5–10 out-of-scope traps.
   - Score retrieval hit@1/hit@3 (does the gold chunk appear in top-k) and LLM-as-judge grounded-answer accuracy (Gemini judging faithfulness to retrieved context).
   - Output a results table to `evals/results.md`. Expose via `python -m evals.run` and optionally the FastAPI `/v1/eval` endpoint.

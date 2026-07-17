@@ -1,0 +1,407 @@
+{
+  "description": "Evaluation dataset for the Agentic NPC RAG path. Each entry is one player question to one NPC. in_scope questions are answerable from that NPC's own lore.json; out_of_scope_other_npc questions ask about facts that exist only in a different NPC's lore; out_of_scope_global questions ask about things absent from every lore file. gold_evidence is a distinctive substring of the lore fact that should be retrieved (null when nothing should be retrieved) and is used for hit@k scoring.",
+  "version": 1,
+  "authored": "2026-07-17",
+  "entries": [
+    {
+      "id": "elara_01",
+      "npc": "elara",
+      "category": "in_scope",
+      "question": "What happens to the Mindbloom Petal if it touches ordinary metal?",
+      "gold_evidence": "destroyed by any contact with mundane metal",
+      "reference_answer": "It is destroyed. The petal is etheric, so it must be harvested with a tool of pure natural materials such as polished obsidian or ancient bone."
+    },
+    {
+      "id": "elara_02",
+      "npc": "elara",
+      "category": "in_scope",
+      "question": "Who in this village could craft an obsidian tool?",
+      "gold_evidence": "Baelor the Blacksmith is the only one in the village who has the 'pure heart'",
+      "reference_answer": "Baelor the Blacksmith. He alone has the pure heart and steady hands required, though he may no longer remember the ancient technique."
+    },
+    {
+      "id": "elara_03",
+      "npc": "elara",
+      "category": "in_scope",
+      "question": "How should fever-root be prepared?",
+      "gold_evidence": "Fever-root must be boiled twice",
+      "reference_answer": "It must be boiled twice. Boiled only once, it worsens the very fever it is meant to cure."
+    },
+    {
+      "id": "elara_04",
+      "npc": "elara",
+      "category": "in_scope",
+      "question": "Where does silverleaf grow?",
+      "gold_evidence": "north bank of Serpent's Creek",
+      "reference_answer": "Only on the north bank of Serpent's Creek, and only during the three weeks after the spring thaw."
+    },
+    {
+      "id": "elara_05",
+      "npc": "elara",
+      "category": "in_scope",
+      "question": "How often does the Blue Moon rise?",
+      "gold_evidence": "once every nineteen years",
+      "reference_answer": "Once every nineteen years. Every child born under it carries some imbalance."
+    },
+    {
+      "id": "elara_06",
+      "npc": "elara",
+      "category": "in_scope",
+      "question": "What is the deepest chamber of the Whispering Caves called?",
+      "gold_evidence": "called the Hollow",
+      "reference_answer": "It is called the Hollow, and no lantern will stay lit inside it."
+    },
+    {
+      "id": "baelor_01",
+      "npc": "baelor",
+      "category": "in_scope",
+      "question": "What materials do you work with?",
+      "gold_evidence": "expert in mundane materials: iron, steel, and wood",
+      "reference_answer": "Mundane materials: iron, steel and wood."
+    },
+    {
+      "id": "baelor_02",
+      "npc": "baelor",
+      "category": "in_scope",
+      "question": "Where do you keep your grandfather's journal?",
+      "gold_evidence": "beneath the third flagstone behind the anvil",
+      "reference_answer": "Hidden beneath the third flagstone behind the anvil."
+    },
+    {
+      "id": "baelor_03",
+      "npc": "baelor",
+      "category": "in_scope",
+      "question": "What does cold-forging require?",
+      "gold_evidence": "never rise above the warmth of a hand",
+      "reference_answer": "The metal must never rise above the warmth of a hand, because heat is what kills the etheric."
+    },
+    {
+      "id": "baelor_04",
+      "npc": "baelor",
+      "category": "in_scope",
+      "question": "What happens if obsidian is struck wrongly?",
+      "gold_evidence": "shatters into a hundred useless blades",
+      "reference_answer": "It shatters into a hundred useless blades. Obsidian cannot be heated and hammered like iron."
+    },
+    {
+      "id": "baelor_05",
+      "npc": "baelor",
+      "category": "in_scope",
+      "question": "Is it better to quench a blade in oil or in water?",
+      "gold_evidence": "quenched in oil holds its edge longer",
+      "reference_answer": "Oil holds the edge longer, but water is faster, and the village pays for speed."
+    },
+    {
+      "id": "baelor_06",
+      "npc": "baelor",
+      "category": "in_scope",
+      "question": "Where does the charcoal for your forge come from?",
+      "gold_evidence": "ironwood grove east of the village",
+      "reference_answer": "From the ironwood grove east of the village; it burns hottest."
+    },
+    {
+      "id": "marcus_01",
+      "npc": "marcus",
+      "category": "in_scope",
+      "question": "When do the village gates close?",
+      "gold_evidence": "gates close at sundown",
+      "reference_answer": "At sundown, with no exceptions."
+    },
+    {
+      "id": "marcus_02",
+      "npc": "marcus",
+      "category": "in_scope",
+      "question": "Is there any way into the village other than the main gate?",
+      "gold_evidence": "old drainage culvert behind the mill",
+      "reference_answer": "Yes — the old drainage culvert behind the mill, which everyone pretends does not exist."
+    },
+    {
+      "id": "marcus_03",
+      "npc": "marcus",
+      "category": "in_scope",
+      "question": "When does the night watch change?",
+      "gold_evidence": "changes at the second bell",
+      "reference_answer": "At the second bell. Marcus usually takes the dawn shift."
+    },
+    {
+      "id": "marcus_04",
+      "npc": "marcus",
+      "category": "in_scope",
+      "question": "Where do the bandits usually strike?",
+      "gold_evidence": "trade road two miles east, near the split oak",
+      "reference_answer": "On the trade road two miles east, near the split oak — never the village itself."
+    },
+    {
+      "id": "marcus_05",
+      "npc": "marcus",
+      "category": "in_scope",
+      "question": "What do strangers have to do at the gate?",
+      "gold_evidence": "name and their business at the gate",
+      "reference_answer": "Give their name and their business, both of which are written into the gate ledger."
+    },
+    {
+      "id": "marcus_06",
+      "npc": "marcus",
+      "category": "in_scope",
+      "question": "When does the merchant come to the village?",
+      "gold_evidence": "arrives on the first day of every month",
+      "reference_answer": "Silas arrives on the first day of every month, as regular as the moon."
+    },
+    {
+      "id": "kaelen_01",
+      "npc": "kaelen",
+      "category": "in_scope",
+      "question": "Who leads the bandits?",
+      "gold_evidence": "led by a man named 'Rook'",
+      "reference_answer": "A man named Rook. Scattering the bandits is not enough; their leader must be captured or defeated."
+    },
+    {
+      "id": "kaelen_02",
+      "npc": "kaelen",
+      "category": "in_scope",
+      "question": "When and where do you hold court?",
+      "gold_evidence": "village hall on the first morning of each week",
+      "reference_answer": "In the village hall, on the first morning of each week. Any villager may speak."
+    },
+    {
+      "id": "kaelen_03",
+      "npc": "kaelen",
+      "category": "in_scope",
+      "question": "How much grain does the granary hold?",
+      "gold_evidence": "one bad winter, but not two",
+      "reference_answer": "Enough to survive one bad winter, but not two."
+    },
+    {
+      "id": "kaelen_04",
+      "npc": "kaelen",
+      "category": "in_scope",
+      "question": "What were the old ruins to the north?",
+      "gold_evidence": "garrison of the old kingdom",
+      "reference_answer": "A garrison of the old kingdom, where Kaelen served as a captain."
+    },
+    {
+      "id": "kaelen_05",
+      "npc": "kaelen",
+      "category": "in_scope",
+      "question": "Have you ever banished anyone from the village?",
+      "gold_evidence": "banished exactly two men",
+      "reference_answer": "Two men in twenty years, both for stealing from the granary."
+    },
+    {
+      "id": "kaelen_06",
+      "npc": "kaelen",
+      "category": "in_scope",
+      "question": "What problems could an adventurer help you with?",
+      "gold_evidence": "'Bandit Threat' (High Priority) and a 'Trade Route Disruption'",
+      "reference_answer": "Two: the Bandit Threat, which is high priority, and a Trade Route Disruption, which is medium priority."
+    },
+    {
+      "id": "elian_01",
+      "npc": "elian",
+      "category": "in_scope",
+      "question": "What is the Mindbloom Petal a cure for?",
+      "gold_evidence": "cure for 'mind-fracturing' curses",
+      "reference_answer": "It is the only known cure for mind-fracturing curses; legend says it can restore what was taken from a mind."
+    },
+    {
+      "id": "elian_02",
+      "npc": "elian",
+      "category": "in_scope",
+      "question": "Where does the petal bloom?",
+      "gold_evidence": "bloom in the Whispering Caves",
+      "reference_answer": "In the Whispering Caves. The petal is connected to the Blue Moon."
+    },
+    {
+      "id": "elian_03",
+      "npc": "elian",
+      "category": "in_scope",
+      "question": "How many journals does your research fill?",
+      "gold_evidence": "fills four journals",
+      "reference_answer": "Four, and only the fourth one matters."
+    },
+    {
+      "id": "elian_04",
+      "npc": "elian",
+      "category": "in_scope",
+      "question": "Have you ever gone into the caves yourself?",
+      "gold_evidence": "turned back before the first bend",
+      "reference_answer": "He tried once, alone, and turned back before the first bend."
+    },
+    {
+      "id": "elian_05",
+      "npc": "elian",
+      "category": "in_scope",
+      "question": "Who would know how to harvest the petal safely?",
+      "gold_evidence": "Herbalist is the local expert on rare plants",
+      "reference_answer": "The village Herbalist, Elara — she is the local expert on rare plants and likely knows the harvesting secret."
+    },
+    {
+      "id": "rook_01",
+      "npc": "rook",
+      "category": "in_scope",
+      "question": "Where does your crew camp?",
+      "gold_evidence": "old ruins north of the village",
+      "reference_answer": "In the old ruins north of the village, where the walls still stand."
+    },
+    {
+      "id": "rook_02",
+      "npc": "rook",
+      "category": "in_scope",
+      "question": "How many men do you have?",
+      "gold_evidence": "nine in my crew",
+      "reference_answer": "Nine, though only three of them can actually fight."
+    },
+    {
+      "id": "rook_03",
+      "npc": "rook",
+      "category": "in_scope",
+      "question": "Where do you take the carts?",
+      "gold_evidence": "two miles east, near the split oak",
+      "reference_answer": "On the trade road two miles east, near the split oak, where the carts slow at the bend."
+    },
+    {
+      "id": "rook_04",
+      "npc": "rook",
+      "category": "in_scope",
+      "question": "Do you ever rob the same caravan twice?",
+      "gold_evidence": "never rob the same caravan twice",
+      "reference_answer": "Never — a merchant who survives is a merchant who comes back."
+    },
+    {
+      "id": "rook_05",
+      "npc": "rook",
+      "category": "in_scope",
+      "question": "What do you make of the village guard?",
+      "gold_evidence": "guard (Marcus) is lazy and predictable",
+      "reference_answer": "Marcus is lazy and predictable."
+    },
+    {
+      "id": "silas_01",
+      "npc": "silas",
+      "category": "in_scope",
+      "question": "What is a steel ingot worth?",
+      "gold_evidence": "steel one? At least 25",
+      "reference_answer": "At least 25 coins; a good iron ingot is worth at least 10."
+    },
+    {
+      "id": "silas_02",
+      "npc": "silas",
+      "category": "in_scope",
+      "question": "How much does a healing potion cost?",
+      "gold_evidence": "healing potion costs 50 coins",
+      "reference_answer": "50 coins, and he will not haggle below 40."
+    },
+    {
+      "id": "silas_03",
+      "npc": "silas",
+      "category": "in_scope",
+      "question": "How often do you come through here?",
+      "gold_evidence": "circuit of six villages",
+      "reference_answer": "He travels a circuit of six villages and reaches this one on the first day of every month."
+    },
+    {
+      "id": "silas_04",
+      "npc": "silas",
+      "category": "in_scope",
+      "question": "Which road should I take to the city?",
+      "gold_evidence": "east road is the fastest way to the city and the most robbed",
+      "reference_answer": "The east road is fastest but the most robbed; the south road adds four days but you keep your goods."
+    },
+    {
+      "id": "silas_05",
+      "npc": "silas",
+      "category": "in_scope",
+      "question": "Why is salt so expensive here in winter?",
+      "gold_evidence": "Salt sells for triple here in winter",
+      "reference_answer": "Because the village never stocks enough of it, so it sells for triple."
+    },
+    {
+      "id": "silas_06",
+      "npc": "silas",
+      "category": "in_scope",
+      "question": "Does the blacksmith buy anything from you?",
+      "gold_evidence": "not bought a single thing from me in nine years",
+      "reference_answer": "No — Baelor has not bought a single thing from him in nine years."
+    },
+    {
+      "id": "oos_other_01",
+      "npc": "marcus",
+      "category": "out_of_scope_other_npc",
+      "question": "What is the technique for cold-forging obsidian?",
+      "gold_evidence": null,
+      "reference_answer": "Marcus does not know this. Cold-forging is Baelor's hidden secret and appears only in Baelor's lore."
+    },
+    {
+      "id": "oos_other_02",
+      "npc": "silas",
+      "category": "out_of_scope_other_npc",
+      "question": "Where does Baelor hide his grandfather's journal?",
+      "gold_evidence": null,
+      "reference_answer": "Silas does not know this. The journal's hiding place appears only in Baelor's lore."
+    },
+    {
+      "id": "oos_other_03",
+      "npc": "baelor",
+      "category": "out_of_scope_other_npc",
+      "question": "How should fever-root be prepared?",
+      "gold_evidence": null,
+      "reference_answer": "Baelor does not know herbalism. He may point the player to Elara, who is named in his lore, but must not state the preparation."
+    },
+    {
+      "id": "oos_other_04",
+      "npc": "rook",
+      "category": "out_of_scope_other_npc",
+      "question": "What is the Mindbloom Petal and where does it grow?",
+      "gold_evidence": null,
+      "reference_answer": "Rook does not know this. The petal appears in Elara's, Elian's and Silas's lore, not Rook's."
+    },
+    {
+      "id": "oos_other_05",
+      "npc": "elara",
+      "category": "out_of_scope_other_npc",
+      "question": "How many men are in Rook's bandit crew?",
+      "gold_evidence": null,
+      "reference_answer": "Elara does not know this. The crew's size appears only in Rook's lore."
+    },
+    {
+      "id": "oos_global_01",
+      "npc": "elara",
+      "category": "out_of_scope_global",
+      "question": "Who is the mayor of this village?",
+      "gold_evidence": null,
+      "reference_answer": "No mayor exists anywhere in the game data — the village is led by Magistrate Kaelen. Elara must not name a mayor."
+    },
+    {
+      "id": "oos_global_02",
+      "npc": "baelor",
+      "category": "out_of_scope_global",
+      "question": "What is the capital city of France?",
+      "gold_evidence": null,
+      "reference_answer": "Real-world knowledge with no place in the game world. Baelor must decline in character."
+    },
+    {
+      "id": "oos_global_03",
+      "npc": "marcus",
+      "category": "out_of_scope_global",
+      "question": "Tell me about the dragon that lives on the mountain.",
+      "gold_evidence": null,
+      "reference_answer": "No dragon exists in any lore file. Marcus must not invent one."
+    },
+    {
+      "id": "oos_global_04",
+      "npc": "kaelen",
+      "category": "out_of_scope_global",
+      "question": "What year did Emperor Valdris die?",
+      "gold_evidence": null,
+      "reference_answer": "No Emperor Valdris exists in any lore file. Kaelen must not invent a date or a person."
+    },
+    {
+      "id": "oos_global_05",
+      "npc": "lian",
+      "category": "out_of_scope_global",
+      "question": "What do you know about the Sunstone?",
+      "gold_evidence": null,
+      "reference_answer": "No Sunstone exists in any lore file, and Lian possesses no special lore at all. He must not invent anything."
+    }
+  ]
+}

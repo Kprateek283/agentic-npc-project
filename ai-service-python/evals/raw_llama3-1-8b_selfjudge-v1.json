@@ -1,0 +1,862 @@
+{
+  "run_date": "2026-07-17",
+  "tag": "full local run",
+  "config": {
+    "llm_provider": "ollama",
+    "chat_model": "llama3.1:8b",
+    "embedding_model": "nomic-embed-text",
+    "vector_store": "faiss",
+    "retriever_k": 3,
+    "judge_provider": "ollama",
+    "judge_model": "llama3.1:8b"
+  },
+  "sample": {
+    "scored": 50,
+    "dataset_total": 50,
+    "is_subset": false
+  },
+  "summary": {
+    "in_scope_n": 40,
+    "out_of_scope_n": 10,
+    "hit@1_pct": 92.5,
+    "hit@3_pct": 97.5,
+    "grounded_correct_pct": 87.5,
+    "grounded_incorrect_pct": 2.5,
+    "hallucinated_in_scope_pct": 5.0,
+    "refusal_rate_out_of_scope_pct": 70.0,
+    "hallucinated_out_of_scope_pct": 10.0,
+    "unparsed_verdicts": 0,
+    "errors": 0,
+    "median_latency_s": 16.88
+  },
+  "results": [
+    {
+      "id": "elara_01",
+      "npc": "elara",
+      "category": "in_scope",
+      "question": "What happens to the Mindbloom Petal if it touches ordinary metal?",
+      "retrieved": [
+        "The Mindbloom Petal can restore a mind, but it can also shatter it if the harvester's intent is not pure.",
+        "CRITICAL KNOWLEDGE: The petal is etheric and will be destroyed by any contact with mundane metal. It must be harvested with a tool of pure, natural materials, such as polished obsidian or ancient bone.",
+        "The legend is not just about the petal, but about the 'balance' it represents."
+      ],
+      "hit@1": false,
+      "hit@3": true,
+      "answer": "Dear traveler, I've heard tell of such a thing happening. It's said that when the petal comes into contact with mundane metal, it... it vanishes! The delicate balance it represents is disrupted, and the etheric energy within it is dispersed. A shame, really. Such a precious and wondrous thing, lost to careless handling.",
+      "latency_s": 19.05,
+      "verdict": "grounded_incorrect",
+      "judge_reason": "The NPC's answer contradicts the reference answer by saying the petal 'vanishes' instead of being destroyed."
+    },
+    {
+      "id": "elara_02",
+      "npc": "elara",
+      "category": "in_scope",
+      "question": "Who in this village could craft an obsidian tool?",
+      "retrieved": [
+        "I know that Baelor the Blacksmith is the only one in the village who has the 'pure heart' and 'steady hands' required to craft an obsidian tool, though I doubt he remembers the ancient technique.",
+        "CRITICAL KNOWLEDGE: The petal is etheric and will be destroyed by any contact with mundane metal. It must be harvested with a tool of pure, natural materials, such as polished obsidian or ancient bone.",
+        "The Whispering Caves where the petal grows are dangerous and filled with deceptive echoes."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "Only Baelor the Blacksmith has the pure heart and steady hands required for such a task. Though I'm not sure he remembers the ancient technique...",
+      "latency_s": 14.02,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer and is supported by the retrieved lore facts."
+    },
+    {
+      "id": "elara_03",
+      "npc": "elara",
+      "category": "in_scope",
+      "question": "How should fever-root be prepared?",
+      "retrieved": [
+        "Fever-root must be boiled twice; boiled only once, it worsens the very fever it is meant to cure.",
+        "Moonpetal Salve, brewed from silverleaf and morning dew, closes a wound overnight, but only if it is applied before the wound festers.",
+        "CRITICAL KNOWLEDGE: The petal is etheric and will be destroyed by any contact with mundane metal. It must be harvested with a tool of pure, natural materials, such as polished obsidian or ancient bone."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "Boiled twice, dear traveler! That's the secret to curing those nasty fevers that plague our village. My mother taught me this, and I've seen it work wonders on many a sick soul. First, boil it once, then boil it again. Don't be tempted to skip a step, or you'll only make things worse. Trust me, I've seen it happen!",
+      "latency_s": 19.88,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer and is supported by the retrieved lore facts."
+    },
+    {
+      "id": "elara_04",
+      "npc": "elara",
+      "category": "in_scope",
+      "question": "Where does silverleaf grow?",
+      "retrieved": [
+        "Silverleaf grows only on the north bank of Serpent's Creek, and only in the three weeks after the spring thaw.",
+        "Moonpetal Salve, brewed from silverleaf and morning dew, closes a wound overnight, but only if it is applied before the wound festers.",
+        "The Mindbloom Petal can restore a mind, but it can also shatter it if the harvester's intent is not pure."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "Silverleaf grows only on the north bank of Serpent's Creek, dear traveler. It's a special place, don't you think? The spring thaw brings it to life for just three short weeks...",
+      "latency_s": 15.05,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer and is supported by the retrieved lore facts."
+    },
+    {
+      "id": "elara_05",
+      "npc": "elara",
+      "category": "in_scope",
+      "question": "How often does the Blue Moon rise?",
+      "retrieved": [
+        "The Blue Moon rises once every nineteen years, and every child born under it carries some imbalance.",
+        "Silverleaf grows only on the north bank of Serpent's Creek, and only in the three weeks after the spring thaw.",
+        "The legend is not just about the petal, but about the 'balance' it represents."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "The Blue Moon! 'Tis a rare and wondrous sight, child. I've lived long enough to see it once, but I've heard tell of its cycle from my grandmother's tales. The Blue Moon rises only once every nineteen years. That's right, nineteen long years between each appearance. Some say the timing is tied to the cycles of nature, while others claim it's a sign from the gods themselves. But one thing's certain: when the Blue Moon shines bright, magic stirs and balance wavers...",
+      "latency_s": 22.95,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer and is supported by the retrieved lore facts."
+    },
+    {
+      "id": "elara_06",
+      "npc": "elara",
+      "category": "in_scope",
+      "question": "What is the deepest chamber of the Whispering Caves called?",
+      "retrieved": [
+        "The deepest chamber of the Whispering Caves is called the Hollow, and no lantern will stay lit inside it.",
+        "The Whispering Caves where the petal grows are dangerous and filled with deceptive echoes.",
+        "Fever-root must be boiled twice; boiled only once, it worsens the very fever it is meant to cure."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "The Hollow. It's said that no lantern will stay lit inside it, so be sure to bring a spare if you plan on venturing down that far.",
+      "latency_s": 14.32,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer and is supported by the retrieved lore facts."
+    },
+    {
+      "id": "baelor_01",
+      "npc": "baelor",
+      "category": "in_scope",
+      "question": "What materials do you work with?",
+      "retrieved": [
+        "I am an expert in mundane materials: iron, steel, and wood.",
+        "I have never attempted this technique, as I've had no reason to. It is difficult and requires intense focus and materials I do not have.",
+        "Cold-forging means the metal must never rise above the warmth of a hand; it is heat that kills the etheric."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "Iron, steel, and wood. That's what I'm familiar with. Good sturdy stuff for crafting tools and whatnot. What can I help you with today?",
+      "latency_s": 15.03,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer exactly."
+    },
+    {
+      "id": "baelor_02",
+      "npc": "baelor",
+      "category": "in_scope",
+      "question": "Where do you keep your grandfather's journal?",
+      "retrieved": [
+        "I keep my grandfather's journal beneath the third flagstone behind the anvil.",
+        "CRITICAL KNOWLEDGE: My grandfather's journal, which I keep hidden, contains the forbidden and ancient technique of 'cold-forging' obsidian.",
+        "I made Marcus's guard spear myself, and I re-sharpen it free of charge every spring."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "Beneath the third flagstone behind the anvil. It's a safe place, out of the way... but not too hard to find if I need it.",
+      "latency_s": 14.34,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer and is supported by the retrieved lore facts."
+    },
+    {
+      "id": "baelor_03",
+      "npc": "baelor",
+      "category": "in_scope",
+      "question": "What does cold-forging require?",
+      "retrieved": [
+        "Cold-forging means the metal must never rise above the warmth of a hand; it is heat that kills the etheric.",
+        "CRITICAL KNOWLEDGE: My grandfather's journal, which I keep hidden, contains the forbidden and ancient technique of 'cold-forging' obsidian.",
+        "I am an expert in mundane materials: iron, steel, and wood."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "Cold-forging means the metal must never rise above the warmth of a hand; it is heat that kills the etheric.",
+      "latency_s": 13.6,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer and is supported by the retrieved lore facts."
+    },
+    {
+      "id": "baelor_04",
+      "npc": "baelor",
+      "category": "in_scope",
+      "question": "What happens if obsidian is struck wrongly?",
+      "retrieved": [
+        "Obsidian cannot be heated and hammered like iron; strike it wrong and it shatters into a hundred useless blades.",
+        "CRITICAL KNOWLEDGE: My grandfather's journal, which I keep hidden, contains the forbidden and ancient technique of 'cold-forging' obsidian.",
+        "Cold-forging means the metal must never rise above the warmth of a hand; it is heat that kills the etheric."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "Blast it all... If you strike obsidian wrong, it shatters into a hundred useless blades! You can't just heat and hammer it like iron, no sir. That's just asking for trouble. My grandfather's journal would have more to say on the subject if I were brave enough to read it... (muttering to himself) Cold-forging, cold-forging...",
+      "latency_s": 20.03,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer and is supported by the retrieved lore facts."
+    },
+    {
+      "id": "baelor_05",
+      "npc": "baelor",
+      "category": "in_scope",
+      "question": "Is it better to quench a blade in oil or in water?",
+      "retrieved": [
+        "A blade quenched in oil holds its edge longer than one quenched in water, but water is faster, and the village pays for speed.",
+        "Cold-forging means the metal must never rise above the warmth of a hand; it is heat that kills the etheric.",
+        "Obsidian cannot be heated and hammered like iron; strike it wrong and it shatters into a hundred useless blades."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "Ahah, well, the villagers have had this debate for ages! Me, I've heard that if you want a blade to hold its edge longer, oil is the way to go. But, as we all know, speed is key around here, and water's faster. So... if it were up to me, I'd say... (chuckles) well, I think the village pays for speed, don't they? Water's what we use, so that's good enough for me!",
+      "latency_s": 22.77,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer and is supported by the retrieved lore facts."
+    },
+    {
+      "id": "baelor_06",
+      "npc": "baelor",
+      "category": "in_scope",
+      "question": "Where does the charcoal for your forge come from?",
+      "retrieved": [
+        "My forge burns hottest with charcoal cut from the ironwood grove east of the village.",
+        "I am an expert in mundane materials: iron, steel, and wood.",
+        "Cold-forging means the metal must never rise above the warmth of a hand; it is heat that kills the etheric."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "The charcoal for me forge comes from the ironwood grove east of our village! 'Tis a fine source, and I've grown quite fond of that spot. The trees there seem to have a special affinity for burning slow and hot, just like I do. Good stuff.",
+      "latency_s": 17.25,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer and is supported by the retrieved lore facts."
+    },
+    {
+      "id": "marcus_01",
+      "npc": "marcus",
+      "category": "in_scope",
+      "question": "When do the village gates close?",
+      "retrieved": [
+        "The village gates close at sundown. No exceptions.",
+        "There are two ways into this village: the main gate, and the old drainage culvert behind the mill that everyone pretends does not exist.",
+        "The village square is busiest at the midday market, which is exactly when purses go missing."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "Sundown. Don't be late comin' back, or you'll have to sleep outside!",
+      "latency_s": 12.88,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer and is supported by the retrieved lore facts."
+    },
+    {
+      "id": "marcus_02",
+      "npc": "marcus",
+      "category": "in_scope",
+      "question": "Is there any way into the village other than the main gate?",
+      "retrieved": [
+        "There are two ways into this village: the main gate, and the old drainage culvert behind the mill that everyone pretends does not exist.",
+        "The village gates close at sundown. No exceptions.",
+        "The bandits never strike the village itself; they hit the trade road two miles east, near the split oak."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "The old drainage culvert behind the mill, it's... not exactly official, if you know what I mean. But, uh, some folks might say it's a way in, yes. Just don't go telling anyone I said that, or I'll have to deny it. (muttering to himself) Not that many people seem to know about it anyway...",
+      "latency_s": 19.51,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer stays within the retrieved lore and correctly identifies the old drainage culvert as an alternative entry point."
+    },
+    {
+      "id": "marcus_03",
+      "npc": "marcus",
+      "category": "in_scope",
+      "question": "When does the night watch change?",
+      "retrieved": [
+        "The night watch changes at the second bell, and I take the dawn shift most weeks.",
+        "The village gates close at sundown. No exceptions.",
+        "Silas the merchant arrives on the first day of every month, as regular as the moon."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "The night watch changes at the second bell. I remember it well, 'cause I take the dawn shift most weeks. We have a routine here in the village. Can't have everyone running around like headless chickens, now can we?",
+      "latency_s": 19.24,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer and is supported by the retrieved lore facts."
+    },
+    {
+      "id": "marcus_04",
+      "npc": "marcus",
+      "category": "in_scope",
+      "question": "Where do the bandits usually strike?",
+      "retrieved": [
+        "The bandits never strike the village itself; they hit the trade road two miles east, near the split oak.",
+        "Magistrate Kaelen is a fair leader, but he's been worried about the bandits again recently.",
+        "Magistrate Kaelen ordered a second patrol on the east road after the last caravan was robbed."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "The trade road, two miles east of here, near the split oak. They never bother us in the village itself, thank the gods. Magistrate Kaelen's been keeping a close eye on it, too.",
+      "latency_s": 15.67,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer and is supported by the retrieved lore facts."
+    },
+    {
+      "id": "marcus_05",
+      "npc": "marcus",
+      "category": "in_scope",
+      "question": "What do strangers have to do at the gate?",
+      "retrieved": [
+        "Every stranger must give their name and their business at the gate, and I write both into the gate ledger.",
+        "The village gates close at sundown. No exceptions.",
+        "There are two ways into this village: the main gate, and the old drainage culvert behind the mill that everyone pretends does not exist."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "Strangers must give their name and their business at the gate before we let 'em through. I write it all down in the ledger. Keeps track of who's comin' and goin', you know? Safety first, that's my motto.",
+      "latency_s": 16.15,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer and is supported by the retrieved lore facts."
+    },
+    {
+      "id": "marcus_06",
+      "npc": "marcus",
+      "category": "in_scope",
+      "question": "When does the merchant come to the village?",
+      "retrieved": [
+        "Silas the merchant arrives on the first day of every month, as regular as the moon.",
+        "The village gates close at sundown. No exceptions.",
+        "The village square is busiest at the midday market, which is exactly when purses go missing."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "Silas arrives on the first day of every month. As regular as the moon, he comes to sell his wares. A reliable and welcome visitor, Silas is! His arrival always brings a bit of excitement to our little village.",
+      "latency_s": 15.4,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer and is supported by the retrieved lore facts."
+    },
+    {
+      "id": "kaelen_01",
+      "npc": "kaelen",
+      "category": "in_scope",
+      "question": "Who leads the bandits?",
+      "retrieved": [
+        "CRITICAL KNOWLEDGE: The bandits are led by a man named 'Rook'. Simply scattering them won't be enough; their leader must be captured or defeated.",
+        "A 'Partial Success' for the bandit quest would be scattering them. A 'Full Success' would be dealing with Rook.",
+        "I have two main problems that a capable adventurer could solve: the 'Bandit Threat' (High Priority) and a 'Trade Route Disruption' (Medium Priority)."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "Rook, that scoundrel. He's been causing trouble for our village for far too long. We need someone brave enough to put an end to his schemes.",
+      "latency_s": 13.71,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer and is supported by the retrieved lore facts."
+    },
+    {
+      "id": "kaelen_02",
+      "npc": "kaelen",
+      "category": "in_scope",
+      "question": "When and where do you hold court?",
+      "retrieved": [
+        "I hold court in the village hall on the first morning of each week, and any villager may speak there.",
+        "In twenty years I have banished exactly two men, both for stealing from the granary.",
+        "This village pays no tithe to any kingdom; there has been no kingdom to pay since the fall."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "I hold court right here, in the village hall. Every first morning of each week. Any villager may speak their mind there. It's a time for us to air our grievances and discuss important matters. Would you like to come and share something with the others?",
+      "latency_s": 16.31,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer and is supported by the retrieved lore facts."
+    },
+    {
+      "id": "kaelen_03",
+      "npc": "kaelen",
+      "category": "in_scope",
+      "question": "How much grain does the granary hold?",
+      "retrieved": [
+        "Our granary holds enough grain to survive one bad winter, but not two.",
+        "In twenty years I have banished exactly two men, both for stealing from the granary.",
+        "This village pays no tithe to any kingdom; there has been no kingdom to pay since the fall."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "Just enough for one bad winter. We've been fortunate so far, but I worry about the future if there's another harsh season.",
+      "latency_s": 12.78,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer and is supported by the retrieved lore facts."
+    },
+    {
+      "id": "kaelen_04",
+      "npc": "kaelen",
+      "category": "in_scope",
+      "question": "What were the old ruins to the north?",
+      "retrieved": [
+        "The old ruins north of the village were a garrison of the old kingdom, and I served in them as a captain.",
+        "The trade route disruption will cost this village more in the long run than the bandit raids ever will.",
+        "This village pays no tithe to any kingdom; there has been no kingdom to pay since the fall."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "Those old ruins... a garrison of the old kingdom, I'm afraid. I served there as a captain myself, back in my younger days. It's hard to believe how much time has passed since then. Now, it's nothing but a reminder of what used to be. We don't get many visitors from that era anymore...",
+      "latency_s": 17.7,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer and is supported by the retrieved lore facts."
+    },
+    {
+      "id": "kaelen_05",
+      "npc": "kaelen",
+      "category": "in_scope",
+      "question": "Have you ever banished anyone from the village?",
+      "retrieved": [
+        "In twenty years I have banished exactly two men, both for stealing from the granary.",
+        "Rook and I served in the same company before the kingdom fell, and I have never told the village so.",
+        "I hold court in the village hall on the first morning of each week, and any villager may speak there."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "Yes... I'm afraid so. Two men, actually. They stole from our granary. Had to be done, for the sake of the village and its people. Not a decision taken lightly, but necessary all the same.",
+      "latency_s": 15.15,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer and is supported by the retrieved lore facts."
+    },
+    {
+      "id": "kaelen_06",
+      "npc": "kaelen",
+      "category": "in_scope",
+      "question": "What problems could an adventurer help you with?",
+      "retrieved": [
+        "I have two main problems that a capable adventurer could solve: the 'Bandit Threat' (High Priority) and a 'Trade Route Disruption' (Medium Priority).",
+        "I will only assign the 'Trade Route Disruption' quest to someone who has proven themselves to be exceptionally skilled and reliable, as it requires diplomacy, not just brute force.",
+        "A 'Partial Success' for the bandit quest would be scattering them. A 'Full Success' would be dealing with Rook."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "We've had some troubles lately. There's the bandits that have been raiding our caravans and trade routes. It's a big problem, but I'm sure someone brave would be able to deal with them. We also have a bit of a situation with one of the trade routes being disrupted, but that's a more... delicate issue. Not just anyone can handle it.",
+      "latency_s": 18.81,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer accurately reflects the retrieved lore facts and matches the reference answer."
+    },
+    {
+      "id": "elian_01",
+      "npc": "elian",
+      "category": "in_scope",
+      "question": "What is the Mindbloom Petal a cure for?",
+      "retrieved": [
+        "The Mindbloom Petal is the only known cure for 'mind-fracturing' curses.",
+        "Legend says the petal can 'restore what was taken' from a mind.",
+        "The petal is connected to the Blue Moon and is said to bloom in the Whispering Caves."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "It's said to be a cure for mind-fracturing curses. My brother found out about it from his studies... he's always been quite interested in that sort of thing.",
+      "latency_s": 13.89,
+      "verdict": "ungrounded",
+      "judge_reason": "The NPC introduces an unrelated character ('my brother') and implies they have personal knowledge not present in the lore."
+    },
+    {
+      "id": "elian_02",
+      "npc": "elian",
+      "category": "in_scope",
+      "question": "Where does the petal bloom?",
+      "retrieved": [
+        "The petal is connected to the Blue Moon and is said to bloom in the Whispering Caves.",
+        "Legend says the petal can 'restore what was taken' from a mind.",
+        "The Mindbloom Petal is the only known cure for 'mind-fracturing' curses."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "The Whispering Caves. We've heard stories about it blooming there, under the light of the Blue Moon. Some folks say they've seen it, but I haven't been lucky enough to witness it myself... yet! *nervous smile*",
+      "latency_s": 15.73,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer and is supported by the retrieved lore facts."
+    },
+    {
+      "id": "elian_03",
+      "npc": "elian",
+      "category": "in_scope",
+      "question": "How many journals does your research fill?",
+      "retrieved": [
+        "My research fills four journals, and only the fourth one matters.",
+        "I have read every account of mind-fracturing I could find; there are eleven, and nine of them are worthless.",
+        "The village Herbalist is the local expert on rare plants and likely knows the harvesting secret."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "Four! I've filled four entire journals with my findings, but it's the fourth one that really matters. All the rest are just notes and scribbles, nothing of importance. The fourth one, now that's a different story... *smiles proudly*",
+      "latency_s": 15.83,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer and is supported by the retrieved lore facts."
+    },
+    {
+      "id": "elian_04",
+      "npc": "elian",
+      "category": "in_scope",
+      "question": "Have you ever gone into the caves yourself?",
+      "retrieved": [
+        "I tried to enter the caves alone once, and I turned back before the first bend.",
+        "I have mapped the Whispering Caves from three separate travellers' accounts, and no two of the maps agree.",
+        "The petal is connected to the Blue Moon and is said to bloom in the Whispering Caves."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "Me? Go into the caves alone? No, no, no! I was foolish once, but that's a long story. Let's just say I tried to enter the caves once and... well, it didn't go so well for me. I turned back before the first bend, yes, before the first bend. That's where I drew the line. Too many stories of strange noises and unexplained occurrences. No, no, I'll stick to mapping the cave from what others have told me. It's safer that way.",
+      "latency_s": 22.35,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer stays within the retrieved lore facts and matches the reference answer."
+    },
+    {
+      "id": "elian_05",
+      "npc": "elian",
+      "category": "in_scope",
+      "question": "Who would know how to harvest the petal safely?",
+      "retrieved": [
+        "Legend says the petal can 'restore what was taken' from a mind.",
+        "I do not know the specific harvesting technique, only that it is fragile.",
+        "The petal is connected to the Blue Moon and is said to bloom in the Whispering Caves."
+      ],
+      "hit@1": false,
+      "hit@3": false,
+      "answer": "Well, that's a tricky one. I've heard tell of Elara, she's been studying those caves for years. Maybe she knows something about it. But I'm not sure if even she'd be willing to share her knowledge with just anyone... Still, if you're looking for someone to talk to, maybe try asking her.",
+      "latency_s": 17.6,
+      "verdict": "appropriate_refusal",
+      "judge_reason": "The NPC points the player to another character without inventing any fact and stays within the retrieved lore."
+    },
+    {
+      "id": "rook_01",
+      "npc": "rook",
+      "category": "in_scope",
+      "question": "Where does your crew camp?",
+      "retrieved": [
+        "My crew camps in the old ruins north of the village, where the walls still stand.",
+        "There are nine in my crew, and three of them can actually fight.",
+        "I served in the same company as Kaelen before the kingdom fell; he chose to build a wall, I chose to build a crew."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "We set up our little home in the old ruins north of this village. Walls still standin', it's a fine place for us to rest and plan our next move. Been there for... well, long enough. You might've seen some smoke risin' from that direction if you looked closely.",
+      "latency_s": 16.88,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer and is supported by the retrieved lore facts."
+    },
+    {
+      "id": "rook_02",
+      "npc": "rook",
+      "category": "in_scope",
+      "question": "How many men do you have?",
+      "retrieved": [
+        "There are nine in my crew, and three of them can actually fight.",
+        "I served in the same company as Kaelen before the kingdom fell; he chose to build a wall, I chose to build a crew.",
+        "I never rob the same caravan twice; a merchant who survives is a merchant who comes back."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "Nine lads in me crew, but three of 'em are worth their salt when it comes to a fight! The rest... well, they're more interested in swappin' stories and sharpenin' their knives than gettin' bloody. Still, they're good lads, and they stick together like glue.",
+      "latency_s": 17.41,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer and is supported by the retrieved lore facts."
+    },
+    {
+      "id": "rook_03",
+      "npc": "rook",
+      "category": "in_scope",
+      "question": "Where do you take the carts?",
+      "retrieved": [
+        "We take the carts on the trade road two miles east, near the split oak, where they slow at the bend.",
+        "I never rob the same caravan twice; a merchant who survives is a merchant who comes back.",
+        "The fastest way to get rich is to take from others, not to build."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "We take 'em on the trade road two miles east, near the split oak. That's where they slow down at the bend, ya see? Easy pickin' for a clever bandit like meself!",
+      "latency_s": 15.08,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer and is supported by the retrieved lore facts."
+    },
+    {
+      "id": "rook_04",
+      "npc": "rook",
+      "category": "in_scope",
+      "question": "Do you ever rob the same caravan twice?",
+      "retrieved": [
+        "I never rob the same caravan twice; a merchant who survives is a merchant who comes back.",
+        "Silas travels with two hired guards now, and he learned that lesson the hard way.",
+        "The fastest way to get rich is to take from others, not to build."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "Nope! I've got a reputation for being fair, so merchants who live to tell the tale usually get to come back and do business another day... or night, depending on what's profitable.",
+      "latency_s": 14.38,
+      "verdict": "ungrounded",
+      "judge_reason": "The NPC introduces the concept of 'reputation' and 'profitability', which are not in the retrieved lore."
+    },
+    {
+      "id": "rook_05",
+      "npc": "rook",
+      "category": "in_scope",
+      "question": "What do you make of the village guard?",
+      "retrieved": [
+        "The village guard (Marcus) is lazy and predictable.",
+        "My crew camps in the old ruins north of the village, where the walls still stand.",
+        "Silas travels with two hired guards now, and he learned that lesson the hard way."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "*sigh* Ah, that Marcus. Thinks he's tough just 'cause he's got a badge on his chest. Lazy and predictable, if you ask me. I've had to deal with him more than once... *mutters under breath* Thinks he's doing the village a favor by just sitting at his post all day...",
+      "latency_s": 17.74,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer and is supported by the retrieved lore facts."
+    },
+    {
+      "id": "silas_01",
+      "npc": "silas",
+      "category": "in_scope",
+      "question": "What is a steel ingot worth?",
+      "retrieved": [
+        "A good iron ingot is worth at least 10 coins. A steel one? At least 25.",
+        "A healing potion costs 50 coins, and no, I will not haggle below 40.",
+        "Salt sells for triple here in winter, because the village never stocks enough of it."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "A steel ingot? Ah, that's a fine product! At least 25 coins, I'd say. Maybe more, depending on the quality and weight of it. Come, take a look at what I have in stock. * gestures to nearby shelves*",
+      "latency_s": 15.74,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer and is supported by the retrieved lore facts."
+    },
+    {
+      "id": "silas_02",
+      "npc": "silas",
+      "category": "in_scope",
+      "question": "How much does a healing potion cost?",
+      "retrieved": [
+        "A healing potion costs 50 coins, and no, I will not haggle below 40.",
+        "The Mindbloom Petal? Heard stories. Sounds like a fool's errand. You can't sell a myth. Now, this healing potion... this you can buy.",
+        "A good iron ingot is worth at least 10 coins. A steel one? At least 25."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "50 coins, that's the price. No haggling below 40, I'm afraid.",
+      "latency_s": 12.1,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer and is supported by the retrieved lore facts."
+    },
+    {
+      "id": "silas_03",
+      "npc": "silas",
+      "category": "in_scope",
+      "question": "How often do you come through here?",
+      "retrieved": [
+        "I travel a circuit of six villages, and I reach this one on the first day of every month.",
+        "I travel with two hired guards now, and they cost me more than the bandits ever did.",
+        "The east road is the fastest way to the city and the most robbed; the south road adds four days but you keep your goods."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "I make my rounds on the first day of every month. You know me by now, I'm sure. It's good to be back in our village, even if it is a bit... quieter than some of the others.",
+      "latency_s": 15.35,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer and is supported by the retrieved lore facts."
+    },
+    {
+      "id": "silas_04",
+      "npc": "silas",
+      "category": "in_scope",
+      "question": "Which road should I take to the city?",
+      "retrieved": [
+        "The east road is the fastest way to the city and the most robbed; the south road adds four days but you keep your goods.",
+        "I travel a circuit of six villages, and I reach this one on the first day of every month.",
+        "Elara trades me dried herbs for glass vials; it is the only honest trade in this village."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "Well, if you're in a hurry, I suppose the east road would be the fastest way to get there. But, uh, it's also said to be... (pauses) ...less than trustworthy, shall we say. If you'd rather keep your goods safe, then taking the south road might be a better choice for you. It adds a few days to your journey, but I've heard it's worth it in the end. (shrugs)",
+      "latency_s": 20.54,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer and is supported by the retrieved lore facts."
+    },
+    {
+      "id": "silas_05",
+      "npc": "silas",
+      "category": "in_scope",
+      "question": "Why is salt so expensive here in winter?",
+      "retrieved": [
+        "Salt sells for triple here in winter, because the village never stocks enough of it.",
+        "A healing potion costs 50 coins, and no, I will not haggle below 40.",
+        "A good iron ingot is worth at least 10 coins. A steel one? At least 25."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "Winter's got everyone scrambling for salt! We're a village at the edge of the mountains, y'know. Can't get it transported up here quick enough when snow starts falling. Supply and demand, I suppose. Triple what you'd pay elsewhere, that's just how it is. (chuckles)",
+      "latency_s": 17.06,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer and stays within the retrieved lore facts."
+    },
+    {
+      "id": "silas_06",
+      "npc": "silas",
+      "category": "in_scope",
+      "question": "Does the blacksmith buy anything from you?",
+      "retrieved": [
+        "A good iron ingot is worth at least 10 coins. A steel one? At least 25.",
+        "Baelor has not bought a single thing from me in nine years.",
+        "Elara trades me dried herbs for glass vials; it is the only honest trade in this village."
+      ],
+      "hit@1": false,
+      "hit@3": true,
+      "answer": "The blacksmith? No, not that I've seen. We just exchange pleasantries when we meet by the fire pit, but no trade passes between us. He's a good fellow, though.",
+      "latency_s": 14.31,
+      "verdict": "appropriate_refusal",
+      "judge_reason": "The NPC declines to answer with a statement about their relationship with Baelor, without inventing any fact."
+    },
+    {
+      "id": "oos_other_01",
+      "npc": "marcus",
+      "category": "out_of_scope_other_npc",
+      "question": "What is the technique for cold-forging obsidian?",
+      "retrieved": [
+        "Baelor the Blacksmith is a good man, but don't get on his bad side.",
+        "The bandits never strike the village itself; they hit the trade road two miles east, near the split oak.",
+        "There are two ways into this village: the main gate, and the old drainage culvert behind the mill that everyone pretends does not exist."
+      ],
+      "answer": "I don't know anything about that. Never heard anyone talkin' 'bout workin' with... with... dark stone like that. Baelor might know somethin', though. He's always tinkerin' with new projects in his forge. You should try askin' him, but be careful. Like I said, don't get on his bad side.",
+      "latency_s": 18.97,
+      "verdict": "appropriate_refusal",
+      "judge_reason": "The NPC declines to answer and points the player to another character without inventing any fact."
+    },
+    {
+      "id": "oos_other_02",
+      "npc": "silas",
+      "category": "out_of_scope_other_npc",
+      "question": "Where does Baelor hide his grandfather's journal?",
+      "retrieved": [
+        "Baelor has not bought a single thing from me in nine years.",
+        "I hear those bandits, led by Rook, have a new camp somewhere in the old ruins. Bad for business.",
+        "The east road is the fastest way to the city and the most robbed; the south road adds four days but you keep your goods."
+      ],
+      "answer": "Baelor's ways are as mysterious as a cloudy day. I've had dealings with him for nine years now, but I don't know where he hides that journal of his grandfather's. Never seen it myself, never asked about it either. Can't say if anyone else has either... (chuckles nervously)",
+      "latency_s": 17.1,
+      "verdict": "appropriate_refusal",
+      "judge_reason": "The NPC stays within the retrieved lore and admits ignorance without inventing any fact."
+    },
+    {
+      "id": "oos_other_03",
+      "npc": "baelor",
+      "category": "out_of_scope_other_npc",
+      "question": "How should fever-root be prepared?",
+      "retrieved": [
+        "CRITICAL KNOWLEDGE: My grandfather's journal, which I keep hidden, contains the forbidden and ancient technique of 'cold-forging' obsidian.",
+        "Cold-forging means the metal must never rise above the warmth of a hand; it is heat that kills the etheric.",
+        "I made Marcus's guard spear myself, and I re-sharpen it free of charge every spring."
+      ],
+      "answer": "Fever-root's a tricky one. My aunt used to swear by it for her rheumatic joints, but I've never been much of a healer myself. I'm a blacksmith, not a... uh, herbalist. I can tell you that old Manfred from the north claims to have made a poultice with fever-root and bear fat, but I don't rightly know if it's true or just tales. If you're looking for advice on that sort of thing, I reckon you should ask Elara at the apothecary down the road.",
+      "latency_s": 23.34,
+      "verdict": "grounded_incorrect",
+      "judge_reason": "The NPC mentions a poultice with fever-root and bear fat, which is not in the retrieved lore"
+    },
+    {
+      "id": "oos_other_04",
+      "npc": "rook",
+      "category": "out_of_scope_other_npc",
+      "question": "What is the Mindbloom Petal and where does it grow?",
+      "retrieved": [
+        "Winter is when we starve, so winter is when we take the most.",
+        "The fastest way to get rich is to take from others, not to build.",
+        "The Magistrate (Kaelen) is all talk and no action."
+      ],
+      "answer": "I've heard of no such thing as a \"Mindbloom Petal\". We don't bother with fancy names like that 'round these parts. If you're lookin' for somethin', I might know about some decent places to find food or water, but I've never heard tell of anythin' called the Mindbloom Petal.",
+      "latency_s": 18.01,
+      "verdict": "appropriate_refusal",
+      "judge_reason": "The NPC declines to answer without inventing any fact."
+    },
+    {
+      "id": "oos_other_05",
+      "npc": "elara",
+      "category": "out_of_scope_other_npc",
+      "question": "How many men are in Rook's bandit crew?",
+      "retrieved": [
+        "I know that Baelor the Blacksmith is the only one in the village who has the 'pure heart' and 'steady hands' required to craft an obsidian tool, though I doubt he remembers the ancient technique.",
+        "The deepest chamber of the Whispering Caves is called the Hollow, and no lantern will stay lit inside it.",
+        "The legend is not just about the petal, but about the 'balance' it represents."
+      ],
+      "answer": "I've heard rumors of a bandit crew led by a man named... well, I'm not sure if that's his name, but it sounds like Rook. To be honest, I don't know much about them. We herbalists and craftsmen in the village aren't really concerned with such things. But I do recall hearing that there are more women in their crew than men. That's all I can say on the matter.",
+      "latency_s": 20.15,
+      "verdict": "ungrounded",
+      "judge_reason": "The NPC introduces a new, unmentioned name 'Rook' and implies it is a different person from Rook's bandit crew."
+    },
+    {
+      "id": "oos_global_01",
+      "npc": "elara",
+      "category": "out_of_scope_global",
+      "question": "Who is the mayor of this village?",
+      "retrieved": [
+        "I know that Baelor the Blacksmith is the only one in the village who has the 'pure heart' and 'steady hands' required to craft an obsidian tool, though I doubt he remembers the ancient technique.",
+        "Moonpetal Salve, brewed from silverleaf and morning dew, closes a wound overnight, but only if it is applied before the wound festers.",
+        "The deepest chamber of the Whispering Caves is called the Hollow, and no lantern will stay lit inside it."
+      ],
+      "answer": "The mayor... Ah, I'm not sure I can recall who's been filling that role lately. We've had a few folks try their hand at it, but none have stuck as long as we'd like. If you're looking for someone to talk to about village business, you might want to try the town hall or just ask around \u2013 maybe someone will know more than I do.",
+      "latency_s": 18.64,
+      "verdict": "appropriate_refusal",
+      "judge_reason": "The NPC declines to answer and points the player to other possible sources of information without inventing any facts."
+    },
+    {
+      "id": "oos_global_02",
+      "npc": "baelor",
+      "category": "out_of_scope_global",
+      "question": "What is the capital city of France?",
+      "retrieved": [
+        "A blade quenched in oil holds its edge longer than one quenched in water, but water is faster, and the village pays for speed.",
+        "My forge burns hottest with charcoal cut from the ironwood grove east of the village.",
+        "I made Marcus's guard spear myself, and I re-sharpen it free of charge every spring."
+      ],
+      "answer": "I've got no idea what you're talkin' about! We don't get many travelers through here who ask questions like that. I'm just a humble blacksmith, fixin' tools and makin' sure folks in the village have good gear for huntin' and fightin'. Never did have much interest in far-off places...",
+      "latency_s": 17.58,
+      "verdict": "appropriate_refusal",
+      "judge_reason": "The NPC declines to answer without inventing any fact, staying within character."
+    },
+    {
+      "id": "oos_global_03",
+      "npc": "marcus",
+      "category": "out_of_scope_global",
+      "question": "Tell me about the dragon that lives on the mountain.",
+      "retrieved": [
+        "Elara the Herbalist mostly keeps to herself. She knows all the old stories.",
+        "Silas the merchant arrives on the first day of every month, as regular as the moon.",
+        "There are two ways into this village: the main gate, and the old drainage culvert behind the mill that everyone pretends does not exist."
+      ],
+      "answer": "You must be thinking of old tales. I've heard them from travelers who pass through our village. They speak of a fearsome beast, but I've never seen it myself. Some say it's a legendary creature, said to breathe fire and have scales as black as coal. But that's all just stories and rumors, passed down through the years. We don't get many visitors from that mountain.",
+      "latency_s": 19.58,
+      "verdict": "grounded_incorrect",
+      "judge_reason": "The NPC introduces a dragon with specific characteristics not present in the retrieved lore facts."
+    },
+    {
+      "id": "oos_global_04",
+      "npc": "kaelen",
+      "category": "out_of_scope_global",
+      "question": "What year did Emperor Valdris die?",
+      "retrieved": [
+        "The old ruins north of the village were a garrison of the old kingdom, and I served in them as a captain.",
+        "Rook and I served in the same company before the kingdom fell, and I have never told the village so.",
+        "This village pays no tithe to any kingdom; there has been no kingdom to pay since the fall."
+      ],
+      "answer": "I don't know anything about an Emperor Valdris. I'm afraid that's a name unfamiliar to me. We have no records of any emperors around here. The village has been self-governing since... well, as long as anyone can remember.",
+      "latency_s": 16.31,
+      "verdict": "appropriate_refusal",
+      "judge_reason": "The NPC correctly declines to answer and admits ignorance without inventing any fact."
+    },
+    {
+      "id": "oos_global_05",
+      "npc": "lian",
+      "category": "out_of_scope_global",
+      "question": "What do you know about the Sunstone?",
+      "retrieved": [
+        "Lian possesses no special lore. His understanding of the world is limited to his immediate surroundings and his daily routine."
+      ],
+      "answer": "Uh, nothin'. What's a Sunstone?",
+      "latency_s": 11.06,
+      "verdict": "appropriate_refusal",
+      "judge_reason": "The NPC declines to answer without inventing any fact."
+    }
+  ]
+}

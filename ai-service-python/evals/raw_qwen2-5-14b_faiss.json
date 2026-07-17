@@ -1,0 +1,413 @@
+{
+  "run_date": "2026-07-17",
+  "tag": "answers qwen2.5:14b, judge qwen2.5:14b",
+  "config": {
+    "llm_provider": "ollama",
+    "chat_model": "qwen2.5:14b",
+    "embedding_model": "nomic-embed-text",
+    "vector_store": "faiss",
+    "retriever_k": 3,
+    "judge_provider": "ollama",
+    "judge_model": "qwen2.5:14b"
+  },
+  "sample": {
+    "scored": 22,
+    "requested": 50,
+    "dataset_total": 50,
+    "is_subset": false,
+    "complete": false
+  },
+  "summary": {
+    "in_scope_n": 22,
+    "out_of_scope_n": 0,
+    "in_scope_judged_n": 22,
+    "out_of_scope_judged_n": 0,
+    "hit@1_pct": 95.5,
+    "hit@3_pct": 100.0,
+    "grounded_correct_pct": 100.0,
+    "grounded_incorrect_pct": 0.0,
+    "hallucinated_in_scope_pct": 0.0,
+    "refusal_rate_out_of_scope_pct": null,
+    "hallucinated_out_of_scope_pct": null,
+    "unparsed_verdicts": 0,
+    "judge_errors": 0,
+    "errors": 0,
+    "median_latency_s": 22.85
+  },
+  "results": [
+    {
+      "id": "elara_01",
+      "npc": "elara",
+      "category": "in_scope",
+      "question": "What happens to the Mindbloom Petal if it touches ordinary metal?",
+      "retrieved": [
+        "The Mindbloom Petal can restore a mind, but it can also shatter it if the harvester's intent is not pure.",
+        "CRITICAL KNOWLEDGE: The petal is etheric and will be destroyed by any contact with mundane metal. It must be harvested with a tool of pure, natural materials, such as polished obsidian or ancient bone.",
+        "The legend is not just about the petal, but about the 'balance' it represents."
+      ],
+      "hit@1": false,
+      "hit@3": true,
+      "answer": "The Mindbloom Petal will be destroyed if it comes into contact with any mundane metal. That's why it's crucial to use tools made from pure, natural materials like polished obsidian or ancient bone for harvesting it.",
+      "latency_s": 48.78,
+      "verdict": "grounded_correct",
+      "judge_reason": "The answer correctly states the fact that the petal is destroyed upon touching ordinary metal and specifies the required materials for harvesting."
+    },
+    {
+      "id": "elara_02",
+      "npc": "elara",
+      "category": "in_scope",
+      "question": "Who in this village could craft an obsidian tool?",
+      "retrieved": [
+        "I know that Baelor the Blacksmith is the only one in the village who has the 'pure heart' and 'steady hands' required to craft an obsidian tool, though I doubt he remembers the ancient technique.",
+        "CRITICAL KNOWLEDGE: The petal is etheric and will be destroyed by any contact with mundane metal. It must be harvested with a tool of pure, natural materials, such as polished obsidian or ancient bone.",
+        "The Whispering Caves where the petal grows are dangerous and filled with deceptive echoes."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "Baelor the Blacksmith is the only one here who has the 'pure heart' and 'steady hands' to make such a thing, though I doubt he remembers how it's done. He's the best chance you've got.",
+      "latency_s": 44.87,
+      "verdict": "grounded_correct",
+      "judge_reason": "The answer correctly identifies Baelor the Blacksmith as the only one capable of crafting an obsidian tool."
+    },
+    {
+      "id": "elara_03",
+      "npc": "elara",
+      "category": "in_scope",
+      "question": "How should fever-root be prepared?",
+      "retrieved": [
+        "Fever-root must be boiled twice; boiled only once, it worsens the very fever it is meant to cure.",
+        "Moonpetal Salve, brewed from silverleaf and morning dew, closes a wound overnight, but only if it is applied before the wound festers.",
+        "CRITICAL KNOWLEDGE: The petal is etheric and will be destroyed by any contact with mundane metal. It must be harvested with a tool of pure, natural materials, such as polished obsidian or ancient bone."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "To prepare fever-root properly, it must be boiled twice. Boiling it just once can actually make the fever worse instead of better. Be very careful and follow this process to ensure you use it correctly.",
+      "latency_s": 42.89,
+      "verdict": "grounded_correct",
+      "judge_reason": "The answer conveys the same facts as the reference answer."
+    },
+    {
+      "id": "elara_04",
+      "npc": "elara",
+      "category": "in_scope",
+      "question": "Where does silverleaf grow?",
+      "retrieved": [
+        "Silverleaf grows only on the north bank of Serpent's Creek, and only in the three weeks after the spring thaw.",
+        "Moonpetal Salve, brewed from silverleaf and morning dew, closes a wound overnight, but only if it is applied before the wound festers.",
+        "The Mindbloom Petal can restore a mind, but it can also shatter it if the harvester's intent is not pure."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "Silverleaf grows only on the north bank of Serpent's Creek, but it\u2019s only there for the three weeks after the spring thaw. It\u2019s a rare and fleeting plant, so you\u2019ll have to be quick if you need some!",
+      "latency_s": 32.51,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer conveys the same facts as the reference answer."
+    },
+    {
+      "id": "elara_05",
+      "npc": "elara",
+      "category": "in_scope",
+      "question": "How often does the Blue Moon rise?",
+      "retrieved": [
+        "The Blue Moon rises once every nineteen years, and every child born under it carries some imbalance.",
+        "Silverleaf grows only on the north bank of Serpent's Creek, and only in the three weeks after the spring thaw.",
+        "The legend is not just about the petal, but about the 'balance' it represents."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "The Blue Moon rises once every nineteen years. It's a rare event that many folks look forward to, though it comes with its own peculiarities, like children born under it carrying some kind of imbalance.",
+      "latency_s": 22.85,
+      "verdict": "grounded_correct",
+      "judge_reason": "The answer conveys the same facts as the reference answer."
+    },
+    {
+      "id": "elara_06",
+      "npc": "elara",
+      "category": "in_scope",
+      "question": "What is the deepest chamber of the Whispering Caves called?",
+      "retrieved": [
+        "The deepest chamber of the Whispering Caves is called the Hollow, and no lantern will stay lit inside it.",
+        "The Whispering Caves where the petal grows are dangerous and filled with deceptive echoes.",
+        "Fever-root must be boiled twice; boiled only once, it worsens the very fever it is meant to cure."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "The deepest chamber of the Whispering Caves is known as the Hollow. Few have ventured that far and returned to tell of it.",
+      "latency_s": 19.08,
+      "verdict": "grounded_correct",
+      "judge_reason": "The answer correctly identifies the name of the deepest chamber and mentions its dangerous nature without contradicting or adding incorrect facts."
+    },
+    {
+      "id": "baelor_01",
+      "npc": "baelor",
+      "category": "in_scope",
+      "question": "What materials do you work with?",
+      "retrieved": [
+        "I am an expert in mundane materials: iron, steel, and wood.",
+        "I have never attempted this technique, as I've had no reason to. It is difficult and requires intense focus and materials I do not have.",
+        "Cold-forging means the metal must never rise above the warmth of a hand; it is heat that kills the etheric."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "I work with the basics\u2014iron, steel, and wood. That's enough for me to make sturdy tools and weapons that serve well. Anything beyond those isn't within my expertise or need.",
+      "latency_s": 21.55,
+      "verdict": "grounded_correct",
+      "judge_reason": "The answer correctly states the materials used without contradicting the reference answer."
+    },
+    {
+      "id": "baelor_02",
+      "npc": "baelor",
+      "category": "in_scope",
+      "question": "Where do you keep your grandfather's journal?",
+      "retrieved": [
+        "I keep my grandfather's journal beneath the third flagstone behind the anvil.",
+        "CRITICAL KNOWLEDGE: My grandfather's journal, which I keep hidden, contains the forbidden and ancient technique of 'cold-forging' obsidian.",
+        "I made Marcus's guard spear myself, and I re-sharpen it free of charge every spring."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "I keep it hidden beneath the third flagstone behind my anvil. It's a secret I guard closely.",
+      "latency_s": 37.53,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC correctly states the location of their grandfather's journal as specified in the lore."
+    },
+    {
+      "id": "baelor_03",
+      "npc": "baelor",
+      "category": "in_scope",
+      "question": "What does cold-forging require?",
+      "retrieved": [
+        "Cold-forging means the metal must never rise above the warmth of a hand; it is heat that kills the etheric.",
+        "CRITICAL KNOWLEDGE: My grandfather's journal, which I keep hidden, contains the forbidden and ancient technique of 'cold-forging' obsidian.",
+        "I am an expert in mundane materials: iron, steel, and wood."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "Cold-forging requires keeping the metal at a temperature no warmer than the warmth of a hand. It's crucial that the metal doesn't heat up, as heat can destroy the etheric properties needed for this ancient technique. I learned this from my grandfather\u2019s journal, which I keep hidden away.",
+      "latency_s": 32.69,
+      "verdict": "grounded_correct",
+      "judge_reason": "The answer correctly conveys the required facts about cold-forging without contradicting or inventing any external facts."
+    },
+    {
+      "id": "baelor_04",
+      "npc": "baelor",
+      "category": "in_scope",
+      "question": "What happens if obsidian is struck wrongly?",
+      "retrieved": [
+        "Obsidian cannot be heated and hammered like iron; strike it wrong and it shatters into a hundred useless blades.",
+        "CRITICAL KNOWLEDGE: My grandfather's journal, which I keep hidden, contains the forbidden and ancient technique of 'cold-forging' obsidian.",
+        "Cold-forging means the metal must never rise above the warmth of a hand; it is heat that kills the etheric."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "If obsidian is struck the wrong way, it shatters into a hundred useless blades. It's tricky stuff to work with compared to iron. You gotta be careful and know what you're doing.",
+      "latency_s": 21.78,
+      "verdict": "grounded_correct",
+      "judge_reason": "The answer correctly conveys the same facts as the reference answer."
+    },
+    {
+      "id": "baelor_05",
+      "npc": "baelor",
+      "category": "in_scope",
+      "question": "Is it better to quench a blade in oil or in water?",
+      "retrieved": [
+        "A blade quenched in oil holds its edge longer than one quenched in water, but water is faster, and the village pays for speed.",
+        "Cold-forging means the metal must never rise above the warmth of a hand; it is heat that kills the etheric.",
+        "Obsidian cannot be heated and hammered like iron; strike it wrong and it shatters into a hundred useless blades."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "A blade quenched in oil will hold its edge longer compared to one quenched in water. But water's quicker and around here, we go for speed since the village pays for it. So, if you're after longevity, pick oil; if you need a sharp blade fast, then water does the trick.",
+      "latency_s": 28.81,
+      "verdict": "grounded_correct",
+      "judge_reason": "The answer conveys the same facts as the reference answer."
+    },
+    {
+      "id": "baelor_06",
+      "npc": "baelor",
+      "category": "in_scope",
+      "question": "Where does the charcoal for your forge come from?",
+      "retrieved": [
+        "My forge burns hottest with charcoal cut from the ironwood grove east of the village.",
+        "I am an expert in mundane materials: iron, steel, and wood.",
+        "Cold-forging means the metal must never rise above the warmth of a hand; it is heat that kills the etheric."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "The charcoal for my forge comes from the ironwood grove east of the village. That's where I get the best fuel to keep the fire burning hot.",
+      "latency_s": 20.27,
+      "verdict": "grounded_correct",
+      "judge_reason": "The answer correctly states the source of the charcoal as the ironwood grove east of the village, matching the reference answer."
+    },
+    {
+      "id": "marcus_01",
+      "npc": "marcus",
+      "category": "in_scope",
+      "question": "When do the village gates close?",
+      "retrieved": [
+        "The village gates close at sundown. No exceptions.",
+        "There are two ways into this village: the main gate, and the old drainage culvert behind the mill that everyone pretends does not exist.",
+        "The village square is busiest at the midday market, which is exactly when purses go missing."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "The village gates close at sundown. No exceptions.",
+      "latency_s": 14.96,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC provided the same factual information as the reference answer."
+    },
+    {
+      "id": "marcus_02",
+      "npc": "marcus",
+      "category": "in_scope",
+      "question": "Is there any way into the village other than the main gate?",
+      "retrieved": [
+        "There are two ways into this village: the main gate, and the old drainage culvert behind the mill that everyone pretends does not exist.",
+        "The village gates close at sundown. No exceptions.",
+        "The bandits never strike the village itself; they hit the trade road two miles east, near the split oak."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "There's an old drainage culvert behind the mill that everyone pretends doesn't exist, but it can be used to enter the village too. Just keep it quiet and don't tell anyone I mentioned it.",
+      "latency_s": 23.48,
+      "verdict": "grounded_correct",
+      "judge_reason": "The answer correctly identifies the alternative entry point without contradicting or inventing facts."
+    },
+    {
+      "id": "marcus_03",
+      "npc": "marcus",
+      "category": "in_scope",
+      "question": "When does the night watch change?",
+      "retrieved": [
+        "The night watch changes at the second bell, and I take the dawn shift most weeks.",
+        "The village gates close at sundown. No exceptions.",
+        "Silas the merchant arrives on the first day of every month, as regular as the moon."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "The night watch changes at the second bell. That's when I take over for my dawn shift most weeks.",
+      "latency_s": 18.39,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC correctly states the time of night watch change and their own schedule."
+    },
+    {
+      "id": "marcus_04",
+      "npc": "marcus",
+      "category": "in_scope",
+      "question": "Where do the bandits usually strike?",
+      "retrieved": [
+        "The bandits never strike the village itself; they hit the trade road two miles east, near the split oak.",
+        "Magistrate Kaelen is a fair leader, but he's been worried about the bandits again recently.",
+        "Magistrate Kaelen ordered a second patrol on the east road after the last caravan was robbed."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "The bandits don't usually hit the village itself. They tend to target the trade road about two miles east from here, near the split oak tree. That's where they've been causing trouble lately.",
+      "latency_s": 23.78,
+      "verdict": "grounded_correct",
+      "judge_reason": "The answer correctly states the location of bandit activity as per the lore."
+    },
+    {
+      "id": "marcus_05",
+      "npc": "marcus",
+      "category": "in_scope",
+      "question": "What do strangers have to do at the gate?",
+      "retrieved": [
+        "Every stranger must give their name and their business at the gate, and I write both into the gate ledger.",
+        "The village gates close at sundown. No exceptions.",
+        "There are two ways into this village: the main gate, and the old drainage culvert behind the mill that everyone pretends does not exist."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "Every stranger must give their name and say what they're here for. I write that down in the gate ledger.",
+      "latency_s": 18.94,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer conveys the same facts as the reference answer."
+    },
+    {
+      "id": "marcus_06",
+      "npc": "marcus",
+      "category": "in_scope",
+      "question": "When does the merchant come to the village?",
+      "retrieved": [
+        "Silas the merchant arrives on the first day of every month, as regular as the moon.",
+        "The village gates close at sundown. No exceptions.",
+        "The village square is busiest at the midday market, which is exactly when purses go missing."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "Silas the merchant arrives on the first day of every month, as regular as the moon. That's when folks can expect him to be here with his goods.",
+      "latency_s": 21.39,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC correctly states that Silas arrives on the first day of every month."
+    },
+    {
+      "id": "kaelen_01",
+      "npc": "kaelen",
+      "category": "in_scope",
+      "question": "Who leads the bandits?",
+      "retrieved": [
+        "CRITICAL KNOWLEDGE: The bandits are led by a man named 'Rook'. Simply scattering them won't be enough; their leader must be captured or defeated.",
+        "A 'Partial Success' for the bandit quest would be scattering them. A 'Full Success' would be dealing with Rook.",
+        "I have two main problems that a capable adventurer could solve: the 'Bandit Threat' (High Priority) and a 'Trade Route Disruption' (Medium Priority)."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "The bandits are led by a man named Rook. He's the one causing most of the trouble around here. If we want to solve the problem for good, we need to deal with him directly.",
+      "latency_s": 24.73,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC correctly identifies Rook as the bandit leader without contradicting or inventing any facts."
+    },
+    {
+      "id": "kaelen_02",
+      "npc": "kaelen",
+      "category": "in_scope",
+      "question": "When and where do you hold court?",
+      "retrieved": [
+        "I hold court in the village hall on the first morning of each week, and any villager may speak there.",
+        "In twenty years I have banished exactly two men, both for stealing from the granary.",
+        "This village pays no tithe to any kingdom; there has been no kingdom to pay since the fall."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "I hold court in the village hall on the first morning of each week, and any villager may speak there.",
+      "latency_s": 19.04,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC's answer matches the reference answer exactly."
+    },
+    {
+      "id": "kaelen_03",
+      "npc": "kaelen",
+      "category": "in_scope",
+      "question": "How much grain does the granary hold?",
+      "retrieved": [
+        "Our granary holds enough grain to survive one bad winter, but not two.",
+        "In twenty years I have banished exactly two men, both for stealing from the granary.",
+        "This village pays no tithe to any kingdom; there has been no kingdom to pay since the fall."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "Our granary holds enough grain to survive one bad winter, but not two. That's all I know about its capacity.",
+      "latency_s": 19.26,
+      "verdict": "grounded_correct",
+      "judge_reason": "The NPC provided the exact factual content from the retrieved lore without contradiction or additional invention."
+    },
+    {
+      "id": "kaelen_04",
+      "npc": "kaelen",
+      "category": "in_scope",
+      "question": "What were the old ruins to the north?",
+      "retrieved": [
+        "The old ruins north of the village were a garrison of the old kingdom, and I served in them as a captain.",
+        "The trade route disruption will cost this village more in the long run than the bandit raids ever will.",
+        "This village pays no tithe to any kingdom; there has been no kingdom to pay since the fall."
+      ],
+      "hit@1": true,
+      "hit@3": true,
+      "answer": "The old ruins to the north were a garrison of the old kingdom. I served there as a captain back in my days. Not much left now, just stones and memories.",
+      "latency_s": 22.73,
+      "verdict": "grounded_correct",
+      "judge_reason": "The answer conveys the same facts as the reference answer."
+    }
+  ]
+}

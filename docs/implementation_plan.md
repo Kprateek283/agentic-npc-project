@@ -193,11 +193,23 @@ tier: **20 `generateContent` requests per day**, quota id
   fresh project. Default is now **`gemini-3.5-flash`**, pinned rather than `-latest` so a
   committed number always names the model that produced it.
 
-**Decision (repo owner, 2026-07-17): option (c) — tiny labelled cloud sample.** The cloud
-side of M4/I1 runs within the ~20/day cap and every cloud figure must state its sample size
-inline (e.g. "gemini-3.5-flash, n=5, free-tier cap") wherever it appears — `docs/benchmarks.md`,
-`evals/results.md`, README and resume. Ollama-side samples are unconstrained. A median from
-n≈5 is weak but honest when labelled; an unlabelled one is not.
+**Measured feasibility (2026-07-17).** 20 calls/day ÷ 2 calls per eval entry (answer + judge)
+= **10 entries/day maximum**, before any probe or retry. In practice a run scored **3 entries**
+before 429, because availability probes and transient `503 UNAVAILABLE` retries consume the
+same budget. The 50-entry dataset needs 100 calls; M4 needs several hundred. Three separate
+projects were burned through establishing this.
+
+**Decision (repo owner, 2026-07-17), revised:**
+- **I1 quality evals: cloud is NOT MEASURED.** `evals/results.md` reports Ollama at the full
+  n=50 and states plainly that the cloud configuration was not measured due to the free-tier
+  cap. No cloud quality number, no cloud-vs-local *quality* claim, no fabricated partial.
+- **M4 keeps a cloud slice, timing only.** Latency needs no judge — 1 call per sample instead
+  of 2 — so RAG (~5 reps) plus a few agent events fits inside 20/day. Every cloud timing
+  figure carries its sample size inline ("gemini-3.5-flash, n=5, free-tier cap").
+- Do not pre-commit to the conclusion. The hypothesis worth testing is where end-to-end time
+  actually goes; early observations (infra in ms, inference in seconds) point to
+  inference-dominated latency with negligible orchestration overhead, but the report states
+  what the clock measures either way.
 
 **Plan.** Create a `benchmarks/` directory with three deliverables plus a results doc.
 
