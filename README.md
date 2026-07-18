@@ -8,12 +8,60 @@ This repository contains a modular, production-grade backend framework designed 
 
 To balance the competing requirements of real-time responsiveness and cognitive depth, the architecture implements a novel Two-Brain model:
 
-1. Fast Brain (Retrieval-Augmented Generation): A low-latency path for factual queries and lore-related interactions. It utilizes a FAISS-based vector store to ground LLM responses in game-specific context, ensuring factual accuracy while maintaining sub-second response times using cloud-based inference (Gemini Flash).
-2. Complex Brain (Stateful Reasoning): A high-depth path for state-changing events and quest progression. Built on LangGraph, this "brain" manages multi-step reasoning, updates internal emotional states, and handles complex transitions in game logic, with a focus on narrative consistency while maintaining highly competitive latency (~3s).
+1. Fast Brain (Retrieval-Augmented Generation): A path for factual queries and lore-related interactions. It utilizes a FAISS-based vector store to ground LLM responses in game-specific context. Measured cloud RAG latency is ~2.9 s and is inference-dominated — the orchestration wrapped around it is sub-10 ms (see [Benchmarks](#performance-benchmarks-measured)).
+2. Complex Brain (Stateful Reasoning): A high-depth path for state-changing events and quest progression. Built on LangGraph, this "brain" runs a real multi-step ReAct loop (tool calls + iteration cap), updates internal emotional states, and handles complex transitions in game logic, with a focus on narrative consistency (measured latency ~5.4 s cloud / ~26 s local — see [Benchmarks](#performance-benchmarks-measured)).
+
+## Quickstart
+
+Requires Docker and a host [Ollama](https://ollama.com) (used for embeddings in **both**
+provider modes).
+
+```bash
+# 1. Host Ollama — bound to 0.0.0.0 so the containers can reach it via the host gateway
+OLLAMA_HOST=0.0.0.0:11434 ollama serve &     # or a systemd override (see .env.example)
+ollama pull nomic-embed-text                  # embeddings — required in both modes
+ollama pull llama3.1:8b                        # local chat model — only for LLM_PROVIDER=ollama
+
+# 2. Configure and boot the whole stack (Postgres, Redis, Qdrant, Go orchestrator, Python AI)
+cp .env.example .env                           # set POSTGRES_PASSWORD; pick LLM_PROVIDER
+docker compose up --build
+
+# 3. Talk to an NPC
+#    Open client-demo/index.html in a browser → Register → pick Elara → ask a question.
+```
+
+The browser [reference client](client-demo/) speaks the documented
+[WebSocket protocol](docs/client_protocol.md) end to end (authenticate → converse → quest
+events). To run the services directly without Docker, see the per-service `.env.example`
+files. Provider, models, vector store, and ports are all env-driven — see
+[Configuration](#inference-provider-configuration).
 
 ## Architectural Overview
 
 The framework is built as a decoupled microservice architecture, leveraging the strengths of Go for high-concurrency orchestration and Python for advanced AI/ML workflows.
+
+```mermaid
+flowchart LR
+    Client["Game client<br/>(UE5 / browser demo)"]
+    Client -- "WebSocket<br/>(JSON events)" --> Go
+
+    subgraph Go["Go Orchestrator — Gin"]
+        WS["WebSocket handler"] --> Logic["Quest / emotion /<br/>memory + cache-aside"]
+    end
+
+    Go -- "gRPC (protobuf)" --> Router
+    subgraph Py["Python AI Service"]
+        Router["router.py"] --> Fast["Fast Brain<br/>RAG (LangChain)"]
+        Router --> Complex["Complex Brain<br/>LangGraph ReAct agent"]
+    end
+
+    Logic --- PG[("PostgreSQL<br/>Ent ORM")]
+    Logic --- Redis[("Redis")]
+    Fast --> VS[("FAISS / Qdrant")]
+    Complex --> VS
+    Fast -. embeddings .-> Ollama[("Ollama")]
+    Complex -. inference .-> LLM["Gemini / Ollama"]
+```
 
 ### 1. Go Orchestrator (The Dungeon Master)
 The Go service acts as the authoritative source of truth and the central hub for the game world.
@@ -39,10 +87,10 @@ The Python service encapsulates all LLM logic and cognitive processes.
 - Data Management: PostgreSQL, Redis.
 - Inference: Google Gemini API (Cloud) and Ollama/Llama 3.1 (Local).
 - Infrastructure: Docker, Docker Compose, Protocol Buffers.
-- Client Target: Unreal Engine 5 (C++/Blueprints).
+- Client Target: designed for Unreal Engine 5 (C++/Blueprints); a dependency-free browser [reference client](client-demo/) ships in the repo and implements the same protocol.
 
 ### Communication Protocols
-- Client-to-Backend: JSON-based events over persistent WebSockets.
+- Client-to-Backend: JSON-based events over persistent WebSockets — full contract in [`docs/client_protocol.md`](docs/client_protocol.md).
 - Inter-Service: Binary Protocol Buffers over gRPC (HTTP/2), ensuring low-latency and strict type safety between the Go and Python layers.
 
 ### Service Transports
@@ -142,6 +190,26 @@ Every figure below comes from a committed, re-runnable script — see
 orchestration is ~0.2% of a cloud RAG turn — **latency is inference-dominated, not an
 infrastructure bottleneck.** (Earlier README figures of ~14 ms gRPC and ~8/42 ms cache were
 never measured; the real values above are 50–200× lower.)
+
+### Evaluation (RAG quality)
+
+A 50-question harness (`python -m evals.run` from `ai-service-python/`) scores retrieval and
+grounding over all 8 NPCs (40 in-scope, 10 out-of-scope traps). Full methodology, judge
+caveats and raw result files: [`evals/results.md`](ai-service-python/evals/results.md).
+Headline — **llama3.1:8b** answering, **independently judged by qwen2.5:14b** (to avoid
+self-preference bias):
+
+| Metric | Value |
+|---|---|
+| hit@1 / hit@3 (retrieval, deterministic substring match) | **92.5% / 97.5%** |
+| grounded-correct (in-scope, n=40) | **95.0%** |
+| hallucinated (in-scope) | **0.0%** |
+| refusal rate (out-of-scope, n=10) | **90.0%** |
+
+Retrieval metrics are deterministic and fully trustworthy; grounding/refusal depend on the
+named LLM judge. `results.md` documents a known judge limitation (incidental persona
+contradictions are under-detected) rather than papering over it — so "0% in-scope
+hallucination" means *of the answer to the question asked*.
 
 ## Testing
 

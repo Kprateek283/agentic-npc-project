@@ -629,6 +629,18 @@ vendor gone (Docker build already uses `go mod download`, not vendor). (4) Track
 **Done when.** Every claim in the README is either visible in code or linked to a
 committed result file; a stranger reaches a working demo in under ten minutes.
 
+**Execution note (done 2026-07-18).** Added a Quickstart (host-Ollama-on-0.0.0.0 →
+`docker compose up --build` → open `client-demo/`), a Mermaid architecture diagram
+(client ↔ Go orchestrator ↔ Python AI service, two brains, data stores), and an
+Evaluation table sourced from `evals/results.md` (hit@1/@3 92.5%/97.5%, grounded 95%,
+refusal 90%, with the judge caveat carried over, not hidden). Linked `client_protocol.md`
+and the reference client. **Corrected two unbacked latency claims** that contradicted the
+committed benchmarks: the Fast Brain's "sub-second" → measured ~2.9 s cloud (inference-
+dominated, sub-10 ms orchestration), and the Complex Brain's "~3 s" → measured ~5.4 s
+cloud / ~26 s local. The CI badge (I3) and measured benchmark table (M4) were already in
+place. **Skipped:** the demo GIF — it needs a screen recording of the browser client,
+which is a manual follow-up for the repo owner (noted here so it isn't forgotten).
+
 ---
 
 ## CAN BE DONE

@@ -69,7 +69,7 @@ targeting the AI Engineer JD (Python, FastAPI, RAG, agents, evals, vector DBs, D
   - Clean commented-out dead code in `config.py` (replace with the env-driven provider switch from M3).
   - Commit `docs/agentic_npc_documentation.md` (currently untracked).
   - Consider dropping the committed `vendor/` directory (Go modules make it unnecessary; it bloats the repo diff view).
-- [ ] **I6. README upgrade.**
+- [x] **I6. README upgrade.**
   Quickstart (`docker compose up` → working demo), mermaid architecture diagram, benchmark table linking to `docs/benchmarks.md`, eval results table, demo GIF. The README is the interview's first 30 seconds.
 
 ## CAN BE DONE — strong signal, moderate effort
