@@ -12,6 +12,10 @@ __pycache__/
 *.exe
 myapp
 
+# Go workspace vendoring — modules (go.work.sum / go.sum) make a committed vendor/ tree
+# redundant; regenerate locally with `go work vendor` if an offline build is ever needed.
+/vendor/
+
 # IDE folders
 .idea/
 .vscode/.pytest_cache/

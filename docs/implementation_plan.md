@@ -583,6 +583,17 @@ carries dead commented code (removed by M3).
 **Done when.** A recruiter browsing the GitHub repo sees only project material; compose
 contains no secrets; clone size is reasonable; CI is green after the vendor removal.
 
+**Execution note (done 2026-07-18).** (1) Removed all five interview-prep docs from the
+repo (kept in history — no rewrite). (2) Compose password parametrization and (3)
+`config.py` dead-code removal were already done earlier (I4 and M3 respectively). (3)
+Removed the committed `vendor/` tree (3157 files) and added `/vendor/` to `.gitignore`;
+verified `go build ./...`, `go vet ./...`, and `go test ./...` all pass from modules with
+vendor gone (Docker build already uses `go mod download`, not vendor). (4) Tracked
+`docs/agentic_npc_documentation.md`. (5) **Deferred:** the `servicer.py` debug-print /
+`ai_client.go` `grpc.Dial` cleanups belong to C1/C2 (out of the current Phase 0–4 scope).
+`docs/agent_prompt.md` left untracked deliberately — it is internal build scaffolding
+(the implementing-agent prompt), same class as the interview docs.
+
 ---
 
 ### I6. README rewrite

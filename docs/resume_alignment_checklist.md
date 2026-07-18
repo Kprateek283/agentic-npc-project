@@ -63,7 +63,7 @@ targeting the AI Engineer JD (Python, FastAPI, RAG, agents, evals, vector DBs, D
   One workflow: Python lint (ruff) + pytest; Go vet + test + build. Badge in README. Backs the "CI/CD (GitHub Actions)" skills claim.
 - [x] **I4. Dockerize both services.**
   `Dockerfile` for `ai-service-python` and `backend-go`; add both (plus Qdrant, optionally Ollama) to `docker-compose.yml` so `docker compose up` boots the whole stack. Backs the README claim.
-- [ ] **I5. Repo hygiene (recruiters will read this repo).**
+- [x] **I5. Repo hygiene (recruiters will read this repo).**
   - **Remove `docs/INTERVIEW_*.md`, `PRACTICE_CODE_REVIEW.md`, `PREPARATION_SUMMARY.md` from the public repo** — interview-prep cheatsheets sitting next to the project undermine every claim in it.
   - Parametrize the hardcoded Postgres password in `docker-compose.yml` (`${POSTGRES_PASSWORD}` + `.env.example`).
   - Clean commented-out dead code in `config.py` (replace with the env-driven provider switch from M3).
