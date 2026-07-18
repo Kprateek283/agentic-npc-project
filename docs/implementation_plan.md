@@ -328,6 +328,19 @@ history never contained it. The resume currently claims "integrated with an Unre
 doc matches `event_dto.go` exactly; the HTML reference client completes a full
 authenticate → converse → quest-event session against a locally running stack.
 
+**Execution note (done 2026-07-18).** Shipped `docs/client_protocol.md` (endpoint, envelope,
+auth flow, every event type, response shapes — cross-checked against `event_dto.go`,
+`auth_handler.go`, `game_handler.go`, and the Python `router.py`) and `client-demo/` (a
+single dependency-free HTML page + short README). **Verified against the live native stack**
+(Go backend :8081 → gRPC → Python ai-service :50051 → Ollama): the exact payload sequence the
+client emits ran clean — `REGISTER_PLAYER` → `LOGIN_SUCCESS`; `PLAYER_ASKED_QUESTION` → RAG
+`SPEAK`; `PLAYER_GAVE_GIFT` (valid item `apple`/`sunpetal_herb`) → LangGraph agent `SPEAK`;
+`PLAYER_LOOKED_AT_NPC` → non-LLM `"Greetings."`. Fixed the client's default gift keyword to a
+valid item id (`apple`; the invalid placeholder correctly returned an item-not-found ERROR).
+Resume/README rewording: README wording is folded into I6; the resume text is the user's to
+edit (listed in the Phase-4 number report). The optional `docs/unreal_integration.md` guide
+was skipped (YAGNI — not needed to back the reworded claim).
+
 ---
 
 ### M7. Make the LangGraph agent actually multi-step (discovered during planning)

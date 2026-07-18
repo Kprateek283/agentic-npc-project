@@ -17,7 +17,7 @@ targeting the AI Engineer JD (Python, FastAPI, RAG, agents, evals, vector DBs, D
 | **Benchmarked cloud vs local (Gemini vs Ollama llama3:8b, 2.3x)** | ❌ Ollama chat path commented out; no benchmark scripts; numbers unbacked | **M3, M4** |
 | **Latency attribution (gRPC 14ms, Redis 8ms vs PG 42ms, <50ms overhead)** | ❌ Numbers in README but no measurement script/results | **M4** |
 | **Eliminated hallucination via grounding** | ⚠️ RAG exists but no eval proving it | **M5, I1** |
-| **Integrated UE5 C++ WebSocket client** | ❌ Not in repo (excluded from git) | **M6** |
+| **Integrated UE5 C++ WebSocket client** | ✅ Reframed to "exposes a WS API"; backed by `docs/client_protocol.md` + `client-demo/` reference client | **M6** (done) |
 | CI/CD GitHub Actions (skills section) | ❌ No `.github/` | **I3** |
 | "Full Docker Compose support" (README) | ✅ Dockerfiles for both services; compose boots postgres/redis/qdrant/ai-service/backend | **I4** (done) |
 | Eval harness bullet (commented in resume) | ❌ Doesn't exist | **I1** |
@@ -43,7 +43,7 @@ targeting the AI Engineer JD (Python, FastAPI, RAG, agents, evals, vector DBs, D
   hallucination. See `evals/results.md`, including the judge's known blind spot for incidental
   persona contradictions. Cloud not measured, per free-tier cap.)*
   Ensure the RAG prompt explicitly forbids answering outside retrieved context ("if not in context, say you don't know"), and demonstrate it via the eval harness (I1) with an out-of-scope question set. Soften the resume wording to "eliminated hallucination on factual lore queries, verified by a N-question adversarial eval" once measured.
-- [ ] **M6. Reframe the Unreal claim + ship a reference client.**
+- [x] **M6. Reframe the Unreal claim + ship a reference client.**
   The UE5 client was deleted and is unrecoverable. Reword the resume bullet to "exposes a WebSocket API for real-time game-client integration (JSON event protocol, designed for Unreal Engine 5 clients)" — remove "integrated with" everywhere. Back it with a committed WebSocket protocol spec (`docs/client_protocol.md`) and a minimal browser-based reference client (`client-demo/`) that authenticates and converses — the demoable artifact for README GIF and interviews.
 - [x] **M7. Make the LangGraph agent actually multi-step.**
   `graph_builder.py` is a single-node graph: one LLM call, no tool execution — `tools` and `agent_scratchpad` are put in state and never used. The resume's "multi-step reasoning" and the docs' "toolchain" are not true as written. Rebuild as a real ReAct loop (agent node ⇄ tool node with conditional edges, iteration cap), wire `lore_book_search` into it, and add a second small tool (quest-status) so "toolchain" is honest.
