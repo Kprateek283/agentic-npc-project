@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  python:
+    name: Python (ruff + pytest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ai-service-python
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt -r requirements-dev.txt
+      - name: Lint (ruff)
+        run: ruff check .
+      - name: Test (pytest)
+        # No GEMINI_API_KEY is set: the suite fakes all LLM/embedding calls, so it must
+        # pass without one. conftest.py forces LLM_PROVIDER=ollama for config import.
+        run: PYTHONPATH=. python -m pytest tests/ -q
+
+  go:
+    name: Go (vet + build + test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend-go
+    env:
+      # Treat backend-go as a standalone module (ignore the repo's go.work / vendor tangle);
+      # setup-go caches module downloads keyed on go.sum.
+      GOWORK: off
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - run: go vet ./...
+      - run: go build ./...
+      - run: go test ./...

@@ -59,7 +59,7 @@ targeting the AI Engineer JD (Python, FastAPI, RAG, agents, evals, vector DBs, D
   - Python (pytest): servicer routing (RAG vs LangGraph event types), `context_formatter`, `prompt_loader`, retriever returns relevant chunk for a known query (can mock LLM).
   - Go: table-driven tests for `quest_manager.ProcessEvent` preconditions and `emotion_manager` delta application.
   - Target: enough to say "tested" honestly (~15–25 meaningful tests), not coverage theater.
-- [ ] **I3. GitHub Actions CI.**
+- [x] **I3. GitHub Actions CI.**
   One workflow: Python lint (ruff) + pytest; Go vet + test + build. Badge in README. Backs the "CI/CD (GitHub Actions)" skills claim.
 - [ ] **I4. Dockerize both services.**
   `Dockerfile` for `ai-service-python` and `backend-go`; add both (plus Qdrant, optionally Ollama) to `docker-compose.yml` so `docker compose up` boots the whole stack. Backs the README claim.

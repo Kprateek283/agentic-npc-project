@@ -1,5 +1,7 @@
 # Agentic NPC Framework: A High-Performance Distributed System for Generative Game AI
 
+[![CI](https://github.com/Kprateek283/agentic-npc-project/actions/workflows/ci.yml/badge.svg)](https://github.com/Kprateek283/agentic-npc-project/actions/workflows/ci.yml)
+
 This repository contains a modular, production-grade backend framework designed to power autonomous, stateful, and memory-aware Non-Player Characters (NPCs) in modern game environments like Unreal Engine 5. The system moves beyond traditional deterministic behavior trees by leveraging Large Language Models (LLMs) for dynamic dialogue, emotional evolution, and complex quest reasoning.
 
 ## Core Philosophy: The Two-Brain Model

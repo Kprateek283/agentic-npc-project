@@ -1,0 +1,7 @@
+# Generated protobuf bindings are not hand-maintained — don't lint them.
+extend-exclude = ["ai_pb2.py", "ai_pb2_grpc.py", "ai_pb2.pyi"]
+
+[lint.per-file-ignores]
+# main.py imports intentionally follow load_dotenv(), so env vars are set before any
+# module that reads them at import time (config.py) is loaded. This E402 is deliberate.
+"main.py" = ["E402"]
