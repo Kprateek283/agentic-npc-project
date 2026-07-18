@@ -55,7 +55,7 @@ targeting the AI Engineer JD (Python, FastAPI, RAG, agents, evals, vector DBs, D
   - Score retrieval hit@1/hit@3 (does the gold chunk appear in top-k) and LLM-as-judge grounded-answer accuracy (Gemini judging faithfulness to retrieved context).
   - Output a results table to `evals/results.md`. Expose via `python -m evals.run` and optionally the FastAPI `/v1/eval` endpoint.
   - Then un-comment the resume bullet with real X/Y numbers.
-- [ ] **I2. Add tests** (JD lists testing as mandatory; repo currently has zero).
+- [x] **I2. Add tests** (JD lists testing as mandatory; repo currently has zero).
   - Python (pytest): servicer routing (RAG vs LangGraph event types), `context_formatter`, `prompt_loader`, retriever returns relevant chunk for a known query (can mock LLM).
   - Go: table-driven tests for `quest_manager.ProcessEvent` preconditions and `emotion_manager` delta application.
   - Target: enough to say "tested" honestly (~15–25 meaningful tests), not coverage theater.

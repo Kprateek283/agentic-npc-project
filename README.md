@@ -141,6 +141,20 @@ orchestration is ~0.2% of a cloud RAG turn — **latency is inference-dominated,
 infrastructure bottleneck.** (Earlier README figures of ~14 ms gRPC and ~8/42 ms cache were
 never measured; the real values above are 50–200× lower.)
 
+## Testing
+
+Both suites run with no external services and no API keys — LLM and embedding calls are
+faked, so nothing hits Ollama, Gemini, Postgres or Redis.
+
+```bash
+# Python (from ai-service-python/): router dispatch, context formatter, prompt loader, retriever
+pip install -r requirements.txt -r requirements-dev.txt
+PYTHONPATH=. python -m pytest tests/ -q
+
+# Go (from backend-go/): emotion deltas, quest preconditions, item lookup, DTO round-trip
+go test ./...
+```
+
 ## Data Persistence & Schema Design
 
 The system employs an 8-table relational schema designed for extensibility:

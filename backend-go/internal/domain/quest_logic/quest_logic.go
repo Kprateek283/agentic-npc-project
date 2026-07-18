@@ -16,6 +16,19 @@ import (
 
 // --- CORE QUEST LOGIC FUNCTIONS ---
 
+// trustMet is the pure trust-precondition decision: does a trust level satisfy the
+// operator/threshold a quest step requires. An unknown or missing operator fails closed.
+func trustMet(level float64, operator string, value float64) bool {
+	switch operator {
+	case ">=":
+		return level >= value
+	case "GREATER_THAN":
+		return level > value
+	default:
+		return false
+	}
+}
+
 // checkQuestCompletion is the main quest logic loop
 func (qm *QuestManager) checkQuestCompletion(ctx context.Context, db *ent.Client, rdb *redis.Client, p *ent.Player, n *ent.NPC, event dto.EventMessage) (failResponse *FailResponseAction, err error) {
 	// Find all active quests for this player
@@ -143,17 +156,7 @@ func (qm *QuestManager) checkPreconditions(ctx context.Context, db *ent.Client, 
 			log.Printf("[DEBUG]    -> Got Relationship: Trust=%.2f", rel.TrustLevel)
 			log.Printf("[DEBUG]    -> Comparing Trust %.2f %s %.2f", rel.TrustLevel, precond.Operator, precond.Value)
 
-			trustMet := false
-			switch precond.Operator {
-			case ">=":
-				trustMet = rel.TrustLevel >= precond.Value
-			case "GREATER_THAN":
-				trustMet = rel.TrustLevel > precond.Value
-			default:
-				log.Printf("[DEBUG]    -> Unknown or missing operator '%s'", precond.Operator)
-				trustMet = false
-			}
-
+			trustMet := trustMet(rel.TrustLevel, precond.Operator, precond.Value)
 			log.Printf("[DEBUG]    -> trustMet = %t", trustMet)
 			if !trustMet {
 				log.Printf("[DEBUG]    -> Precondition FAILED!")
