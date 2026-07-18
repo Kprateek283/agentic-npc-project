@@ -1,0 +1,4 @@
+vendor/
+*_test.go
+.env
+cmd/benchcache/

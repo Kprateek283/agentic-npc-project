@@ -100,7 +100,7 @@ func New() (*App, error) {
 	log.Println("EmotionManager initialized successfully")
 
 	// 8. Initialize gRPC AI Client
-	aiClient, err := grpc_client.NewAIClient("localhost:50051")
+	aiClient, err := grpc_client.NewAIClient(cfg.AIServiceAddr)
 	if err != nil {
 		err := dbClient.Close()
 		if err != nil {

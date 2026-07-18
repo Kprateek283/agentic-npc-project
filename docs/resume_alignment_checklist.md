@@ -19,7 +19,7 @@ targeting the AI Engineer JD (Python, FastAPI, RAG, agents, evals, vector DBs, D
 | **Eliminated hallucination via grounding** | ⚠️ RAG exists but no eval proving it | **M5, I1** |
 | **Integrated UE5 C++ WebSocket client** | ❌ Not in repo (excluded from git) | **M6** |
 | CI/CD GitHub Actions (skills section) | ❌ No `.github/` | **I3** |
-| "Full Docker Compose support" (README) | ⚠️ Compose has only Postgres/Redis; no service Dockerfiles | **I4** |
+| "Full Docker Compose support" (README) | ✅ Dockerfiles for both services; compose boots postgres/redis/qdrant/ai-service/backend | **I4** (done) |
 | Eval harness bullet (commented in resume) | ❌ Doesn't exist | **I1** |
 | Testing & debugging (JD mandatory) | ❌ Zero tests in repo | **I2** |
 
@@ -61,7 +61,7 @@ targeting the AI Engineer JD (Python, FastAPI, RAG, agents, evals, vector DBs, D
   - Target: enough to say "tested" honestly (~15–25 meaningful tests), not coverage theater.
 - [x] **I3. GitHub Actions CI.**
   One workflow: Python lint (ruff) + pytest; Go vet + test + build. Badge in README. Backs the "CI/CD (GitHub Actions)" skills claim.
-- [ ] **I4. Dockerize both services.**
+- [x] **I4. Dockerize both services.**
   `Dockerfile` for `ai-service-python` and `backend-go`; add both (plus Qdrant, optionally Ollama) to `docker-compose.yml` so `docker compose up` boots the whole stack. Backs the README claim.
 - [ ] **I5. Repo hygiene (recruiters will read this repo).**
   - **Remove `docs/INTERVIEW_*.md`, `PRACTICE_CODE_REVIEW.md`, `PREPARATION_SUMMARY.md` from the public repo** — interview-prep cheatsheets sitting next to the project undermine every claim in it.

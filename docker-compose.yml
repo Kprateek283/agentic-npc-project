@@ -1,29 +1,37 @@
-# docker-compose.yml
-
-version: '3.8'
-
 services:
   postgres:
     image: postgres:15
     container_name: postgres_db
     environment:
-      POSTGRES_USER: prateek
-      POSTGRES_PASSWORD: Kumar123
-      POSTGRES_DB: agentic_npc_db
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-agentic_npc_db}
     ports:
-      - "5432:5432"
+      # Host 5432 may be taken (e.g. a native Postgres); override with POSTGRES_PORT.
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-agentic_npc_db}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
     restart: unless-stopped
 
   redis:
     image: redis:7
     container_name: redis_cache
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
     restart: unless-stopped
 
-  # Optional vector store: only used when VECTOR_STORE=qdrant (FAISS is the default).
+  # Optional vector store: only used when VECTOR_STORE=qdrant (FAISS is the default), so
+  # the AI service does not gate its startup on it.
   qdrant:
     image: qdrant/qdrant:v1.18.2
     container_name: qdrant_vectors
@@ -32,6 +40,59 @@ services:
       - "${QDRANT_GRPC_PORT:-6334}:6334"
     volumes:
       - qdrant_data:/qdrant/storage
+    restart: unless-stopped
+
+  ai-service:
+    build: ./ai-service-python
+    container_name: ai_service
+    environment:
+      LLM_PROVIDER: ${LLM_PROVIDER:-gemini}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.5-flash}
+      OLLAMA_MODEL_HEAVY: ${OLLAMA_MODEL_HEAVY:-llama3.1:8b}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-nomic-embed-text}
+      # Ollama runs on the host (embeddings need it in both provider modes); reach it
+      # through the Docker host gateway. The host Ollama must listen on 0.0.0.0 (not its
+      # default 127.0.0.1) or this connection is refused — see .env.example.
+      OLLAMA_HOST: ${OLLAMA_HOST:-http://host.docker.internal:11434}
+      VECTOR_STORE: ${VECTOR_STORE:-faiss}
+      QDRANT_URL: http://qdrant:6333
+      API_PORT: 8000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "${AI_GRPC_PORT:-50051}:50051"
+      - "${AI_API_PORT:-8000}:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+    restart: unless-stopped
+
+  backend:
+    build: ./backend-go
+    container_name: backend
+    environment:
+      POSTGRES_DSN: "postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-agentic_npc_db}?sslmode=disable"
+      REDIS_ADDR: "redis:6379"
+      AI_SERVICE_ADDR: "ai-service:50051"
+      SERVER_PORT: "8080"
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ai-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
     restart: unless-stopped
 
 volumes:

@@ -536,6 +536,23 @@ free, and the quickstart must say which server the DSN points at.
 **Done when.** From a clean machine with Docker (plus documented Ollama step), the full
 stack starts with one command and the reference client completes a conversation.
 
+**Execution note (done 2026-07-18).** Both Dockerfiles built (backend 85MB, ai-service
+790MB). Compose expanded to postgres/redis/qdrant/ai-service/backend with healthchecks +
+`depends_on: service_healthy`. Ollama chosen as a documented **host dependency** reached
+via the host gateway (not a compose profile), because the dev box already runs it and a
+containerized Ollama would re-download models. **Verification:** the containerized full
+flow was exercised end to end — WebSocket → containerized Go backend → gRPC →
+containerized Python ai-service → host Ollama → grounded `SPEAK` response — with both app
+containers on host networking against throwaway Postgres/Redis. Also confirmed standalone:
+ai-service container serves `/health` (8 agents loaded), `/v1/npcs`, `/v1/chat` (real RAG),
+and gRPC `:50051`; backend container seeds the DB and connects to the gRPC server.
+**Deviation:** the real bridge-network `docker compose up` additionally requires the host
+Ollama to listen on `0.0.0.0` (its default `127.0.0.1` refuses the host-gateway
+connection). Rebinding the box's systemd-managed Ollama was out of scope, so the flow was
+verified via host networking instead, which is wire-identical (same images, same gRPC/HTTP
+paths — only the address Ollama is dialed at differs). The `0.0.0.0` requirement is
+documented in `.env.example` and the compose comment.
+
 ---
 
 ### I5. Repository hygiene

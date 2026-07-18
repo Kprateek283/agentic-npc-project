@@ -6,9 +6,10 @@ import (
 )
 
 type Config struct {
-	PostgresDSN string
-	RedisAddr   string
-	ServerPort  string
+	PostgresDSN   string
+	RedisAddr     string
+	ServerPort    string
+	AIServiceAddr string
 }
 
 func Load() (*Config, error) {
@@ -27,9 +28,15 @@ func Load() (*Config, error) {
 		serverPort = "8080"
 	}
 
+	aiServiceAddr := os.Getenv("AI_SERVICE_ADDR")
+	if aiServiceAddr == "" {
+		aiServiceAddr = "localhost:50051"
+	}
+
 	return &Config{
-		PostgresDSN: postgresDSN,
-		RedisAddr:   redisAddr,
-		ServerPort:  serverPort,
+		PostgresDSN:   postgresDSN,
+		RedisAddr:     redisAddr,
+		ServerPort:    serverPort,
+		AIServiceAddr: aiServiceAddr,
 	}, nil
 }
