@@ -44,6 +44,7 @@ def default_context() -> dict:
         "memories": [],
         "quest_step": 0,
         "completion_rate": 0.0,
+        "speaker": "",
     }
 
 

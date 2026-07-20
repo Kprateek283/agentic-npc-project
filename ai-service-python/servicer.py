@@ -30,6 +30,7 @@ def _dynamic_context(request) -> dict:
         "memories": [mem.description for mem in request.recent_memories],
         "quest_step": request.current_quest_step,
         "completion_rate": request.completion_rate,
+        "speaker": request.source_entity_id,  # who the NPC is talking to right now
     }
 
 

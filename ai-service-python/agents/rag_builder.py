@@ -29,6 +29,7 @@ def build_rag_chain(static_system_prompt: str, lore_retriever):
                 "question": itemgetter("question"),
                 "emotions": itemgetter("emotions"),
                 "npc_memories": itemgetter("npc_memories"),
+                "speaker": itemgetter("speaker"),
             }
             | full_rag_prompt
             | llm_light

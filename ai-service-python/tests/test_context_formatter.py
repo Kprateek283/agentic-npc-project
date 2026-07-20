@@ -32,3 +32,22 @@ def test_zero_completion_passes_through():
     out = format_dynamic_context(ctx)
     assert out["current_quest_step"] == 0
     assert out["completion_rate"] == 0.0
+
+
+def test_speaker_attribution_marks_own_memories_as_you():
+    # The current speaker's own actions become "You ..."; another player's stay third-party,
+    # so the NPC blames the attacker, not an innocent current speaker.
+    ctx = base_ctx()
+    ctx["speaker"] = "alice"
+    ctx["memories"] = ["alice triggered PLAYER_ATTACKED on Elara",
+                       "bob gave apple to Elara"]
+    out = format_dynamic_context(ctx)
+    assert out["speaker"] == "alice"
+    assert "- You triggered PLAYER_ATTACKED on Elara" in out["npc_memories"]
+    assert "- bob gave apple to Elara" in out["npc_memories"]  # someone else -> unchanged
+
+
+def test_missing_speaker_defaults_and_leaves_memories_intact():
+    out = format_dynamic_context(base_ctx())  # no "speaker" key
+    assert out["speaker"] == "a stranger you don't know"
+    assert out["npc_memories"] == "- Player greeted Elara.\n- Player gave an apple."

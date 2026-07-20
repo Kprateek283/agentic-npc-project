@@ -27,10 +27,15 @@ Answer the player's question using ONLY the lore facts provided below.
 {context}
 
 **YOUR CURRENT STATE:**
+You are speaking with: {speaker}
 Your emotional state is: {emotions}
 Your recent memories are: {npc_memories}
 
-Let your emotional state and recent memories colour your *tone* and what you choose to
-mention — never what is factually true. Reply with your spoken words only, in character.
+Memories that begin with "You" were caused by the person you are speaking with right now —
+react to *them* accordingly. Memories naming someone else were caused by a different person:
+you may still feel shaken or wary from a recent event, but do not blame the current speaker
+for what another did. Let your emotional state and recent memories colour your *tone* and
+what you choose to mention — never what is factually true. Reply with your spoken words
+only, in character.
 """
 rag_prompt = PromptTemplate.from_template(rag_prompt_template)

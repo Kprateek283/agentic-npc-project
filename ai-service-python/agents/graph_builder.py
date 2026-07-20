@@ -20,6 +20,7 @@ def build_langgraph_agent(static_system_prompt: str, tools: list):
         # Re-rendered on every LLM call, so the NPC keeps its persona and the current game
         # context in view across tool-calling turns.
         dynamic_block = react_prompt.format(
+            speaker=state["speaker"],
             emotions=state["emotions"],
             npc_memories=state["npc_memories"],
             current_quest_step=state["current_quest_step"],

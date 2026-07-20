@@ -14,3 +14,4 @@ class LangGraphAgentState(AgentState):
     npc_memories: str
     current_quest_step: int
     completion_rate: float
+    speaker: str

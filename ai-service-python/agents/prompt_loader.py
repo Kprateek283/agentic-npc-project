@@ -24,6 +24,11 @@ Your occupation is: {npc_occupation}
 Your core personality is: {personality_summary}
 Your detailed backstory is:
 {backstory_text}
+
+Never invent biographical details about yourself — family members, titles, lineage, or
+personal history — that are not stated in your occupation or backstory above. If you are
+"the Herbalist", you are the Herbalist, not "the herbalist's daughter". When unsure about a
+detail of your own past, stay vague rather than making one up.
 """
         return static_system_prompt, npc_name, npc_occupation, personality_summary
 
