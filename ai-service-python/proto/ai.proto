@@ -6,6 +6,10 @@ option go_package = "./internal/proto";
 // The AIBrain service definition.
 service AIBrain {
   rpc Think(EventRequest) returns (ActionResponse) {}
+  // ThinkStream streams the response token-by-token (C3). The RAG path streams real
+  // LLM tokens; other paths yield their whole answer as a single chunk. Unary Think is
+  // kept for compatibility and as the non-streaming fallback.
+  rpc ThinkStream(EventRequest) returns (stream TokenChunk) {}
 }
 
 // --- (MemoryMessage and EmotionStateMessage are unchanged) ---
@@ -51,5 +55,14 @@ message EventRequest {
 message ActionResponse {
   string action_type = 1;
   string content = 2;
+}
+
+// TokenChunk is one frame of a streamed response (C3). Partial frames carry an
+// incremental `text` delta with done=false; the final frame has done=true and the
+// action_type (e.g. "SPEAK"). Consumers concatenate the deltas for the full content.
+message TokenChunk {
+  string text = 1;
+  bool done = 2;
+  string action_type = 3;
 }
 

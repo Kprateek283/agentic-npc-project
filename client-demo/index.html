@@ -112,7 +112,11 @@
     el.appendChild(document.createTextNode(text));
     log.appendChild(el);
     log.scrollTop = log.scrollHeight;
+    return el;
   }
+
+  // Active streaming bubble for SPEAK_PARTIAL frames (C3), or null between messages.
+  let streamEl = null;
 
   function send(obj) {
     if (!ws || ws.readyState !== WebSocket.OPEN) { add("err", null, "Not connected."); return; }
@@ -133,9 +137,20 @@
         authed = true; setGameEnabled(true); setStatus("authenticated", "on");
         add("sys", null, content); return;
       }
-      if (action_type === "ERROR") { add("err", null, content); return; }
+      if (action_type === "ERROR") { streamEl = null; add("err", null, content); return; }
       if (action_type === "ADMIN_ACK") { add("sys", null, content); return; }
-      add("npc", $("npc").value + " · " + action_type, content);   // SPEAK et al.
+      if (action_type === "SPEAK_PARTIAL") {           // C3: append delta to a live bubble
+        if (!streamEl) streamEl = add("npc", $("npc").value + " · streaming…", "");
+        streamEl.lastChild.textContent += content;
+        log.scrollTop = log.scrollHeight;
+        return;
+      }
+      if (action_type === "SPEAK" && streamEl) {        // final frame closes the stream
+        streamEl.lastChild.textContent = content;       // authoritative full text
+        streamEl.querySelector(".who").textContent = $("npc").value + " · SPEAK";
+        streamEl = null; log.scrollTop = log.scrollHeight; return;
+      }
+      add("npc", $("npc").value + " · " + action_type, content);   // SPEAK (no stream) et al.
     };
   }
 

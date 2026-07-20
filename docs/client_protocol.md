@@ -38,10 +38,29 @@ Every message the server sends is one JSON object:
 { "action_type": "SPEAK", "content": "..." }
 ```
 
-`action_type` is one of `LOGIN_SUCCESS`, `SPEAK`, `ADMIN_ACK`, `ERROR`, or an
-action type carried by a quest fail-response (data-defined in the quest JSON, commonly
-`SPEAK`). `content` is the human-readable payload — NPC dialogue, a welcome line, or an
-error message.
+`action_type` is one of `LOGIN_SUCCESS`, `SPEAK`, `SPEAK_PARTIAL`, `ADMIN_ACK`, `ERROR`,
+or an action type carried by a quest fail-response (data-defined in the quest JSON,
+commonly `SPEAK`). `content` is the human-readable payload — NPC dialogue, a welcome line,
+or an error message.
+
+### Streamed replies (`SPEAK_PARTIAL` → `SPEAK`)
+
+NPC dialogue is streamed token-by-token. For each AI-backed event the server sends zero or
+more `SPEAK_PARTIAL` frames whose `content` is an incremental text delta, followed by one
+final `SPEAK` frame whose `content` is the **whole** reply:
+
+```json
+{ "action_type": "SPEAK_PARTIAL", "content": "Marcus's " }
+{ "action_type": "SPEAK_PARTIAL", "content": "guard, that's who." }
+{ "action_type": "SPEAK",         "content": "Marcus's guard, that's who." }
+```
+
+A streaming client appends each `SPEAK_PARTIAL` delta to the live bubble; on the closing
+`SPEAK` it replaces the bubble with the authoritative full text. A client that does not
+care about progressive rendering can **ignore `SPEAK_PARTIAL` entirely** and act only on
+the final `SPEAK` — the full reply always arrives there. Non-AI replies (`ADMIN_ACK`,
+quest fail-responses, the non-LLM `"Greetings."`) are sent as a single frame with no
+preceding partials.
 
 ## Session flow
 

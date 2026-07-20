@@ -3,6 +3,7 @@ package handlers
 import (
 	"agentic-npc-backend/internal/db/ent"
 	entplayerqueststate "agentic-npc-backend/internal/db/ent/playerqueststate"
+	"agentic-npc-backend/internal/db/ent/schema"
 	_ "agentic-npc-backend/internal/domain/npc_logic"
 	_ "agentic-npc-backend/internal/dto"
 	pb "agentic-npc-backend/internal/proto"
@@ -58,24 +59,22 @@ func (h *WebSocketHandler) HandleGameEvent(conn *websocket.Conn, ctx context.Con
 		return
 	}
 
-	// 4. If it was a normal event, proceed to call the AI
-	actionResponse, grpcMs, err := h.callAI(ctx, reqID, event)
+	// 4. Normal event -> stream the AI response (C3). RAG answers stream token-by-token
+	// (SPEAK_PARTIAL frames) and close with a SPEAK frame; other events arrive as a single
+	// frame. streamAI returns a non-nil error only when nothing streamed at all — in that
+	// case fall back to a graceful in-character line (C2), so the player is never left with
+	// an error or silence and the NPC recovers automatically once the service is back.
+	grpcMs, err := h.streamAI(conn, ctx, reqID, event)
 	if err != nil {
-		// The AI service is down or timed out (after one retry). Never leave the player
-		// with an error or silence — reply with a graceful in-character fallback so the
-		// game keeps flowing; the NPC recovers automatically once the service is back.
-		slog.Warn("ai_call_failed", "req_id", reqID, "npc", event.TargetNpcName,
+		slog.Warn("ai_stream_failed", "req_id", reqID, "npc", event.TargetNpcName,
 			"event", event.EventType, "err", err.Error())
 		h.sendSimpleResponse(conn, "SPEAK",
 			"Hmm? Forgive me — my mind wandered just now. Ask me again in a moment.")
 		return
 	}
 
-	// 5. Send the AI's response back to the client.
-	h.sendSimpleResponse(conn, actionResponse.ActionType, actionResponse.Content)
-
 	// One correlated summary line per event: the M4 latency attribution, made continuous.
-	// ai_ms is the whole callAI (DB context gather + gRPC); grpc_ms is the RPC alone.
+	// grpc_ms is the streaming RPC (first token to last); total_ms is the whole handler.
 	slog.Info("game_event",
 		"req_id", reqID,
 		"player", event.SourceEntityId,
@@ -87,23 +86,36 @@ func (h *WebSocketHandler) HandleGameEvent(conn *websocket.Conn, ctx context.Con
 	)
 }
 
-// callAI gathers context, calls the gRPC service, and returns the response plus the
-// RPC's own duration in ms. reqID is propagated to Python via gRPC metadata for
-// cross-service log correlation.
-func (h *WebSocketHandler) callAI(ctx context.Context, reqID string, event EventMessage) (*pb.ActionResponse, int64, error) {
-	ctx = metadata.AppendToOutgoingContext(ctx, "req-id", reqID)
+// aiRequestArgs is the fully-gathered per-event context the AI service needs.
+type aiRequestArgs struct {
+	personalityPath string
+	backstoryPath   string
+	lorePath        string
+	emotions        *schema.EmotionState
+	memories        []*ent.Memory
+	eventType       string
+	text            string
+	sourceEntityId  string
+	questStep       int
+	completionRate  float32
+}
+
+// gatherAIContext runs the per-event side effects (emotion update, memory write) and
+// collects everything the AI service needs. Shared by the unary and streaming paths so
+// they cannot drift; it must run exactly once per event.
+func (h *WebSocketHandler) gatherAIContext(ctx context.Context, event EventMessage) (*aiRequestArgs, error) {
 	// 4a. Get Target NPC
 	targetNPC, err := h.questManager.GetNpc(ctx, h.dbClient, h.redisClient, event.TargetNpcName)
 	if err != nil {
 		log.Printf("Error finding NPC: %v", err)
-		return nil, 0, fmt.Errorf("target NPC not found")
+		return nil, fmt.Errorf("target NPC not found")
 	}
 
 	// 4b. Get Player (needed for relationship)
 	player, err := h.questManager.GetPlayer(ctx, h.dbClient, h.redisClient, event.SourceEntityId)
 	if err != nil {
 		log.Printf("Error finding Player: %v", err)
-		return nil, 0, fmt.Errorf("player not found")
+		return nil, fmt.Errorf("player not found")
 	}
 
 	// 4c. Modify NPC's base emotions
@@ -121,7 +133,7 @@ func (h *WebSocketHandler) callAI(ctx context.Context, reqID string, event Event
 	newMemory, err := h.dbClient.Memory.Create().
 		SetEventType(event.EventType).
 		SetParticipants([]string{event.SourceEntityId, updatedNPC.ID.String()}).
-		SetDescription(memoryDesc). // <-- Use more descriptive memory
+		SetDescription(memoryDesc).
 		SetOwner(updatedNPC).
 		Save(ctx)
 	if err != nil {
@@ -137,44 +149,84 @@ func (h *WebSocketHandler) callAI(ctx context.Context, reqID string, event Event
 	}
 
 	// 4f. Get Player Quest State
-	currentQuestStep, completionRate := h.getPlayerQuestState(ctx, player) // Pass player obj
+	currentQuestStep, completionRate := h.getPlayerQuestState(ctx, player)
 
 	// 4g. Get Player-Specific Trust
 	rel, err := h.questManager.GetOrCreateRelationship(ctx, h.dbClient, h.redisClient, player, targetNPC)
 	if err != nil {
 		log.Printf("Error getting relationship: %v", err)
-		return nil, 0, err
+		return nil, err
 	}
 
-	// 4h. Get the NPC's emotions (the correct *schema.EmotionState type)
+	// 4h/4i. The NPC's emotions with the player-specific trust overlaid.
 	aiEmotions := updatedNPC.Emotions
-	// 4i. Overwrite the Trust field with the correct, player-specific value
 	aiEmotions.Trust = rel.TrustLevel
 
-	// Determine what text to send as the "main subject" of the event
-	var textToSend string
+	// Main subject text: the item name for gifts/submissions, else the question text.
+	text := event.QuestionText
 	if event.EventType == "PLAYER_GAVE_GIFT" || event.EventType == "PLAYER_SUBMITTED_QUEST_ITEM" {
-		textToSend = event.Keyword // Use the item name (keyword) for gifts and item submissions
-	} else {
-		textToSend = event.QuestionText // Use the question text for questions
+		text = event.Keyword
 	}
 
-	// 5. Call the AI Service (timed separately so grpc_ms isolates the RPC + inference).
+	return &aiRequestArgs{
+		personalityPath: updatedNPC.PersonalityPath,
+		backstoryPath:   updatedNPC.BackstoryPath,
+		lorePath:        updatedNPC.LorePath,
+		emotions:        aiEmotions,
+		memories:        recentMemories,
+		eventType:       event.EventType,
+		text:            text,
+		sourceEntityId:  event.SourceEntityId,
+		questStep:       currentQuestStep,
+		completionRate:  completionRate,
+	}, nil
+}
+
+// callAI is the unary path: gather context, call Think, return the response and the RPC's
+// own duration. Kept for the benchmark harness and as the non-streaming fallback.
+func (h *WebSocketHandler) callAI(ctx context.Context, reqID string, event EventMessage) (*pb.ActionResponse, int64, error) {
+	ctx = metadata.AppendToOutgoingContext(ctx, "req-id", reqID)
+	a, err := h.gatherAIContext(ctx, event)
+	if err != nil {
+		return nil, 0, err
+	}
 	grpcStart := time.Now()
-	resp, err := h.aiClient.CallAIThink(
-		ctx,
-		updatedNPC.PersonalityPath,
-		updatedNPC.BackstoryPath,
-		updatedNPC.LorePath,
-		aiEmotions, // <-- Pass the modified *schema.EmotionState struct
-		recentMemories,
-		event.EventType,
-		textToSend, // <-- Pass the correct text
-		event.SourceEntityId,
-		currentQuestStep,
-		completionRate,
-	)
+	resp, err := h.aiClient.CallAIThink(ctx, a.personalityPath, a.backstoryPath, a.lorePath,
+		a.emotions, a.memories, a.eventType, a.text, a.sourceEntityId, a.questStep, a.completionRate)
 	return resp, time.Since(grpcStart).Milliseconds(), err
+}
+
+// streamAI is the streaming path (C3): gather context, open ThinkStream, forward each text
+// delta as a SPEAK_PARTIAL frame, and close with a SPEAK frame carrying the full text.
+// It returns a non-nil error only when the stream never produced anything (so the caller
+// can fall back); a mid-stream failure is finalized best-effort with the partial text.
+func (h *WebSocketHandler) streamAI(conn *websocket.Conn, ctx context.Context, reqID string, event EventMessage) (int64, error) {
+	ctx = metadata.AppendToOutgoingContext(ctx, "req-id", reqID)
+	a, err := h.gatherAIContext(ctx, event)
+	if err != nil {
+		return 0, err
+	}
+
+	sent := 0
+	grpcStart := time.Now()
+	full, err := h.aiClient.CallAIThinkStream(ctx, a.personalityPath, a.backstoryPath, a.lorePath,
+		a.emotions, a.memories, a.eventType, a.text, a.sourceEntityId, a.questStep, a.completionRate,
+		func(tok string) {
+			sent++
+			h.sendSimpleResponse(conn, "SPEAK_PARTIAL", tok)
+		})
+	grpcMs := time.Since(grpcStart).Milliseconds()
+
+	if err != nil && sent == 0 {
+		// Nothing streamed — signal the caller to fall back to the in-character line.
+		return grpcMs, err
+	}
+	if err != nil {
+		log.Printf("[stream] errored after %d partial(s); finalizing with partial text: %v", sent, err)
+	}
+	// Final frame carries the whole content (non-streaming clients can ignore partials).
+	h.sendSimpleResponse(conn, "SPEAK", full)
+	return grpcMs, nil
 }
 
 // getPlayerQuestState is a helper to find the active quest state for the AI context

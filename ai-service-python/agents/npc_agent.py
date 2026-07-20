@@ -81,6 +81,19 @@ class NpcAgent:
         logger.info("rag_brain dur_ms=%d", (time.time() - start_time) * 1000)
         return response
 
+    def stream_rag_agent(self, dynamic_context: dict, player_question: str):
+        """Streaming variant of run_rag_agent: yields answer text deltas as the LLM
+        produces them (C3). Same chain, same grounding — only the transport differs."""
+        start_time = time.time()
+        input_dict = {
+            "question": player_question,
+            **format_dynamic_context(dynamic_context),
+        }
+        # The chain ends in StrOutputParser, so .stream() yields incremental strings.
+        for delta in self.rag_chain.stream(input_dict):
+            yield delta
+        logger.info("rag_brain_stream dur_ms=%d", (time.time() - start_time) * 1000)
+
     def run_quest_agent(self, dynamic_context: dict, player_event_description: str) -> str:
         """Runs the multi-step ReAct agent for quest events."""
         start_time = time.time()

@@ -70,6 +70,25 @@ accelerators. The ratio is a laptop-vs-cloud measurement, and both caveats (tiny
 CPU-bound local) must travel with the number. The old 2.3× figure came from no committed
 measurement and is replaced by these.
 
+## Streaming: time-to-first-token (C3)
+
+RAG replies stream token-by-token over gRPC → WebSocket, so the player sees dialogue begin
+at the first token instead of waiting for the whole answer. Measured directly on the
+`ThinkStream` RPC (`benchmarks/streaming_ttft.py`).
+
+| Provider | TTFT (first token) | Full response | Player sees text sooner by |
+|---|---|---|---|
+| Local (llama3.1:8b) | **13.6 s** (median, n=6) | **21.1 s** (median, n=6) | **~7.4 s** |
+| Cloud (gemini-3.5-flash) | not measured† | — | — |
+
+† *Gemini returned persistent `503 UNAVAILABLE` ("high demand") throughout the C3 test
+window, so a cloud TTFT could not be captured without inventing a number. The streaming
+path is provider-agnostic (same LCEL `.stream()`); the cloud win is expected to be far
+larger, since cloud full-response RAG is ~2.9 s (above) — re-run when the model is
+available. On local, TTFT is CPU-bound (prompt processing on the 4 GB GPU spilling to CPU),
+so even the first token takes seconds; the value shown is the ~7 s of silence removed, not a
+sub-second TTFT.*
+
 ## The headline finding
 
 Infrastructure is **sub-10 ms end-to-end**; inference is **seconds**. The orchestration layer
@@ -89,4 +108,8 @@ cd backend-go && go run ./cmd/benchcache -n 200 -player bench_player
 # Inference timing (start the service with the matching LLM_PROVIDER first):
 python benchmarks/cloud_vs_local.py --provider ollama --reps 3
 python benchmarks/cloud_vs_local.py --provider gemini --reps 1 --questions 3 --events 2
+
+# Streaming TTFT (start the service with the matching LLM_PROVIDER first):
+python benchmarks/streaming_ttft.py --provider ollama --reps 2 --questions 3
+python benchmarks/streaming_ttft.py --provider gemini --reps 1 --questions 3
 ```

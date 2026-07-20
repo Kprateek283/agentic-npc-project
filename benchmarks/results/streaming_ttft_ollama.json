@@ -1,0 +1,31 @@
+{
+  "benchmark": "streaming_ttft_ollama",
+  "run_date": "2026-07-20",
+  "hardware": {
+    "platform": "Linux-6.14.0-33-generic-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "cpus": "16",
+    "cpu": "12th Gen Intel(R) Core(TM) i5-1240P",
+    "memory": "16072120 kB",
+    "gpu": "NVIDIA GeForce RTX 2050"
+  },
+  "provider": "ollama",
+  "questions": 3,
+  "reps": 2,
+  "ttft_ms": {
+    "n": 6,
+    "median_ms": 13632.89,
+    "p95_ms": 16295.58,
+    "min_ms": 12279.16,
+    "max_ms": 16295.58,
+    "mean_ms": 13924.92
+  },
+  "total_ms": {
+    "n": 6,
+    "median_ms": 21071.35,
+    "p95_ms": 42601.92,
+    "min_ms": 17569.67,
+    "max_ms": 42601.92,
+    "mean_ms": 24360.51
+  }
+}

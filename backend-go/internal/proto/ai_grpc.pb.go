@@ -23,6 +23,10 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AIBrainClient interface {
 	Think(ctx context.Context, in *EventRequest, opts ...grpc.CallOption) (*ActionResponse, error)
+	// ThinkStream streams the response token-by-token (C3). The RAG path streams real
+	// LLM tokens; other paths yield their whole answer as a single chunk. Unary Think is
+	// kept for compatibility and as the non-streaming fallback.
+	ThinkStream(ctx context.Context, in *EventRequest, opts ...grpc.CallOption) (AIBrain_ThinkStreamClient, error)
 }
 
 type aIBrainClient struct {
@@ -42,11 +46,47 @@ func (c *aIBrainClient) Think(ctx context.Context, in *EventRequest, opts ...grp
 	return out, nil
 }
 
+func (c *aIBrainClient) ThinkStream(ctx context.Context, in *EventRequest, opts ...grpc.CallOption) (AIBrain_ThinkStreamClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AIBrain_ServiceDesc.Streams[0], "/ai.AIBrain/ThinkStream", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &aIBrainThinkStreamClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AIBrain_ThinkStreamClient interface {
+	Recv() (*TokenChunk, error)
+	grpc.ClientStream
+}
+
+type aIBrainThinkStreamClient struct {
+	grpc.ClientStream
+}
+
+func (x *aIBrainThinkStreamClient) Recv() (*TokenChunk, error) {
+	m := new(TokenChunk)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // AIBrainServer is the server API for AIBrain service.
 // All implementations must embed UnimplementedAIBrainServer
 // for forward compatibility
 type AIBrainServer interface {
 	Think(context.Context, *EventRequest) (*ActionResponse, error)
+	// ThinkStream streams the response token-by-token (C3). The RAG path streams real
+	// LLM tokens; other paths yield their whole answer as a single chunk. Unary Think is
+	// kept for compatibility and as the non-streaming fallback.
+	ThinkStream(*EventRequest, AIBrain_ThinkStreamServer) error
 	mustEmbedUnimplementedAIBrainServer()
 }
 
@@ -56,6 +96,9 @@ type UnimplementedAIBrainServer struct {
 
 func (UnimplementedAIBrainServer) Think(context.Context, *EventRequest) (*ActionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Think not implemented")
+}
+func (UnimplementedAIBrainServer) ThinkStream(*EventRequest, AIBrain_ThinkStreamServer) error {
+	return status.Errorf(codes.Unimplemented, "method ThinkStream not implemented")
 }
 func (UnimplementedAIBrainServer) mustEmbedUnimplementedAIBrainServer() {}
 
@@ -88,6 +131,27 @@ func _AIBrain_Think_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AIBrain_ThinkStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(EventRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AIBrainServer).ThinkStream(m, &aIBrainThinkStreamServer{stream})
+}
+
+type AIBrain_ThinkStreamServer interface {
+	Send(*TokenChunk) error
+	grpc.ServerStream
+}
+
+type aIBrainThinkStreamServer struct {
+	grpc.ServerStream
+}
+
+func (x *aIBrainThinkStreamServer) Send(m *TokenChunk) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // AIBrain_ServiceDesc is the grpc.ServiceDesc for AIBrain service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -100,6 +164,12 @@ var AIBrain_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AIBrain_Think_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "ThinkStream",
+			Handler:       _AIBrain_ThinkStream_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "ai.proto",
 }

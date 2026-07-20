@@ -40,6 +40,11 @@ class AIBrainStub(object):
                 request_serializer=ai__pb2.EventRequest.SerializeToString,
                 response_deserializer=ai__pb2.ActionResponse.FromString,
                 _registered_method=True)
+        self.ThinkStream = channel.unary_stream(
+                '/ai.AIBrain/ThinkStream',
+                request_serializer=ai__pb2.EventRequest.SerializeToString,
+                response_deserializer=ai__pb2.TokenChunk.FromString,
+                _registered_method=True)
 
 
 class AIBrainServicer(object):
@@ -52,6 +57,15 @@ class AIBrainServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def ThinkStream(self, request, context):
+        """ThinkStream streams the response token-by-token (C3). The RAG path streams real
+        LLM tokens; other paths yield their whole answer as a single chunk. Unary Think is
+        kept for compatibility and as the non-streaming fallback.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_AIBrainServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -59,6 +73,11 @@ def add_AIBrainServicer_to_server(servicer, server):
                     servicer.Think,
                     request_deserializer=ai__pb2.EventRequest.FromString,
                     response_serializer=ai__pb2.ActionResponse.SerializeToString,
+            ),
+            'ThinkStream': grpc.unary_stream_rpc_method_handler(
+                    servicer.ThinkStream,
+                    request_deserializer=ai__pb2.EventRequest.FromString,
+                    response_serializer=ai__pb2.TokenChunk.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -89,6 +108,33 @@ class AIBrain(object):
             '/ai.AIBrain/Think',
             ai__pb2.EventRequest.SerializeToString,
             ai__pb2.ActionResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ThinkStream(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_stream(
+            request,
+            target,
+            '/ai.AIBrain/ThinkStream',
+            ai__pb2.EventRequest.SerializeToString,
+            ai__pb2.TokenChunk.FromString,
             options,
             channel_credentials,
             insecure,

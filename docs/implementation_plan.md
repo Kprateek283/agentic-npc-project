@@ -718,6 +718,25 @@ harness — this becomes a new resume metric ("cut perceived latency from Xs to 
 **Done when.** The reference client visibly renders dialogue word-by-word and the TTFT
 delta is recorded in `docs/benchmarks.md`.
 
+**Execution note (2026-07-20).** Added `rpc ThinkStream(EventRequest) returns (stream
+TokenChunk)` to `ai.proto` (both copies), regenerated Go + Python bindings. Python:
+`NpcAgent.stream_rag_agent` yields deltas from the existing LCEL chain's `.stream()`
+(StrOutputParser already yields strings); `router.stream_event` streams RAG token-by-token
+and yields every other event's whole answer as one frame, so the wire shape is uniform;
+`servicer.ThinkStream` mirrors `Think`. Go: `ai_client.go` gained `CallAIThinkStream`
+(shared `buildEventRequest` with the unary path); `game_handler.go` gathers context once
+(`gatherAIContext`, shared by unary + stream) and routes all AI events through `streamAI`,
+forwarding `SPEAK_PARTIAL` deltas and a final `SPEAK` with the full text — on a stream that
+never starts it falls back to the C2 in-character line. **Scope call (ponytail):** only the
+RAG path streams real tokens; quest/agent events arrive as a single frame (they are not
+conversational, and streaming intermediate LangGraph tool-loop tokens adds complexity for
+little UX gain). Unary `Think` is kept as the documented fallback and for the benchmark
+harness. Client + `client_protocol.md` updated for partial/final; non-streaming clients can
+ignore `SPEAK_PARTIAL` and read only the final `SPEAK`. Verified live (local Ollama): 72
+token deltas for one answer, agent + non-LLM paths unaffected. TTFT recorded local-only
+(13.6s vs 21.1s, n=6); cloud TTFT blocked by a live Gemini 503 and left unmeasured rather
+than invented.
+
 ### C4. Semantic response cache
 
 **Plan.** In the Python service, in front of the RAG path only (quest events mutate

@@ -71,3 +71,27 @@ def route_event(agent_key: str, event_type: str, text: str, dynamic_context: dic
     if dynamic_context["emotions"]["anger"] > 0.7:
         return "SPEAK", "Get lost."
     return "SPEAK", "Greetings."
+
+
+def stream_event(agent_key: str, event_type: str, text: str, dynamic_context: dict):
+    """Streaming counterpart of route_event. Yields (text_delta, done, action_type).
+
+    RAG events stream real LLM tokens (partials with done=False), then a final empty
+    frame with done=True. Every other event has no token stream, so its whole route_event
+    answer is emitted as one partial frame followed by the done frame — the wire shape is
+    identical, so the Go consumer handles both uniformly.
+    """
+    agent = agent_manager.get_agent(agent_key)
+    if agent is None:
+        raise UnknownAgentError(agent_key)
+
+    if event_type in RAG_EVENTS:
+        logger.debug("stream rag agent=%s", agent_key)
+        for delta in agent.stream_rag_agent(dynamic_context, text):
+            yield delta, False, ""
+        yield "", True, "SPEAK"
+        return
+
+    action_type, content = route_event(agent_key, event_type, text, dynamic_context)
+    yield content, False, action_type
+    yield "", True, action_type
