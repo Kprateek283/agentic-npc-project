@@ -23,10 +23,13 @@ func (qm *QuestManager) GetPlayer(ctx context.Context, db *ent.Client, rdb *redi
 	// 1. Try to get the PLAYER'S UUID from Redis
 	val, err := rdb.Get(ctx, cacheKey).Result()
 	if err == nil {
-		playerUUID, err := uuid.Parse(val)
-		if err == nil {
-			// Fetch the full, hydrated player object by its primary key
-			return db.Player.Get(ctx, playerUUID)
+		if playerUUID, perr := uuid.Parse(val); perr == nil {
+			// Fetch the full, hydrated player object by its primary key. On any error
+			// (e.g. a stale id left over from a DB reset), fall through to a fresh
+			// by-id lookup below that re-caches, rather than returning the error.
+			if p, gerr := db.Player.Get(ctx, playerUUID); gerr == nil {
+				return p, nil
+			}
 		}
 	}
 
@@ -48,10 +51,13 @@ func (qm *QuestManager) GetNpc(ctx context.Context, db *ent.Client, rdb *redis.C
 	// 1. Try to get the NPC'S UUID from Redis
 	val, err := rdb.Get(ctx, cacheKey).Result()
 	if err == nil {
-		npcUUID, err := uuid.Parse(val)
-		if err == nil {
-			// Fetch the full, hydrated object by its primary key
-			return db.NPC.Get(ctx, npcUUID)
+		if npcUUID, perr := uuid.Parse(val); perr == nil {
+			// Fetch the full, hydrated object by its primary key. On any error (e.g. a
+			// stale id cached before a DB re-seed gave NPCs new UUIDs), fall through to a
+			// fresh by-name lookup below that re-caches, rather than returning "not found".
+			if n, gerr := db.NPC.Get(ctx, npcUUID); gerr == nil {
+				return n, nil
+			}
 		}
 	}
 
@@ -83,8 +89,11 @@ func (qm *QuestManager) GetOrCreateRelationship(ctx context.Context, db *ent.Cli
 	if err == nil {
 		var rel ent.PlayerNPCRelationship
 		if err := json.Unmarshal([]byte(val), &rel); err == nil {
-			// Attach the unmarshaled object to the client to make it "hydrated"
-			return db.PlayerNPCRelationship.Get(ctx, rel.ID)
+			// Re-fetch a hydrated object by id. On any error (e.g. a stale id from a DB
+			// reset), fall through to the query/create path below instead of erroring.
+			if hydrated, gerr := db.PlayerNPCRelationship.Get(ctx, rel.ID); gerr == nil {
+				return hydrated, nil
+			}
 		}
 	}
 
