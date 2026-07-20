@@ -756,6 +756,25 @@ queries served in ~Xms without an LLM call").
 **Done when.** A paraphrased repeat of a lore question returns in cache-latency time with
 the hit logged, and the eval suite (I1) passes unchanged with the cache enabled.
 
+**Execution note (2026-07-20).** Implemented as `semantic_cache.py` (in-process, per-NPC),
+wired into `NpcAgent.run_rag_agent`/`stream_rag_agent` around the RAG chain. **Deviation
+from plan (Redis → in-process):** redis-py is not a Python dependency and the AI service is
+a single process serving static lore, so a dict + O(n) cosine scan does exactly what a
+Redis KV would here — chose it over adding a dependency (ponytail). Ceiling and upgrade
+path (Redis + vector search) noted in a `ponytail:` comment. Emotion handling took the
+plan's simpler option: only near-neutral contexts (`cacheable_context`, all reactive
+emotions < 0.2) are cached, so a cached answer is never reused under a different tone;
+memory variation is ignored (lore answers are grounded on retrieved facts). **Threshold
+tuning:** measured nomic-embed-text cosine on eval questions — paraphrases 0.81–0.99,
+different questions 0.24–0.39, but same-topic/different-intent pairs reach 0.81 (e.g. "where
+does silverleaf grow?" vs "what is silverleaf used for?" = 0.81), overlapping the weakest
+paraphrases. Set 0.90 (correctness-first: above every measured near-miss, so a false hit —
+a wrong answer — cannot happen; weak paraphrases miss and pay for the LLM, which is
+harmless). A cache hit streams the whole answer as one frame, so it composes with C3
+streaming. Verified live (exact repeat 2.3 s→ then steady 65 ms median vs 20.8 s miss, 100%
+repeat hit rate) and the eval suite runs clean with the cache on. Committed benchmark:
+`benchmarks/semantic_cache.py` + `results/semantic_cache.json`.
+
 ### C5. LangSmith tracing
 
 **Plan.** LangSmith is already a dependency. Enable via the standard env vars (documented

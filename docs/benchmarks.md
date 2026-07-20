@@ -89,6 +89,26 @@ available. On local, TTFT is CPU-bound (prompt processing on the 4 GB GPU spilli
 so even the first token takes seconds; the value shown is the ~7 s of silence removed, not a
 sub-second TTFT.*
 
+## Semantic response cache (C4)
+
+Repeated lore questions in a near-neutral context are served from an in-process per-NPC
+semantic cache (cosine match on the question embedding, threshold 0.90) instead of the LLM.
+Measured on the gRPC RAG path (`benchmarks/semantic_cache.py`): ask N questions cold, then
+re-ask the same N.
+
+| | Latency | Notes |
+|---|---|---|
+| Cache miss (LLM) | **20.8 s** (median, n=4) | full RAG generation, local llama3.1:8b |
+| Cache hit | **65 ms** (median, n=4) | question embedding + cosine scan, no LLM |
+| Round-2 hit rate | **100%** (4/4) | exact repeats of the same question |
+
+A cache hit is **~320× faster** than the LLM miss and makes no model call. The hit-latency
+p95 (~3.2 s) is a one-off cold embedding-model call; steady-state hits are ~40–90 ms.
+Threshold 0.90 is tuned to sit above measured same-topic/different-intent question pairs
+(≤0.81) so the cache never serves a wrong answer — the trade is that loosely-worded
+paraphrases (~0.82) miss and pay for the LLM. Only near-neutral emotional contexts are
+cached, since the RAG prompt conditions tone on live emotion.
+
 ## The headline finding
 
 Infrastructure is **sub-10 ms end-to-end**; inference is **seconds**. The orchestration layer
@@ -112,4 +132,7 @@ python benchmarks/cloud_vs_local.py --provider gemini --reps 1 --questions 3 --e
 # Streaming TTFT (start the service with the matching LLM_PROVIDER first):
 python benchmarks/streaming_ttft.py --provider ollama --reps 2 --questions 3
 python benchmarks/streaming_ttft.py --provider gemini --reps 1 --questions 3
+
+# Semantic response cache (restart the service first for a cold cache):
+python benchmarks/semantic_cache.py --questions 4
 ```

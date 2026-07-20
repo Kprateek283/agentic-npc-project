@@ -6,6 +6,8 @@ from langchain_core.messages import HumanMessage
 from langgraph.errors import GraphRecursionError
 
 # --- Local Imports ---
+from config import embeddings
+from semantic_cache import SemanticCache, cacheable_context
 from tools.lore_retriever_tool import create_lore_tool_from_file
 from tools.quest_status_tool import quest_status
 # --- THIS IS THE FIX: Use relative imports ('.') ---
@@ -62,13 +64,29 @@ class NpcAgent:
         self.rag_chain = build_rag_chain(self.static_system_prompt, self.lore_retriever)
         self.langgraph_chain = build_langgraph_agent(self.static_system_prompt, self.tools)
 
+        # 4. Per-NPC semantic response cache for repeated lore questions (C4).
+        self._cache = SemanticCache()
+
         print(f"Successfully initialized agent: {self.npc_name} ({self.npc_occupation}) "
               f"[tools: {self.tool_names}]")
 
 
+    def _cache_lookup(self, dynamic_context: dict, question: str):
+        """Return (cached_answer_or_None, question_embedding_or_None). The embedding is
+        computed only when the context is cacheable, and is reused to store the answer."""
+        if not cacheable_context(dynamic_context):
+            return None, None
+        q_emb = embeddings.embed_query(question)
+        return self._cache.get(q_emb), q_emb
+
     def run_rag_agent(self, dynamic_context: dict, player_question: str) -> str:
-        """Runs the fast RAG chain for simple questions."""
+        """Runs the fast RAG chain for simple questions (semantic-cached, C4)."""
         start_time = time.time()
+
+        cached, q_emb = self._cache_lookup(dynamic_context, player_question)
+        if cached is not None:
+            logger.info("rag_cache hit dur_ms=%d", (time.time() - start_time) * 1000)
+            return cached
 
         # The question drives retrieval; the dynamic context conditions tone. The static
         # persona prompt and grounding rules are already built into the chain.
@@ -78,20 +96,35 @@ class NpcAgent:
         }
         response = self.rag_chain.invoke(input_dict)
 
+        if q_emb is not None:
+            self._cache.put(q_emb, response)
         logger.info("rag_brain dur_ms=%d", (time.time() - start_time) * 1000)
         return response
 
     def stream_rag_agent(self, dynamic_context: dict, player_question: str):
-        """Streaming variant of run_rag_agent: yields answer text deltas as the LLM
-        produces them (C3). Same chain, same grounding — only the transport differs."""
+        """Streaming variant of run_rag_agent (C3): yields answer text deltas as the LLM
+        produces them. A semantic-cache hit (C4) yields the whole cached answer as one
+        delta — same wire shape, no LLM call."""
         start_time = time.time()
+
+        cached, q_emb = self._cache_lookup(dynamic_context, player_question)
+        if cached is not None:
+            logger.info("rag_cache_stream hit dur_ms=%d", (time.time() - start_time) * 1000)
+            yield cached
+            return
+
         input_dict = {
             "question": player_question,
             **format_dynamic_context(dynamic_context),
         }
         # The chain ends in StrOutputParser, so .stream() yields incremental strings.
+        parts = []
         for delta in self.rag_chain.stream(input_dict):
+            parts.append(delta)
             yield delta
+
+        if q_emb is not None:
+            self._cache.put(q_emb, "".join(parts))
         logger.info("rag_brain_stream dur_ms=%d", (time.time() - start_time) * 1000)
 
     def run_quest_agent(self, dynamic_context: dict, player_event_description: str) -> str:
