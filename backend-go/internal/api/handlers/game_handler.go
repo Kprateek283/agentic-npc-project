@@ -61,8 +61,13 @@ func (h *WebSocketHandler) HandleGameEvent(conn *websocket.Conn, ctx context.Con
 	// 4. If it was a normal event, proceed to call the AI
 	actionResponse, grpcMs, err := h.callAI(ctx, reqID, event)
 	if err != nil {
-		log.Println("Error calling AI service:", err)
-		h.sendError(conn, "The AI is currently unavailable.")
+		// The AI service is down or timed out (after one retry). Never leave the player
+		// with an error or silence — reply with a graceful in-character fallback so the
+		// game keeps flowing; the NPC recovers automatically once the service is back.
+		slog.Warn("ai_call_failed", "req_id", reqID, "npc", event.TargetNpcName,
+			"event", event.EventType, "err", err.Error())
+		h.sendSimpleResponse(conn, "SPEAK",
+			"Hmm? Forgive me — my mind wandered just now. Ask me again in a moment.")
 		return
 	}
 

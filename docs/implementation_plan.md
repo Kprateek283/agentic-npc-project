@@ -690,6 +690,19 @@ scenario becomes an I2-style test where feasible, otherwise a documented manual 
 **Done when.** Killing the AI service mid-conversation yields the fallback response
 within the deadline, and restarting it restores normal service with no Go restart.
 
+**Execution note (2026-07-20).** `ai_client.go`: swapped `grpc.Dial`→`grpc.NewClient`;
+per-call deadline from `AI_CALL_TIMEOUT` (default 40s); `callThink` retries once on
+`codes.Unavailable` after a 200ms backoff and never on `DeadlineExceeded`. Also capped the
+channel reconnect backoff at 5s via `grpc.WithConnectParams` (default max is 120s) — the
+first live test recovered only after ~15s of ramped backoff; with the cap the first
+request after restart succeeded immediately. `game_handler.go`: on AI failure, send an
+in-character `SPEAK` fallback ("…my mind wandered…") and a `slog.Warn("ai_call_failed")`
+with the req_id, instead of an `ERROR`. Verified live (local Ollama provider): up →
+"Greetings." 17ms; AI killed → fallback 213ms (the 200ms retry backoff is visible in the
+timing); AI restarted → "Greetings." 12ms with the Go process untouched. Per the plan this
+is the documented manual check; the live run exercises the retry, deadline, fallback, and
+auto-reconnect paths, so no mock unit test was added on top.
+
 ### C3. Token streaming end-to-end
 
 **Plan.** Add a server-streaming RPC alongside the existing unary `Think` in `ai.proto`
