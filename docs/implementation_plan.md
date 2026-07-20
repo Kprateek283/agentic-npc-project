@@ -784,6 +784,20 @@ one multi-step agent trace with a tool call) into `docs/` for the README and int
 
 **Done when.** Screenshots are committed and the env vars are documented.
 
+**Execution note (2026-07-20).** No code change needed — LangChain traces from env vars
+alone. Documented `LANGCHAIN_TRACING_V2` / `LANGCHAIN_API_KEY` / `LANGCHAIN_PROJECT` /
+`LANGCHAIN_ENDPOINT` in `.env.example` (off by default) and wrote `docs/langsmith.md`
+(enable steps, the two traces to capture, where the images go). **Verification without a
+LangSmith account:** pointed the SDK at a local HTTP capture server (dummy key) and ran one
+RAG call + one gift/agent call — the exported trace payloads (5 batched POSTs, ~114 KB)
+contained run types chain/llm/prompt/retriever/parser/tool, the full RAG `RunnableSequence`
+(ChatPromptTemplate → VectorStoreRetriever → ChatOllama → StrOutputParser), and the
+`LangGraph` agent loop with `lore_book_search` + `quest_status` tool runs. So the tracing is
+proven to capture both brains including tool executions. **Not done by me:** the two polished
+LangSmith-UI screenshots for the README — they require a logged-in account and cannot be
+authored here without fabricating them. Left as an explicit user step; the checklist item
+stays `[~]` (substance done + verified) rather than `[x]`.
+
 ---
 
 ## STRETCH GOALS
