@@ -74,7 +74,7 @@ targeting the AI Engineer JD (Python, FastAPI, RAG, agents, evals, vector DBs, D
 
 ## CAN BE DONE — strong signal, moderate effort
 
-- [ ] **C1. Observability** (JD responsibility #8): structured logging (zap in Go, structlog/logging in Python), per-stage timing middleware that logs the latency breakdown on every request (this *continuously reproduces* the M4 numbers), optional Prometheus `/metrics` endpoint.
+- [x] **C1. Observability** (JD responsibility #8): structured logging (stdlib `log/slog` in Go, stdlib `logging` in Python — no new deps), per-event timing that logs the latency breakdown on every request (this *continuously reproduces* the M4 numbers). A `req-id` generated at the WS boundary is propagated via gRPC metadata so each service emits one correlated summary line. *Verified live: Go `game_event req_id=… quest_ms/grpc_ms/total_ms` + Python `think req_id=… dur_ms` sharing the id; Go grpc_ms matched Python rag_brain dur_ms to the ms.* Prometheus `/metrics` deliberately skipped (YAGNI for a portfolio repo; add if a dashboard is ever needed).
 - [ ] **C2. Resilience on the gRPC boundary**: timeouts, retries with backoff, and a graceful "NPC is distracted" fallback when the AI service is down. Cheap to build, great interview story.
 - [ ] **C3. Token streaming**: stream LLM tokens over gRPC → WebSocket so dialogue renders progressively. Big perceived-latency win; adds a "reduced time-to-first-token from Xs to Yms" resume metric.
 - [ ] **C4. Semantic response cache**: embed incoming lore questions, serve cached answers for near-duplicate queries from Redis. Yields a "% of queries served at ~Xms, cutting LLM cost" metric.

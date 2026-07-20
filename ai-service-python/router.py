@@ -14,7 +14,11 @@ dynamic_context shape (all keys required; transports supply defaults):
     }
 """
 
+import logging
+
 import agent_manager
+
+logger = logging.getLogger(__name__)
 
 RAG_EVENTS = frozenset({"PLAYER_ASKED_QUESTION"})
 AGENT_EVENTS = frozenset({
@@ -55,15 +59,15 @@ def route_event(agent_key: str, event_type: str, text: str, dynamic_context: dic
         raise UnknownAgentError(agent_key)
 
     if event_type in RAG_EVENTS:
-        print(f"Routing to RAG agent for: {agent_key}")
+        logger.debug("route rag agent=%s", agent_key)
         return "SPEAK", agent.run_rag_agent(dynamic_context, text)
 
     if event_type in AGENT_EVENTS:
-        print(f"Routing to Quest (LangGraph) agent for: {agent_key}")
+        logger.debug("route quest agent=%s", agent_key)
         event_description = f"Player event: {event_type}, Item/Keyword: {text}"
         return "SPEAK", agent.run_quest_agent(dynamic_context, event_description)
 
-    print(f"Routing to simple emotion-based rules (default) for event: {event_type}")
+    logger.debug("route emotion-rules event=%s", event_type)
     if dynamic_context["emotions"]["anger"] > 0.7:
         return "SPEAK", "Get lost."
     return "SPEAK", "Greetings."

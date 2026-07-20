@@ -1,6 +1,19 @@
+import logging
+import time
+
 import ai_pb2
 import ai_pb2_grpc
 from router import UnknownAgentError, route_event
+
+logger = logging.getLogger(__name__)
+
+
+def _req_id(context) -> str:
+    """The correlation id the Go orchestrator sent via gRPC metadata, or '-'."""
+    for key, value in context.invocation_metadata():
+        if key == "req-id":
+            return value
+    return "-"
 
 
 class AIBrainServicer(ai_pb2_grpc.AIBrainServicer):
@@ -8,7 +21,8 @@ class AIBrainServicer(ai_pb2_grpc.AIBrainServicer):
     packs the protobuf response. Routing rules live in router.py."""
 
     def Think(self, request, context):
-        print("\n--- New gRPC Request Received ---")
+        req_id = _req_id(context)
+        start = time.perf_counter()
 
         emotions = request.current_emotions
         dynamic_context = {
@@ -32,7 +46,11 @@ class AIBrainServicer(ai_pb2_grpc.AIBrainServicer):
                 dynamic_context,
             )
         except UnknownAgentError:
-            print(f"ERROR: No agent found for key: {request.personality_path}")
+            logger.error("think req_id=%s event=%s agent=%s unknown_agent",
+                         req_id, request.event_type, request.personality_path)
             return ai_pb2.ActionResponse(action_type="SPEAK", content="Error: Agent not found.")
 
+        logger.info("think req_id=%s event=%s agent=%s action=%s dur_ms=%d",
+                    req_id, request.event_type, request.personality_path,
+                    action_type, (time.perf_counter() - start) * 1000)
         return ai_pb2.ActionResponse(action_type=action_type, content=content)

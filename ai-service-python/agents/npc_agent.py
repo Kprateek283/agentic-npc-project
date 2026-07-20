@@ -1,3 +1,4 @@
+import logging
 import os
 import time
 
@@ -18,6 +19,8 @@ from .graph_builder import build_langgraph_agent
 # One loop costs two graph super-steps (agent, then tools), plus the final agent turn.
 AGENT_MAX_ITERATIONS = int(os.getenv("AGENT_MAX_ITERATIONS", "5"))
 _RECURSION_LIMIT = 2 * AGENT_MAX_ITERATIONS + 1
+
+logger = logging.getLogger(__name__)
 
 
 def _message_text(message) -> str:
@@ -75,8 +78,7 @@ class NpcAgent:
         }
         response = self.rag_chain.invoke(input_dict)
 
-        end_time = time.time()
-        print(f"--- RAG Agent execution took: {end_time - start_time:.2f} seconds ---")
+        logger.info("rag_brain dur_ms=%d", (time.time() - start_time) * 1000)
         return response
 
     def run_quest_agent(self, dynamic_context: dict, player_event_description: str) -> str:
@@ -93,11 +95,10 @@ class NpcAgent:
         try:
             result = self.langgraph_chain.invoke(state, config={"recursion_limit": _RECURSION_LIMIT})
         except GraphRecursionError:
-            print(f"--- Agent hit the {AGENT_MAX_ITERATIONS}-iteration cap; using fallback line ---")
+            logger.warning("agent_brain hit the %d-iteration cap; using fallback line", AGENT_MAX_ITERATIONS)
             return "Forgive me, my thoughts wandered for a moment. What was it you needed?"
 
-        end_time = time.time()
         tool_calls = sum(len(getattr(m, "tool_calls", []) or []) for m in result["messages"])
-        print(f"--- LangGraph Agent execution took: {end_time - start_time:.2f} seconds "
-              f"({tool_calls} tool call(s), {len(result['messages'])} messages) ---")
+        logger.info("agent_brain dur_ms=%d tool_calls=%d messages=%d",
+                    (time.time() - start_time) * 1000, tool_calls, len(result["messages"]))
         return _message_text(result["messages"][-1])

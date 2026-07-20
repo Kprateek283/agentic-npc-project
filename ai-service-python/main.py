@@ -1,9 +1,18 @@
+import logging
+
 import grpc
 from concurrent import futures
 from dotenv import load_dotenv
 
 # Load environment variables from .env file BEFORE anything else
 load_dotenv()
+
+# Structured stdlib logging shared by both transports (C1). The req_id emitted here
+# correlates with the Go orchestrator's per-event summary line.
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s %(message)s",
+)
 
 import uvicorn
 

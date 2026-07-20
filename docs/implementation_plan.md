@@ -662,6 +662,20 @@ it). Optional last step: a Prometheus `/metrics` endpoint on the Go service
 **Done when.** A single conversation event produces one correlated log line per service
 sharing a request id, with a full stage-latency breakdown in the Go line.
 
+**Execution note (2026-07-20).** Done with stdlib only — Go `log/slog` (default text
+handler, `key=value` structured), Python stdlib `logging` (`basicConfig` in `main.py`).
+`req-id` is 6 random bytes hex generated in `HandleGameEvent`, attached to the outgoing
+gRPC context via `metadata.AppendToOutgoingContext`, and read back in the servicer from
+`context.invocation_metadata()`. The Go summary line carries `quest_ms`, `grpc_ms`,
+`total_ms`; the servicer carries `dur_ms`; the per-brain prints in `npc_agent.py`
+(`rag_brain`/`agent_brain dur_ms`) were formalized to `logging`. Verified live on both
+the non-LLM path (`PLAYER_LOOKED_AT_NPC` → "Greetings.") and the LLM RAG path
+(local Ollama, since Gemini was returning transient 503s at test time): Go
+`grpc_ms=22413` matched Python `rag_brain dur_ms=22411` to the millisecond under the same
+`req_id`. Prometheus `/metrics` skipped as speculative for this repo. The scattered debug
+`log.Printf`/routing prints were left as-is — converting them was churn that doesn't serve
+the "one correlated line per service" bar.
+
 ### C2. Resilience on the gRPC boundary
 
 **Plan.** In `ai_client.go`: replace deprecated `grpc.Dial` with the current client

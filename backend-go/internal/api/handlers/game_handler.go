@@ -7,24 +7,42 @@ import (
 	_ "agentic-npc-backend/internal/dto"
 	pb "agentic-npc-backend/internal/proto"
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"log"
+	"log/slog"
 	"strings"
+	"time"
 
 	_ "github.com/go-redis/redis/v8"
 	"github.com/gorilla/websocket"
+	"google.golang.org/grpc/metadata"
 )
+
+// newRequestID returns a short random hex id used to correlate the Go and Python
+// log lines for one conversation event.
+func newRequestID() string {
+	var b [6]byte
+	_, _ = rand.Read(b[:])
+	return hex.EncodeToString(b[:])
+}
 
 // HandleGameEvent processes all in-game logic for an authenticated player.
 func (h *WebSocketHandler) HandleGameEvent(conn *websocket.Conn, ctx context.Context, event EventMessage) {
+	reqID := newRequestID()
+	start := time.Now()
+
 	// 1. Process all game logic (quests, gifting, AND admin commands)
+	questStart := time.Now()
 	failResponse, err := h.questManager.ProcessEvent(ctx, h.dbClient, h.redisClient, event)
+	questMs := time.Since(questStart).Milliseconds()
 	if err != nil {
 		log.Printf("Error processing event in QuestManager: %v", err)
 		h.sendError(conn, err.Error())
 		return
 	}
-	
+
 	// 2. Check for "Fail Response" from quest preconditions
 	if failResponse != nil {
 		log.Printf("Dungeon Master: Precondition failed. Sending fail-response: %s", failResponse.Content)
@@ -41,7 +59,7 @@ func (h *WebSocketHandler) HandleGameEvent(conn *websocket.Conn, ctx context.Con
 	}
 
 	// 4. If it was a normal event, proceed to call the AI
-	actionResponse, err := h.callAI(ctx, event)
+	actionResponse, grpcMs, err := h.callAI(ctx, reqID, event)
 	if err != nil {
 		log.Println("Error calling AI service:", err)
 		h.sendError(conn, "The AI is currently unavailable.")
@@ -49,24 +67,38 @@ func (h *WebSocketHandler) HandleGameEvent(conn *websocket.Conn, ctx context.Con
 	}
 
 	// 5. Send the AI's response back to the client.
-	log.Printf("Received action from AI service: %s", actionResponse.Content)
 	h.sendSimpleResponse(conn, actionResponse.ActionType, actionResponse.Content)
+
+	// One correlated summary line per event: the M4 latency attribution, made continuous.
+	// ai_ms is the whole callAI (DB context gather + gRPC); grpc_ms is the RPC alone.
+	slog.Info("game_event",
+		"req_id", reqID,
+		"player", event.SourceEntityId,
+		"npc", event.TargetNpcName,
+		"event", event.EventType,
+		"quest_ms", questMs,
+		"grpc_ms", grpcMs,
+		"total_ms", time.Since(start).Milliseconds(),
+	)
 }
 
-// callAI is a helper function to gather context and call the gRPC service
-func (h *WebSocketHandler) callAI(ctx context.Context, event EventMessage) (*pb.ActionResponse, error) {
+// callAI gathers context, calls the gRPC service, and returns the response plus the
+// RPC's own duration in ms. reqID is propagated to Python via gRPC metadata for
+// cross-service log correlation.
+func (h *WebSocketHandler) callAI(ctx context.Context, reqID string, event EventMessage) (*pb.ActionResponse, int64, error) {
+	ctx = metadata.AppendToOutgoingContext(ctx, "req-id", reqID)
 	// 4a. Get Target NPC
 	targetNPC, err := h.questManager.GetNpc(ctx, h.dbClient, h.redisClient, event.TargetNpcName)
 	if err != nil {
 		log.Printf("Error finding NPC: %v", err)
-		return nil, fmt.Errorf("target NPC not found")
+		return nil, 0, fmt.Errorf("target NPC not found")
 	}
 
 	// 4b. Get Player (needed for relationship)
 	player, err := h.questManager.GetPlayer(ctx, h.dbClient, h.redisClient, event.SourceEntityId)
 	if err != nil {
 		log.Printf("Error finding Player: %v", err)
-		return nil, fmt.Errorf("player not found")
+		return nil, 0, fmt.Errorf("player not found")
 	}
 
 	// 4c. Modify NPC's base emotions
@@ -106,7 +138,7 @@ func (h *WebSocketHandler) callAI(ctx context.Context, event EventMessage) (*pb.
 	rel, err := h.questManager.GetOrCreateRelationship(ctx, h.dbClient, h.redisClient, player, targetNPC)
 	if err != nil {
 		log.Printf("Error getting relationship: %v", err)
-		return nil, err
+		return nil, 0, err
 	}
 
 	// 4h. Get the NPC's emotions (the correct *schema.EmotionState type)
@@ -122,8 +154,9 @@ func (h *WebSocketHandler) callAI(ctx context.Context, event EventMessage) (*pb.
 		textToSend = event.QuestionText // Use the question text for questions
 	}
 
-	// 5. Call the AI Service
-	return h.aiClient.CallAIThink(
+	// 5. Call the AI Service (timed separately so grpc_ms isolates the RPC + inference).
+	grpcStart := time.Now()
+	resp, err := h.aiClient.CallAIThink(
 		ctx,
 		updatedNPC.PersonalityPath,
 		updatedNPC.BackstoryPath,
@@ -136,6 +169,7 @@ func (h *WebSocketHandler) callAI(ctx context.Context, event EventMessage) (*pb.
 		currentQuestStep,
 		completionRate,
 	)
+	return resp, time.Since(grpcStart).Milliseconds(), err
 }
 
 // getPlayerQuestState is a helper to find the active quest state for the AI context
