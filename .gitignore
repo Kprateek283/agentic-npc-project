@@ -20,3 +20,6 @@ myapp
 .idea/
 .vscode/.pytest_cache/
 .ruff_cache/
+
+# Personal working docs — not part of the shipped project
+docs/resume_raw_data.md
