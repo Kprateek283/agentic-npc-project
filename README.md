@@ -218,8 +218,9 @@ faked, so nothing hits Ollama, Gemini, Postgres or Redis.
 
 ```bash
 # Python (from ai-service-python/): router dispatch, context formatter, prompt loader, retriever
-pip install -r requirements.txt -r requirements-dev.txt
-PYTHONPATH=. python -m pytest tests/ -q
+# Python is pinned to 3.12 in .python-version; uv fetches it if your system has another version.
+uv venv && uv pip install -r requirements.txt -r requirements-dev.txt
+PYTHONPATH=. .venv/bin/python -m pytest tests/ -q
 
 # Go (from backend-go/): emotion deltas, quest preconditions, item lookup, DTO round-trip
 go test ./...
