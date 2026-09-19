@@ -61,6 +61,9 @@ VECTOR_STORE = os.getenv("VECTOR_STORE", "faiss").lower()
 QDRANT_URL = os.getenv("QDRANT_URL", "http://localhost:6333")
 RETRIEVER_K = int(os.getenv("RETRIEVER_K", "3"))
 
+# Path to shared gamedata directory (defaults to ../gamedata).
+GAMEDATA_DIR = os.getenv("GAMEDATA_DIR", "../gamedata")
+
 if VECTOR_STORE not in ("faiss", "qdrant"):
     raise ValueError(f"Unsupported VECTOR_STORE={VECTOR_STORE!r} (expected 'faiss' or 'qdrant')")
 

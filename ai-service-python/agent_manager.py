@@ -2,6 +2,7 @@ import glob
 import logging
 import os
 
+import config
 from agents.npc_agent import NpcAgent
 
 logger = logging.getLogger(__name__)
@@ -17,10 +18,13 @@ def load_agents_on_startup():
     logger.info("--- Loading all NPC agents on startup... ---")
 
     # We must scan for the personality file, as it's our key
-    npc_config_files = glob.glob("gamedata/npcs/*/personality.json")
+    npc_config_files = glob.glob(os.path.join(config.GAMEDATA_DIR, "npcs", "*", "personality.json"))
 
     if not npc_config_files:
-        logger.warning("No NPC personality files found in gamedata/npcs/. No agents will be loaded.")
+        logger.warning(
+            "No NPC personality files found in %s. No agents will be loaded.",
+            os.path.join(config.GAMEDATA_DIR, "npcs"),
+        )
         return
 
     for personality_path in npc_config_files:
@@ -33,10 +37,11 @@ def load_agents_on_startup():
                 logger.warning("Skipping agent at %s. Missing backstory.json or lore.json.", base_path)
                 continue
 
-            # The personality_path (e.g., "gamedata/npcs/elara/personality.json")
+            # The NPC directory name (e.g., "elara")
             # is the unique key we use to find the agent.
+            npc_name = os.path.basename(base_path)
             agent = NpcAgent(personality_path, backstory_path, lore_path)
-            live_agents[personality_path] = agent
+            live_agents[npc_name] = agent
 
         except Exception as e:
             logger.exception("CRITICAL ERROR: Failed to load agent from %s: %s", personality_path, e)
@@ -48,11 +53,10 @@ def get_agent(agent_key: str):
     """
     Safely retrieves an agent from the registry.
 
-    The canonical key is the personality path the Go orchestrator sends
-    ("gamedata/npcs/elara/personality.json"); exact matches win. As a convenience for
-    REST/eval callers, a bare NPC directory name ("elara") also resolves.
+    The canonical key is the NPC directory name (e.g. "elara"). For backward
+    compatibility, legacy path strings ending with "personality.json" are
+    reduced to their directory name before lookup.
     """
-    agent = live_agents.get(agent_key)
-    if agent is not None:
-        return agent
-    return live_agents.get(os.path.join("gamedata", "npcs", agent_key, "personality.json"))
+    if agent_key.endswith("personality.json"):
+        agent_key = os.path.basename(os.path.dirname(agent_key))
+    return live_agents.get(agent_key)

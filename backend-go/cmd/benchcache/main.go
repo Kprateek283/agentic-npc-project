@@ -79,7 +79,7 @@ func main() {
 	rdb := database.NewRedisClient(cfg)
 	defer rdb.Close()
 
-	qm, err := quest_logic.NewQuestManager("gamedata")
+	qm, err := quest_logic.NewQuestManager("../gamedata")
 	if err != nil {
 		log.Fatalf("quest manager: %v", err)
 	}

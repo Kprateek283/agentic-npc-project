@@ -10,6 +10,7 @@ type Config struct {
 	RedisAddr     string
 	ServerPort    string
 	AIServiceAddr string
+	GamedataDir   string
 }
 
 func Load() (*Config, error) {
@@ -33,10 +34,16 @@ func Load() (*Config, error) {
 		aiServiceAddr = "localhost:50051"
 	}
 
+	gamedataDir := os.Getenv("GAMEDATA_DIR")
+	if gamedataDir == "" {
+		gamedataDir = "../gamedata"
+	}
+
 	return &Config{
 		PostgresDSN:   postgresDSN,
 		RedisAddr:     redisAddr,
 		ServerPort:    serverPort,
 		AIServiceAddr: aiServiceAddr,
+		GamedataDir:   gamedataDir,
 	}, nil
 }

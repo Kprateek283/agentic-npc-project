@@ -47,7 +47,7 @@ func TestGetItemDefinition(t *testing.T) {
 // TestNewQuestManagerLoadsGamedata reads the real gamedata directory (file access only,
 // no DB/Redis) and asserts the static definitions load.
 func TestNewQuestManagerLoadsGamedata(t *testing.T) {
-	qm, err := NewQuestManager("../../../gamedata")
+	qm, err := NewQuestManager("../../../../gamedata")
 	if err != nil {
 		t.Fatalf("NewQuestManager: %v", err)
 	}

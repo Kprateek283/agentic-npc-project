@@ -90,7 +90,7 @@ def list_npcs() -> list[NpcSummary]:
     return [
         NpcSummary(
             key=key,
-            npc=key.split("/")[-2],
+            npc=key,
             name=agent.npc_name,
             occupation=agent.npc_occupation,
         )

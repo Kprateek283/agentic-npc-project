@@ -43,7 +43,10 @@ services:
     restart: unless-stopped
 
   ai-service:
-    build: ./ai-service-python
+    build:
+      context: ./ai-service-python
+      additional_contexts:
+        gamedata: ./gamedata
     container_name: ai_service
     environment:
       LLM_PROVIDER: ${LLM_PROVIDER:-gemini}
@@ -72,7 +75,10 @@ services:
     restart: unless-stopped
 
   backend:
-    build: ./backend-go
+    build:
+      context: ./backend-go
+      additional_contexts:
+        gamedata: ./gamedata
     container_name: backend
     environment:
       POSTGRES_DSN: "postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-agentic_npc_db}?sslmode=disable"

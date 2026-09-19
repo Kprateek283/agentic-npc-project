@@ -1,6 +1,6 @@
 """Evaluation harness for the RAG path.
 
-Run from the ai-service-python directory (gamedata paths are relative to it):
+Run from the ai-service-python directory:
 
     python -m evals.run                                   # full run, defaults from .env
     LLM_PROVIDER=ollama python -m evals.run               # answers on llama3.1:8b
@@ -143,7 +143,7 @@ def validate(entries):
     """
     problems = []
     for e in entries:
-        lore_path = Path("gamedata/npcs") / e["npc"] / "lore.json"
+        lore_path = Path(config.GAMEDATA_DIR) / "npcs" / e["npc"] / "lore.json"
         facts = json.loads(lore_path.read_text())["known_facts"]
         if e["category"] == "in_scope":
             hits = [f for f in facts if e["gold_evidence"] in f]
