@@ -2,11 +2,6 @@ package quest_logic
 
 import (
 	"agentic-npc-backend/internal/db/ent"
-	_ "agentic-npc-backend/internal/db/ent/item"
-	_ "agentic-npc-backend/internal/db/ent/npc"
-	_ "agentic-npc-backend/internal/db/ent/player"
-	_ "agentic-npc-backend/internal/db/ent/playernpcrelationship"
-	_ "agentic-npc-backend/internal/db/ent/playerqueststate"
 	"agentic-npc-backend/internal/dto"
 	"context"
 	"encoding/json"
@@ -17,7 +12,6 @@ import (
 	"strings"
 
 	"github.com/go-redis/redis/v8"
-	_ "github.com/google/uuid"
 )
 
 // QuestManager holds the preloaded static game data ("rulebook")

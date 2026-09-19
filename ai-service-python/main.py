@@ -22,6 +22,9 @@ from api.app import api_port, app
 from servicer import AIBrainServicer
 
 
+logger = logging.getLogger(__name__)
+
+
 def serve():
     # 1. Load all agents into the registry, once, before either transport starts.
     load_agents_on_startup()
@@ -31,11 +34,11 @@ def serve():
     ai_pb2_grpc.add_AIBrainServicer_to_server(AIBrainServicer(), server)
     server.add_insecure_port('[::]:50051')
     server.start()
-    print("Python gRPC server listening on port 50051")
+    logger.info("Python gRPC server listening on port 50051")
 
     # 3. Run the REST API in the main thread (blocks until shutdown).
     port = api_port()
-    print(f"FastAPI listening on port {port}")
+    logger.info("FastAPI listening on port %s", port)
     uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
 
     server.stop(grace=None)

@@ -81,8 +81,7 @@ func (qm *QuestManager) getItemDefinition(itemID string) (ItemDefinition, error)
 	return itemDef, nil
 }
 
-// GetOrCreateRelationship --- THIS IS THE FIX: Capitalized 'GetOrCreateRelationship' ---
-// getOrCreateRelationship finds the relationship between a player and NPC, using cache-aside
+// GetOrCreateRelationship finds the relationship between a player and NPC, using cache-aside
 func (qm *QuestManager) GetOrCreateRelationship(ctx context.Context, db *ent.Client, rdb *redis.Client, p *ent.Player, n *ent.NPC) (*ent.PlayerNPCRelationship, error) {
 	cacheKey := fmt.Sprintf("relationship:%s:%s", p.ID.String(), n.ID.String())
 	val, err := rdb.Get(ctx, cacheKey).Result()

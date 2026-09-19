@@ -12,9 +12,7 @@ type EventMessage struct {
 	QuestionText string `json:"question_text,omitempty"`
 	Keyword      string `json:"keyword,omitempty"` // Used for quest items or gifting
 
-	// --- NEW FIELDS (Task 1.1) ---
 	// Fields for "LOGIN_PLAYER" or "REGISTER_PLAYER" events
 	Username string `json:"username,omitempty"`
 	Password string `json:"password,omitempty"`
-	// ---------------------------
 }

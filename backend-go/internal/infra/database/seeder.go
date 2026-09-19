@@ -2,8 +2,8 @@ package database
 
 import (
 	"agentic-npc-backend/internal/db/ent"
-	"agentic-npc-backend/internal/db/ent/npc"   // Keep this import
-	"agentic-npc-backend/internal/db/ent/quest" // <-- NEW IMPORT
+	"agentic-npc-backend/internal/db/ent/npc"
+	"agentic-npc-backend/internal/db/ent/quest"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -14,15 +14,14 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
-// tempPersonality struct (Keep this)
+// tempPersonality is used to parse name and occupation from personality JSON.
 type tempPersonality struct {
 	Name       string      `json:"name"`
 	Occupation interface{} `json:"occupation"`
 }
 
-// occupationToString function (Keep this)
+// occupationToString normalizes the occupation field to a string.
 func occupationToString(occ interface{}) string {
-	// ... (implementation unchanged) ...
 	if occ == nil {
 		return "Unknown"
 	}
@@ -43,9 +42,8 @@ func occupationToString(occ interface{}) string {
 	return "Unknown"
 }
 
-// SeedNPCs function (Keep this)
+// SeedNPCs scans the gamedata directory and creates NPC records if they do not already exist.
 func SeedNPCs(client *ent.Client, gamedataPath string) error {
-	// ... (implementation unchanged) ...
 	log.Println("Checking database seeding for NPCs...")
 
 	searchPath := filepath.Join(gamedataPath, "*", "personality.json")
@@ -112,7 +110,6 @@ func SeedNPCs(client *ent.Client, gamedataPath string) error {
 	return nil
 }
 
-// --- NEW FUNCTION ---
 // tempQuest is used to parse just the ID and Name from the quest JSON
 type tempQuest struct {
 	QuestID string `json:"quest_id"`

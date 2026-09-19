@@ -1,23 +1,26 @@
-import os
 import glob
+import logging
+import os
+
 from agents.npc_agent import NpcAgent
 
-# --- This is our "Singleton" Registry ---
+logger = logging.getLogger(__name__)
+
 live_agents = {}
-# ----------------------------------------
+
 
 def load_agents_on_startup():
     """
     Finds all NPC config files, creates a NpcAgent instance for each,
     and stores them in the live_agents dictionary.
     """
-    print("--- Loading all NPC agents on startup... ---")
+    logger.info("--- Loading all NPC agents on startup... ---")
 
     # We must scan for the personality file, as it's our key
     npc_config_files = glob.glob("gamedata/npcs/*/personality.json")
 
     if not npc_config_files:
-        print("WARNING: No NPC personality files found in gamedata/npcs/. No agents will be loaded.")
+        logger.warning("No NPC personality files found in gamedata/npcs/. No agents will be loaded.")
         return
 
     for personality_path in npc_config_files:
@@ -27,7 +30,7 @@ def load_agents_on_startup():
             lore_path = os.path.join(base_path, "lore.json")
 
             if not all(os.path.exists(p) for p in [backstory_path, lore_path]):
-                print(f"WARNING: Skipping agent at {base_path}. Missing backstory.json or lore.json.")
+                logger.warning("Skipping agent at %s. Missing backstory.json or lore.json.", base_path)
                 continue
 
             # The personality_path (e.g., "gamedata/npcs/elara/personality.json")
@@ -36,9 +39,9 @@ def load_agents_on_startup():
             live_agents[personality_path] = agent
 
         except Exception as e:
-            print(f"CRITICAL ERROR: Failed to load agent from {personality_path}: {e}")
+            logger.exception("CRITICAL ERROR: Failed to load agent from %s: %s", personality_path, e)
 
-    print(f"--- Successfully loaded {len(live_agents)} NPC agents. ---")
+    logger.info("--- Successfully loaded %d NPC agents. ---", len(live_agents))
 
 
 def get_agent(agent_key: str):

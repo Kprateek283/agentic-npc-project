@@ -22,4 +22,5 @@ myapp
 .ruff_cache/
 
 # Personal working docs — not part of the shipped project
+docs/agent_prompt.md
 docs/resume_raw_data.md

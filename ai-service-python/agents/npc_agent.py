@@ -10,12 +10,10 @@ from config import embeddings
 from semantic_cache import SemanticCache, cacheable_context
 from tools.lore_retriever_tool import create_lore_tool_from_file
 from tools.quest_status_tool import quest_status
-# --- THIS IS THE FIX: Use relative imports ('.') ---
 from .context_formatter import format_dynamic_context
 from .prompt_loader import load_static_prompt
 from .rag_builder import build_rag_chain
 from .graph_builder import build_langgraph_agent
-# ---------------------------------------------------
 
 # Hard cap on agent<->tool loops, so a confused model cannot spin forever or burn quota.
 # One loop costs two graph super-steps (agent, then tools), plus the final agent turn.
@@ -43,7 +41,7 @@ class NpcAgent:
     """
 
     def __init__(self, personality_path: str, backstory_path: str, lore_path: str):
-        print(f"Initializing new agent from: {personality_path}")
+        logger.info("Initializing new agent from: %s", personality_path)
 
         # 1. Load Static Prompt Data
         (
@@ -67,8 +65,12 @@ class NpcAgent:
         # 4. Per-NPC semantic response cache for repeated lore questions (C4).
         self._cache = SemanticCache()
 
-        print(f"Successfully initialized agent: {self.npc_name} ({self.npc_occupation}) "
-              f"[tools: {self.tool_names}]")
+        logger.info(
+            "Successfully initialized agent: %s (%s) [tools: %s]",
+            self.npc_name,
+            self.npc_occupation,
+            self.tool_names,
+        )
 
 
     def _cache_lookup(self, dynamic_context: dict, question: str):

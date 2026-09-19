@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	_ "agentic-npc-backend/internal/db/ent"
 	"agentic-npc-backend/internal/domain/user_logic"
 	"context"
 	"fmt"

@@ -20,7 +20,6 @@ type QuestDefinition struct {
 	Steps       map[string]QuestStep `json:"steps"`
 }
 
-// FailResponseAction --- ADD THIS NEW STRUCT ---
 // FailResponseAction defines the structure for fail responses in JSON
 type FailResponseAction struct {
 	ActionType string `json:"action_type"`
@@ -33,7 +32,7 @@ type QuestStep struct {
 	Description       string             `json:"description"`
 	CompletionTrigger CompletionTrigger  `json:"completion_trigger"`
 	Preconditions     []Precondition     `json:"preconditions,omitempty"`
-	FailResponse      FailResponseAction `json:"fail_response,omitempty"` // <-- FIX: Use the new struct
+	FailResponse      FailResponseAction `json:"fail_response,omitempty"`
 	Rewards           Rewards            `json:"rewards,omitempty"`
 }
 

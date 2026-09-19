@@ -64,7 +64,7 @@ func New() (*App, error) {
 	log.Println("NPC database seeded successfully")
 
 	// 5b. Seed Database (Quests)
-	err = database.SeedQuests(dbClient, "gamedata/quests") // <-- CORRECTED LINE
+	err = database.SeedQuests(dbClient, "gamedata/quests")
 	if err != nil {
 		err := dbClient.Close()
 		if err != nil {

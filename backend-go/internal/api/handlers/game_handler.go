@@ -4,8 +4,6 @@ import (
 	"agentic-npc-backend/internal/db/ent"
 	entplayerqueststate "agentic-npc-backend/internal/db/ent/playerqueststate"
 	"agentic-npc-backend/internal/db/ent/schema"
-	_ "agentic-npc-backend/internal/domain/npc_logic"
-	_ "agentic-npc-backend/internal/dto"
 	pb "agentic-npc-backend/internal/proto"
 	"context"
 	"crypto/rand"
@@ -16,7 +14,6 @@ import (
 	"strings"
 	"time"
 
-	_ "github.com/go-redis/redis/v8"
 	"github.com/gorilla/websocket"
 	"google.golang.org/grpc/metadata"
 )

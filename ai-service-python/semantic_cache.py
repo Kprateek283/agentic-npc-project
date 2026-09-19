@@ -90,7 +90,8 @@ if __name__ == "__main__":
     assert c.get([1.0, 0.0, 0.0]) == "guarded by Marcus", "identical must hit"
     assert c.get([0.99, 0.01, 0.0]) == "guarded by Marcus", "near-identical must hit"
     assert c.get([0.0, 1.0, 0.0]) is None, "orthogonal must miss"
-    c.put([0.0, 1.0, 0.0], "b"); c.put([0.0, 0.0, 1.0], "cc")  # over max -> evict oldest
+    c.put([0.0, 1.0, 0.0], "b")
+    c.put([0.0, 0.0, 1.0], "cc")  # over max -> evict oldest
     assert c.get([1.0, 0.0, 0.0]) is None, "evicted entry must miss"
     assert cacheable_context({"emotions": {"joy": 0.0, "sadness": 0.1, "anger": 0.0, "fear": 0.0}})
     assert not cacheable_context({"emotions": {"joy": 0.0, "sadness": 0.0, "anger": 0.9, "fear": 0.0}})

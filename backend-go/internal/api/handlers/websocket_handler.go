@@ -32,7 +32,7 @@ type WebSocketHandler struct {
 	aiClient       *grpc_client.AIClient
 	questManager   *quest_logic.QuestManager
 	redisClient    *redis.Client
-	emotionManager *npc_logic.EmotionManager // <-- ADD THIS FIELD
+	emotionManager *npc_logic.EmotionManager
 }
 
 // NewWebSocketHandler creates a new handler with all dependencies
@@ -41,18 +41,17 @@ func NewWebSocketHandler(
 	aiClient *grpc_client.AIClient,
 	questManager *quest_logic.QuestManager,
 	redisClient *redis.Client,
-	emotionManager *npc_logic.EmotionManager, // <-- ADD THIS ARGUMENT
+	emotionManager *npc_logic.EmotionManager,
 ) *WebSocketHandler {
 	return &WebSocketHandler{
 		dbClient:       dbClient,
 		aiClient:       aiClient,
 		questManager:   questManager,
 		redisClient:    redisClient,
-		emotionManager: emotionManager, // <-- ADD THIS FIELD
+		emotionManager: emotionManager,
 	}
 }
 
-// Handle ... (Handle, sendError, and sendSimpleResponse are unchanged) ...
 // Handle manages the WebSocket connection lifecycle
 func (h *WebSocketHandler) Handle(c *gin.Context) {
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
