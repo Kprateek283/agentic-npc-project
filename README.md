@@ -1,20 +1,36 @@
-# Agentic NPC Framework: A High-Performance Distributed System for Generative Game AI
+# Agentic NPC Backend
 
 [![CI](https://github.com/Kprateek283/agentic-npc-project/actions/workflows/ci.yml/badge.svg)](https://github.com/Kprateek283/agentic-npc-project/actions/workflows/ci.yml)
 
-This repository contains a modular, production-grade backend framework designed to power autonomous, stateful, and memory-aware Non-Player Characters (NPCs) in modern game environments like Unreal Engine 5. The system moves beyond traditional deterministic behavior trees by leveraging Large Language Models (LLMs) for dynamic dialogue, emotional evolution, and complex quest reasoning.
+A Go + Python backend for game NPCs that talk with an LLM while their game state stays
+deterministic. A Go orchestrator owns the world — quests, trust, emotions, memories — and
+changes it with plain rules loaded from JSON. A Python AI service turns that state into
+in-character dialogue, grounded in each NPC's own lore. The target client is Unreal Engine 5;
+this repo ships a browser reference client that speaks the same protocol.
 
-## Core Philosophy: The Two-Brain Model
+## How it works: rules change state, the model narrates
 
-To balance the competing requirements of real-time responsiveness and cognitive depth, the architecture implements a novel Two-Brain model:
+Every player event goes to the Go orchestrator first. It checks quest triggers and
+preconditions, applies rewards, adjusts the NPC's emotions by fixed per-event amounts, and
+records a memory — all before any model is called. Only then does it send the current state
+to the Python AI service over gRPC. The model never changes game state; it only speaks.
 
-1. Fast Brain (Retrieval-Augmented Generation): A path for factual queries and lore-related interactions. It utilizes a FAISS-based vector store to ground LLM responses in game-specific context. Measured cloud RAG latency is ~2.9 s and is inference-dominated — the orchestration wrapped around it is sub-10 ms (see [Benchmarks](#performance-benchmarks-measured)).
-2. Complex Brain (Stateful Reasoning): A high-depth path for state-changing events and quest progression. Built on LangGraph, this "brain" runs a real multi-step ReAct loop (tool calls + iteration cap), updates internal emotional states, and handles complex transitions in game logic, with a focus on narrative consistency (measured latency ~5.4 s cloud / ~26 s local — see [Benchmarks](#performance-benchmarks-measured)).
+The AI service picks one of two paths by **event type** (`router.py`):
+
+1. **Lore path (RAG):** a player question retrieves the most relevant facts from that NPC's
+   lore (FAISS or Qdrant) and answers from them, with grounding rules that make the NPC admit
+   ignorance instead of inventing names. Answers stream token by token.
+2. **Event path (LangGraph):** state events such as gifts, quest items and attacks run a
+   tool-calling loop (capped by `AGENT_MAX_ITERATIONS`, default 5) with two read-only tools,
+   lore search and quest status, and produce the NPC's reaction.
+
+Unknown event types skip the LLM entirely and get a fixed line.
 
 ## Quickstart
 
 Requires Docker and a host [Ollama](https://ollama.com) (used for embeddings in **both**
-provider modes). If Ollama is not reachable when the AI service starts, the service exits and compose restarts it until Ollama is up.
+provider modes). If Ollama is not reachable when the AI service starts, the service exits and
+compose restarts it until Ollama is up.
 
 ```bash
 # 1. Host Ollama — bound to 0.0.0.0 so the containers can reach it via the host gateway
@@ -32,13 +48,9 @@ docker compose up --build
 
 The browser [reference client](client-demo/) speaks the documented
 [WebSocket protocol](docs/client_protocol.md) end to end (authenticate → converse → quest
-events). To run the services directly without Docker, see the per-service `.env.example`
-files. Provider, models, vector store, and ports are all env-driven — see
-[Configuration](#inference-provider-configuration).
+events). To run the services without Docker, see the per-service `.env.example` files.
 
-## Architectural Overview
-
-The framework is built as a decoupled microservice architecture, leveraging the strengths of Go for high-concurrency orchestration and Python for advanced AI/ML workflows.
+## Architecture
 
 ```mermaid
 flowchart LR
@@ -46,67 +58,64 @@ flowchart LR
     Client -- "WebSocket<br/>(JSON events)" --> Go
 
     subgraph Go["Go Orchestrator — Gin"]
-        WS["WebSocket handler"] --> Logic["Quest / emotion /<br/>memory"]
+        WS["WebSocket handler"] --> Logic["Quest / emotion /<br/>memory rules"]
     end
 
     Go -- "gRPC (protobuf)" --> Router
     subgraph Py["Python AI Service"]
-        Router["router.py"] --> Fast["Fast Brain<br/>RAG (LangChain)"]
-        Router --> Complex["Complex Brain<br/>LangGraph ReAct agent"]
+        Router["router.py<br/>(by event type)"] --> Fast["Lore path<br/>RAG (LangChain)"]
+        Router --> Complex["Event path<br/>LangGraph tool loop"]
     end
 
     Logic --- PG[("PostgreSQL<br/>Ent ORM")]
-    Logic --- Redis[("Redis")]
+    Logic --- Redis[("Redis<br/>rate limit")]
     Fast --> VS[("FAISS / Qdrant")]
     Complex --> VS
     Fast -. embeddings .-> Ollama[("Ollama")]
     Complex -. inference .-> LLM["Gemini / Ollama"]
 ```
 
-### 1. Go Orchestrator (The Dungeon Master)
-The Go service acts as the authoritative source of truth and the central hub for the game world.
-- Connection Management: Handles persistent, bidirectional communication with game clients via WebSockets (Gin).
-- State Machine: Manages quest lifecycles, player inventories, and NPC relationships.
-- Orchestration: Routes player events to the appropriate AI brain via high-performance gRPC calls.
-- Rate limiting: a per-player fixed-window limit on AI calls, kept in Redis (`LLM_RATE_LIMIT` per `LLM_RATE_WINDOW_SECONDS`, default 20 per 60 s), protects the shared LLM quota; if Redis is unreachable the check fails open.
-- Persistence Layer: Utilizes the Ent ORM for type-safe, graph-based interactions with PostgreSQL.
+### Go orchestrator (`backend-go/`)
 
-### 2. Python AI Service (The Brain)
-The Python service encapsulates all LLM logic and cognitive processes.
-- gRPC Interface: Exposes specialized methods for RAG-based retrieval and LangGraph-driven reasoning.
-- REST Interface (FastAPI): A second transport over the same agents, for evals, benchmarks, healthchecks and demos.
-- LangChain Integration: Orchestrates model prompts, output parsers, and tool-calling chains.
-- Vector Store (pluggable): FAISS or Qdrant, selected by env var, for similarity search over NPC lore.
-- Dynamic Context Injection: Formats real-time game state (emotions, memories, quest progress) into the LLM context window to ensure situational awareness.
+- **WebSocket sessions** with login/registration (bcrypt); allowed browser origins come from
+  `ALLOWED_ORIGINS`, and clients without an `Origin` header (game engines) are accepted.
+- **Quest engine:** triggers, trust/quest preconditions and rewards defined in
+  `gamedata/quests/`. Question triggers match the keyword as a whole word.
+- **NPC state:** fixed emotion deltas per event type (`gamedata/event_emotions.json`), per-player
+  trust, and a memory row for each event that reaches the AI.
+- **Rate limiting:** a per-player fixed-window limit on AI calls, kept in Redis
+  (`LLM_RATE_LIMIT` per `LLM_RATE_WINDOW_SECONDS`, default 20 per 60 s), protects the shared
+  LLM quota; if Redis is unreachable the check fails open.
+- **Resilience:** per-call gRPC deadline (`AI_CALL_TIMEOUT`, default 40 s) and an in-character
+  fallback line instead of an error when the AI service fails. When a player disconnects
+  mid-answer, the in-flight gRPC call is cancelled; for streamed lore answers the cancellation
+  reaches the model, which stops generating.
+- **Admin commands** (`ADMIN_SET_TRUST`, `ADMIN_SET_QUEST_STAGE`) are off unless
+  `ADMIN_ENABLED=true`.
 
-## Technical Specifications
+### Python AI service (`ai-service-python/`)
 
-### Tech Stack
-- Backend: Go (Golang), Gin, Ent ORM, gRPC-Go, Go-Redis.
-- AI Service: Python, LangChain, LangGraph, FAISS, gRPC-Python.
-- Data Management: PostgreSQL, Redis.
-- Inference: Google Gemini API (Cloud) and Ollama/Llama 3.1 (Local).
-- Infrastructure: Docker, Docker Compose, Protocol Buffers.
-- Client Target: designed for Unreal Engine 5 (C++/Blueprints); a dependency-free browser [reference client](client-demo/) ships in the repo and implements the same protocol.
+- **Two transports, one router:** gRPC for the Go orchestrator and REST (FastAPI) for evals,
+  benchmarks, health checks and demos, both dispatching through `router.py`.
+- **One agent per NPC**, keyed by NPC name, built at startup from `gamedata/npcs/`
+  (personality, backstory, lore).
+- **Semantic response cache** for repeated lore questions (cosine match on the question
+  embedding, threshold 0.90). It only serves anonymous, memory-free requests — REST, evals and
+  benchmarks. In-game requests always carry a speaker and bypass it, so one player's answer is
+  never replayed to another.
+- **Health:** `/health` returns 503 while no agents are loaded.
+- **Optional LangSmith tracing**, off by default — see [`docs/langsmith.md`](docs/langsmith.md).
 
-### Communication Protocols
-- Client-to-Backend: JSON-based events over persistent WebSockets — full contract in [`docs/client_protocol.md`](docs/client_protocol.md).
-- Inter-Service: Binary Protocol Buffers over gRPC (HTTP/2), ensuring low-latency and strict type safety between the Go and Python layers.
-
-### Service Transports
-
-The AI service runs two transports in one process, sharing a single in-memory agent
-registry. Both dispatch through the same routing function (`router.py`), so REST and gRPC
-cannot drift apart.
+## Service transports
 
 | Transport | Port | Who uses it |
 |---|---|---|
-| gRPC (`AIBrain.Think`) | `50051` | The Go orchestrator — the production path |
-| REST (FastAPI) | `API_PORT`, default `8000` | Evals, benchmarks, container healthchecks, demos |
+| gRPC (`AIBrain.Think`, `ThinkStream`) | `50051` | The Go orchestrator |
+| REST (FastAPI) | `API_PORT`, default `8000` | Evals, benchmarks, container health checks, demos |
 
 | REST endpoint | Purpose |
 |---|---|
-| `GET /health` | Status, agent count, active provider and models |
+| `GET /health` | Status, agent count, active provider and models (503 with no agents) |
 | `GET /v1/npcs` | Loaded agents (key, name, occupation) |
 | `POST /v1/chat` | Ask an NPC a lore question (RAG path) |
 | `POST /v1/event` | Send a game event (LangGraph path) |
@@ -120,10 +129,11 @@ curl -X POST localhost:8000/v1/chat -H 'Content-Type: application/json' \
   -d '{"npc":"elara","question":"Who is the mayor?"}'
 ```
 
-### Inference Provider Configuration
+## Configuration
 
-The chat provider is selected at startup by environment variable — no code changes. See
-`ai-service-python/.env.example` for the full set of variables and their defaults.
+Everything is env-driven; each service's `.env.example` lists every variable with its default.
+
+**AI service**
 
 | Variable | Default | Purpose |
 |---|---|---|
@@ -135,33 +145,27 @@ The chat provider is selected at startup by environment variable — no code cha
 | `EMBEDDING_MODEL` | `nomic-embed-text` | Embedding model (always local via Ollama) |
 | `OLLAMA_HOST` | `http://localhost:11434` | Ollama endpoint |
 | `VECTOR_STORE` | `faiss` | `faiss` (in-process) or `qdrant` (scale-out) |
-| `QDRANT_URL` | `http://localhost:6333` | Qdrant endpoint, used when `VECTOR_STORE=qdrant` |
 | `RETRIEVER_K` | `3` | Lore documents retrieved per query |
+| `GAMEDATA_DIR` | `../gamedata` | Shared game data (`/app/gamedata` in the image) |
 
-Embeddings always run locally on Ollama regardless of the chat provider, so Ollama is a
-dependency in both modes:
+**Go orchestrator**
 
-```bash
-# Install Ollama (https://ollama.com/download), then:
-ollama pull nomic-embed-text   # embeddings — required in both modes
-ollama pull llama3.1:8b        # chat — only needed for LLM_PROVIDER=ollama
-```
+| Variable | Default | Purpose |
+|---|---|---|
+| `POSTGRES_DSN` | — | Required |
+| `REDIS_ADDR` | `localhost:6379` | Redis for the rate limiter |
+| `AI_SERVICE_ADDR` | `localhost:50051` | AI service gRPC address |
+| `GAMEDATA_DIR` | `../gamedata` | Shared game data (`/app/gamedata` in the image) |
+| `ALLOWED_ORIGINS` | empty (same-origin only) | Comma-separated browser origins; compose defaults to `null` for the double-clicked demo |
+| `ADMIN_ENABLED` | `false` | Enables the admin WebSocket events |
+| `LLM_RATE_LIMIT` / `LLM_RATE_WINDOW_SECONDS` | `20` / `60` | Per-player AI calls per window; `0` disables |
+| `AI_CALL_TIMEOUT` | `40` | Per-call gRPC deadline in seconds |
 
-```bash
-# Cloud mode (default)
-LLM_PROVIDER=gemini
-GEMINI_API_KEY=your-key-here
-
-# Local mode — no API key needed
-LLM_PROVIDER=ollama
-OLLAMA_MODEL_HEAVY=llama3.1:8b
-```
-
-### Vector Store
+### Vector store
 
 **FAISS is the default** — in-process, zero infrastructure, rebuilt from `lore.json` at
-startup. **Qdrant is the scale-out path**: a real vector database that survives restarts
-and can be shared by multiple AI-service replicas. It stores one collection per NPC
+startup. **Qdrant is the scale-out path**: a real vector database that survives restarts and
+can be shared by multiple AI-service replicas. It stores one collection per NPC
 (`lore_elara`, `lore_baelor`, …), and the embedding dimension is taken from the embedding
 model rather than hardcoded.
 
@@ -174,23 +178,27 @@ If `VECTOR_STORE=qdrant` and Qdrant is unreachable, the service **fails at start
 clear error rather than falling back to FAISS — a silent fallback would make benchmark and
 eval results lie about which backend produced them.
 
-### Performance Benchmarks (measured)
+## Performance (measured)
 
-Every figure below comes from a committed, re-runnable script — see
-[`docs/benchmarks.md`](docs/benchmarks.md) for methodology, hardware and full tables.
+Every figure comes from a committed, re-runnable script — see
+[`docs/benchmarks.md`](docs/benchmarks.md) for methodology, hardware and full tables. Cloud
+sample sizes are small because of the Gemini free-tier quota; they are indicative, not robust.
 
-| Path | Median | What it measures |
-|---|---|---|
-| gRPC round-trip (no LLM) | **0.14 ms** | protobuf + HTTP/2 + routing, no inference |
-| End-to-end infra (WebSocket → Go → gRPC → Python) | **7.37 ms** | full orchestration, no inference |
-| Fast brain — RAG (cloud, gemini-3.5-flash) | **~2.9 s** | inference-dominated (n=3, free-tier cap) |
+| Path | Median | Sample | What it measures |
+|---|---|---|---|
+| gRPC round trip (no LLM) | **0.14 ms** | n=200 | protobuf + HTTP/2 + routing |
+| End-to-end infra (WebSocket → Go → gRPC → Python) | **7.37 ms** | n=100 | full orchestration, no inference |
+| Lore path, cloud (gemini-3.5-flash) | **2.87 s** | n=3 | full answer |
+| Lore path, local (llama3.1:8b) | **18.2 s** | n=30 | full answer |
+| Event path, cloud | **5.43 s** | n=1 | full agent run |
+| Event path, local | **26.0 s** | n=15 | full agent run |
 
-**Headline:** infrastructure is sub-10 ms; inference is seconds. The Go/gRPC
-orchestration is ~0.2% of a cloud RAG turn — **latency is inference-dominated, not an
-infrastructure bottleneck.** (Earlier README figures of ~14 ms gRPC were never measured;
-the real values above are ~100× lower.)
+**Headline:** orchestration is sub-10 ms; inference is seconds. The Go/gRPC layer is about
+0.2% of a cloud lore answer — latency is inference-dominated, not an infrastructure
+bottleneck. (Earlier README figures of ~14 ms gRPC were never measured; the real value is
+about 100× lower.)
 
-### Evaluation (RAG quality)
+## Evaluation (lore answer quality)
 
 A 50-question harness (`python -m evals.run` from `ai-service-python/`) scores retrieval and
 grounding over all 8 NPCs (40 in-scope, 10 out-of-scope traps). Full methodology, judge
@@ -205,46 +213,51 @@ self-preference bias):
 | hallucinated (in-scope) | **0.0%** |
 | refusal rate (out-of-scope, n=10) | **90.0%** |
 
-Retrieval metrics are deterministic and fully trustworthy; grounding/refusal depend on the
-named LLM judge. `results.md` documents a known judge limitation (incidental persona
-contradictions are under-detected) rather than papering over it — so "0% in-scope
-hallucination" means *of the answer to the question asked*.
+Retrieval metrics are deterministic; grounding and refusal depend on the named LLM judge.
+`results.md` documents a known judge limitation (incidental persona contradictions are
+under-detected), so "0% in-scope hallucination" means *of the answer to the question asked*.
 
 ## Testing
 
-Both suites run with no external services and no API keys — LLM and embedding calls are
-faked, so nothing hits Ollama, Gemini, Postgres or Redis.
+Both suites run with no external services and no API keys: LLM and embedding calls are faked,
+and the Go quest tests use an in-memory SQLite database.
 
 ```bash
-# Python (from ai-service-python/): router dispatch, context formatter, prompt loader, retriever
+# Python (from ai-service-python/): router, agent lookup, context formatting, prompt loading,
+# retrieval, streaming cancellation, health endpoint.
 # Python is pinned to 3.12 in .python-version; uv fetches it if your system has another version.
 uv venv && uv pip install -r requirements.txt -r requirements-dev.txt
 PYTHONPATH=. .venv/bin/python -m pytest tests/ -q
 
-# Go (from backend-go/): emotion deltas, quest preconditions, item lookup, DTO round-trip
+# Go (from backend-go/): quest pipeline (SQLite), keyword matching, trust preconditions,
+# emotion deltas, origin checks, admin gate, DTO round trip.
 go test ./...
+REDIS_ADDR=localhost:6379 go test ./internal/ratelimit/   # optional: rate limiter against a real Redis
 ```
 
-## Data Persistence & Schema Design
+## Data model
 
-The system employs an 8-table relational schema designed for extensibility:
-- Player & NPC Entities: Core state and identity.
-- Relationships: Tracks dynamic variables like trust_level and emotional affinity.
-- NPC_Memory: Stores persistent key-value memories for long-term NPC continuity.
-- Quest & Inventory: Manages player progression and item-based triggers.
+Eight PostgreSQL tables via Ent: `players`, `npcs` (identity plus one emotion state per NPC),
+`quests` and `player_quest_states` (progress per player), `player_npc_relationships` (trust
+level and gift count), `memories` (an event log: event type, participants, description),
+`items`, and `inventory_items` (in the schema, not yet used by game logic).
 
-## Deployment & Scaling
+## Known limitations
 
-The framework is designed for horizontal scalability:
-- GPU-Aware AI Routing: The Python service is structured to support multi-instance deployment on GPU-accelerated nodes for local inference or high-throughput cloud API routing.
-- Containerization: Full Docker Compose support for standardized development and production environments.
+These are real gaps in the current design, kept here rather than hidden:
 
-## Future Vision
+- **Emotions are shared and never fade.** Each NPC has one emotion state for all players, and
+  nothing decays it, so one player's attack makes the NPC angry at everyone indefinitely.
+- **Attacks don't lower the trust the model sees.** The model gets per-player relationship
+  trust, which only gifts, quest rewards and admin commands change.
+- **Memory records event types, not conversations.** A memory is "player1 triggered
+  PLAYER_ASKED_QUESTION on Elara"; the question and answer are not stored, and only the last
+  five memories reach the prompt.
+- **The model can only speak.** Every reply is `SPEAK`; it cannot act on the world.
+- **Event-path runs are not interrupted by a disconnect.** The LangGraph agent runs as one
+  blocking call, so it finishes even if the player has left; only lore answers stop early.
+- **The semantic cache rarely helps in play**, since in-game requests always carry a speaker.
 
-Planned enhancements focused on production-scale deployment include:
-- Persistent Writable RAG: Enabling NPCs to dynamically update their own vector stores with new player-specific memories.
-- Proactive NPCs: State-driven triggers that allow NPCs to initiate conversations or world actions without player input.
-- Hardware-Aware Routing: Intelligent load balancing that toggles between local and cloud inference based on real-time latency and cost constraints.
-
----
-This project was developed as a comprehensive exploration of distributed systems, real-time state management, and the integration of generative AI into high-performance gaming backends.
+A redesign of memory and emotions is planned: per-player and general memories with
+intensity-based lifespans, emotions computed from those memories, escalation on repeated
+offences, and forgiveness that changes the feeling but not the fact.
