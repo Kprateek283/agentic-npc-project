@@ -13,7 +13,7 @@ implements it lives in [`client-demo/`](../client-demo/).
 ws://<host>:<SERVER_PORT>/api/v1/ws      # SERVER_PORT defaults to 8080
 ```
 
-No subprotocol, no query params. All origins are accepted (dev setting).
+No subprotocol, no query params. Origins are validated against `ALLOWED_ORIGINS`: non-browser clients (no `Origin` header) and matching origins (or `*`) are allowed, an empty list enforces same-origin, and unlisted origins are rejected.
 
 ## Message envelope
 
@@ -100,8 +100,8 @@ Failure (bad credentials, duplicate registration, …):
 | `PLAYER_INTERACT_QUEST`      | `target_npc_name`                  | LangGraph agent → `SPEAK` |
 | `PLAYER_ATTACKED`            | `target_npc_name`                  | LangGraph agent → `SPEAK` |
 | `PLAYER_LOOKED_AT_NPC`       | `target_npc_name`                  | Non-LLM emotion rule → `SPEAK` `"Greetings."` (`"Get lost."` if the NPC's anger > 0.7) |
-| `ADMIN_SET_TRUST`            | `target_npc_name`, `keyword`       | State mutation → `ADMIN_ACK` |
-| `ADMIN_SET_QUEST_STAGE`      | `target_npc_name`, `keyword`       | State mutation → `ADMIN_ACK` |
+| `ADMIN_SET_TRUST`            | `target_npc_name`, `keyword`       | State mutation → `ADMIN_ACK` (requires ADMIN_ENABLED=true, otherwise returns ERROR) |
+| `ADMIN_SET_QUEST_STAGE`      | `target_npc_name`, `keyword`       | State mutation → `ADMIN_ACK` (requires ADMIN_ENABLED=true, otherwise returns ERROR) |
 
 Example question → answer:
 

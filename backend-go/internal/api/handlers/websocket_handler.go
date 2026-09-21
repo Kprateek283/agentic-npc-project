@@ -10,6 +10,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"net/url"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
@@ -18,12 +20,23 @@ import (
 
 type EventMessage = dto.EventMessage
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-	CheckOrigin: func(r *http.Request) bool {
-		return true // Allow all origins for dev
-	},
+func originAllowed(origin, host string, allowed []string) bool {
+	if origin == "" {
+		return true
+	}
+	for _, a := range allowed {
+		if a == "*" || a == origin {
+			return true
+		}
+	}
+	if len(allowed) == 0 {
+		u, err := url.Parse(origin)
+		if err != nil {
+			return false
+		}
+		return u.Host != "" && strings.EqualFold(u.Host, host)
+	}
+	return false
 }
 
 // WebSocketHandler holds all clients and services
@@ -33,6 +46,7 @@ type WebSocketHandler struct {
 	questManager   *quest_logic.QuestManager
 	redisClient    *redis.Client
 	emotionManager *npc_logic.EmotionManager
+	upgrader       websocket.Upgrader
 }
 
 // NewWebSocketHandler creates a new handler with all dependencies
@@ -42,6 +56,7 @@ func NewWebSocketHandler(
 	questManager *quest_logic.QuestManager,
 	redisClient *redis.Client,
 	emotionManager *npc_logic.EmotionManager,
+	allowedOrigins []string,
 ) *WebSocketHandler {
 	return &WebSocketHandler{
 		dbClient:       dbClient,
@@ -49,12 +64,19 @@ func NewWebSocketHandler(
 		questManager:   questManager,
 		redisClient:    redisClient,
 		emotionManager: emotionManager,
+		upgrader: websocket.Upgrader{
+			ReadBufferSize:  1024,
+			WriteBufferSize: 1024,
+			CheckOrigin: func(r *http.Request) bool {
+				return originAllowed(r.Header.Get("Origin"), r.Host, allowedOrigins)
+			},
+		},
 	}
 }
 
 // Handle manages the WebSocket connection lifecycle
 func (h *WebSocketHandler) Handle(c *gin.Context) {
-	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+	conn, err := h.upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		log.Printf("Failed to set websocket upgrade: %+v", err)
 		return
@@ -67,19 +89,34 @@ func (h *WebSocketHandler) Handle(c *gin.Context) {
 	}()
 	log.Println("Client connected via WebSocket. Awaiting authentication...")
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	msgChan := make(chan []byte)
+
+	go func() {
+		defer close(msgChan)
+		for {
+			_, p, err := conn.ReadMessage()
+			if err != nil {
+				log.Println("WebSocket read error:", err)
+				log.Println("Client disconnected; cancelling in-flight work")
+				cancel()
+				return
+			}
+			select {
+			case msgChan <- p:
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
 
 	// Connection-specific state
 	var isAuthenticated bool = false
 	var currentPlayerID string = ""
 
-	for {
-		_, p, err := conn.ReadMessage()
-		if err != nil {
-			log.Println("WebSocket read error:", err)
-			break
-		}
-
+	for p := range msgChan {
 		var event EventMessage
 		if err := json.Unmarshal(p, &event); err != nil {
 			log.Println("Error unmarshalling event:", err)

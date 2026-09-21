@@ -86,6 +86,7 @@ func New() (*App, error) {
 		redisClient.Close()
 		return nil, fmt.Errorf("failed to create quest manager: %w", err)
 	}
+	questManager.AdminEnabled = cfg.AdminEnabled
 	log.Println("Dungeon Master (QuestManager) initialized successfully")
 
 	// 7. Initialize EmotionManager
@@ -114,7 +115,7 @@ func New() (*App, error) {
 
 	// 9. Create Handlers
 	healthHandler := handlers.HealthHandler
-	wsHandler := handlers.NewWebSocketHandler(dbClient, aiClient, questManager, redisClient, emotionManager)
+	wsHandler := handlers.NewWebSocketHandler(dbClient, aiClient, questManager, redisClient, emotionManager, cfg.AllowedOrigins)
 	log.Println("API Handlers initialized")
 
 	// 10. Initialize HTTP Server

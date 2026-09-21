@@ -1,3 +1,4 @@
+import contextlib
 import logging
 import time
 
@@ -69,14 +70,24 @@ class AIBrainServicer(ai_pb2_grpc.AIBrainServicer):
         start = time.perf_counter()
         dynamic_context = _dynamic_context(request)
 
+        frames = 0
         try:
-            for text, done, action_type in stream_event(
+            gen = stream_event(
                 request.personality_path,
                 request.event_type,
                 request.question_text,
                 dynamic_context,
-            ):
-                yield ai_pb2.TokenChunk(text=text, done=done, action_type=action_type)
+            )
+            with contextlib.closing(gen):
+                for text, done, action_type in gen:
+                    if not context.is_active():
+                        logger.info(
+                            "think_stream req_id=%s agent=%s client_cancelled frames=%d",
+                            req_id, request.personality_path, frames,
+                        )
+                        return
+                    yield ai_pb2.TokenChunk(text=text, done=done, action_type=action_type)
+                    frames += 1
         except UnknownAgentError:
             logger.error("think_stream req_id=%s event=%s agent=%s unknown_agent",
                          req_id, request.event_type, request.personality_path)
@@ -87,3 +98,4 @@ class AIBrainServicer(ai_pb2_grpc.AIBrainServicer):
         logger.info("think_stream req_id=%s event=%s agent=%s dur_ms=%d",
                     req_id, request.event_type, request.personality_path,
                     (time.perf_counter() - start) * 1000)
+

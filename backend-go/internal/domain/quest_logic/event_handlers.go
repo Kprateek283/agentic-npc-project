@@ -60,6 +60,9 @@ func (qm *QuestManager) handleGifting(ctx context.Context, db *ent.Client, rdb *
 
 // HandleAdminCommand processes debug commands
 func (qm *QuestManager) HandleAdminCommand(ctx context.Context, db *ent.Client, rdb *redis.Client, event dto.EventMessage) error {
+	if !qm.AdminEnabled {
+		return fmt.Errorf("admin commands are disabled (set ADMIN_ENABLED=true)")
+	}
 	log.Printf("Dungeon Master: Received ADMIN COMMAND: %s", event.EventType)
 	// Admin commands don't use cache to get the player, ensuring fresh data
 	p, err := db.Player.Query().Where(entplayer.PlayerIDEQ(event.SourceEntityId)).Only(ctx)

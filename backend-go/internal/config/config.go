@@ -3,14 +3,17 @@ package config
 import (
 	"fmt"
 	"os"
+	"strings"
 )
 
 type Config struct {
-	PostgresDSN   string
-	RedisAddr     string
-	ServerPort    string
-	AIServiceAddr string
-	GamedataDir   string
+	PostgresDSN    string
+	RedisAddr      string
+	ServerPort     string
+	AIServiceAddr  string
+	GamedataDir    string
+	AdminEnabled   bool
+	AllowedOrigins []string
 }
 
 func Load() (*Config, error) {
@@ -39,11 +42,26 @@ func Load() (*Config, error) {
 		gamedataDir = "../gamedata"
 	}
 
+	adminEnabled := os.Getenv("ADMIN_ENABLED") == "true"
+
+	var allowedOrigins []string
+	if rawOrigins := os.Getenv("ALLOWED_ORIGINS"); rawOrigins != "" {
+		for _, o := range strings.Split(rawOrigins, ",") {
+			trimmed := strings.TrimSpace(o)
+			if trimmed != "" {
+				allowedOrigins = append(allowedOrigins, trimmed)
+			}
+		}
+	}
+
 	return &Config{
-		PostgresDSN:   postgresDSN,
-		RedisAddr:     redisAddr,
-		ServerPort:    serverPort,
-		AIServiceAddr: aiServiceAddr,
-		GamedataDir:   gamedataDir,
+		PostgresDSN:    postgresDSN,
+		RedisAddr:      redisAddr,
+		ServerPort:     serverPort,
+		AIServiceAddr:  aiServiceAddr,
+		GamedataDir:    gamedataDir,
+		AdminEnabled:   adminEnabled,
+		AllowedOrigins: allowedOrigins,
 	}, nil
 }
+

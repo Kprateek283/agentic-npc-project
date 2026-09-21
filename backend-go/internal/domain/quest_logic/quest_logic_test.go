@@ -1,6 +1,10 @@
 package quest_logic
 
-import "testing"
+import (
+	"agentic-npc-backend/internal/dto"
+	"context"
+	"testing"
+)
 
 func TestTrustMet(t *testing.T) {
 	tests := []struct {
@@ -58,3 +62,19 @@ func TestNewQuestManagerLoadsGamedata(t *testing.T) {
 		t.Error("expected 'apple' item to be loaded from gamedata")
 	}
 }
+
+func TestHandleAdminCommand_Disabled(t *testing.T) {
+	qm := &QuestManager{AdminEnabled: false}
+	err := qm.HandleAdminCommand(context.Background(), nil, nil, dto.EventMessage{
+		EventType:      "ADMIN_SET_TRUST",
+		SourceEntityId: "player1",
+	})
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	wantErr := "admin commands are disabled (set ADMIN_ENABLED=true)"
+	if err.Error() != wantErr {
+		t.Errorf("got error %q, want %q", err.Error(), wantErr)
+	}
+}
+

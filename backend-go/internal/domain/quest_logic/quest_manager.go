@@ -16,8 +16,9 @@ import (
 
 // QuestManager holds the preloaded static game data ("rulebook")
 type QuestManager struct {
-	Items  map[string]ItemDefinition
-	Quests map[string]QuestDefinition
+	Items        map[string]ItemDefinition
+	Quests       map[string]QuestDefinition
+	AdminEnabled bool
 }
 
 // NewQuestManager creates a new manager and loads all gamedata

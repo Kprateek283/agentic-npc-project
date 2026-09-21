@@ -1,3 +1,4 @@
+import contextlib
 import logging
 import os
 import time
@@ -6,7 +7,7 @@ from langchain_core.messages import HumanMessage
 from langgraph.errors import GraphRecursionError
 
 # --- Local Imports ---
-from config import embeddings
+from config import embeddings, llm_light
 from semantic_cache import SemanticCache, cacheable_context
 from tools.lore_retriever_tool import create_lore_tool_from_file
 from tools.quest_status_tool import quest_status
@@ -59,7 +60,7 @@ class NpcAgent:
 
         # 3. Build Brains
         # Pass the prompt and retriever to the builders
-        self.rag_chain = build_rag_chain(self.static_system_prompt, self.lore_retriever)
+        self.rag_prompt_chain, self.rag_chain = build_rag_chain(self.static_system_prompt, self.lore_retriever)
         self.langgraph_chain = build_langgraph_agent(self.static_system_prompt, self.tools)
 
         # 4. Per-NPC semantic response cache for repeated lore questions (C4).
@@ -119,11 +120,15 @@ class NpcAgent:
             "question": player_question,
             **format_dynamic_context(dynamic_context),
         }
-        # The chain ends in StrOutputParser, so .stream() yields incremental strings.
+        prompt_value = self.rag_prompt_chain.invoke(input_dict)
         parts = []
-        for delta in self.rag_chain.stream(input_dict):
-            parts.append(delta)
-            yield delta
+        stream_gen = llm_light.stream(prompt_value)
+        with contextlib.closing(stream_gen):
+            for chunk in stream_gen:
+                text = chunk.text
+                if text:
+                    parts.append(text)
+                    yield text
 
         if q_emb is not None:
             self._cache.put(q_emb, "".join(parts))
