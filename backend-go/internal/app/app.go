@@ -115,7 +115,7 @@ func New() (*App, error) {
 
 	// 9. Create Handlers
 	healthHandler := handlers.HealthHandler
-	wsHandler := handlers.NewWebSocketHandler(dbClient, aiClient, questManager, redisClient, emotionManager, cfg.AllowedOrigins)
+	wsHandler := handlers.NewWebSocketHandler(dbClient, aiClient, questManager, redisClient, emotionManager, cfg.AllowedOrigins, cfg.LLMRateLimit, cfg.LLMRateWindow)
 	log.Println("API Handlers initialized")
 
 	// 10. Initialize HTTP Server

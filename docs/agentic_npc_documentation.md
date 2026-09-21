@@ -8,7 +8,7 @@ The Agentic NPC Framework is a high-performance distributed system for generativ
    - **Role**: The central hub and authoritative source of truth for the game world.
    - **Communication**: Manages bidirectional communication with game clients (e.g., Unreal Engine) via WebSockets.
    - **State Machine & Logic**: Handles quest lifecycles, player inventories, NPC relationships, and emotions.
-   - **Persistence**: Uses PostgreSQL (via Ent ORM) for relational data and Redis.
+   - **Persistence**: Uses PostgreSQL (via Ent ORM) for relational data and Redis for a per-player LLM rate limit.
    - **Orchestration**: Validates game events and routes them to the Python AI service via gRPC.
 
 2. **Python AI Service (The Brain)**:

@@ -68,6 +68,7 @@ The Go service acts as the authoritative source of truth and the central hub for
 - Connection Management: Handles persistent, bidirectional communication with game clients via WebSockets (Gin).
 - State Machine: Manages quest lifecycles, player inventories, and NPC relationships.
 - Orchestration: Routes player events to the appropriate AI brain via high-performance gRPC calls.
+- Rate limiting: a per-player fixed-window limit on AI calls, kept in Redis (`LLM_RATE_LIMIT` per `LLM_RATE_WINDOW_SECONDS`, default 20 per 60 s), protects the shared LLM quota; if Redis is unreachable the check fails open.
 - Persistence Layer: Utilizes the Ent ORM for type-safe, graph-based interactions with PostgreSQL.
 
 ### 2. Python AI Service (The Brain)

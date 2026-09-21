@@ -5,6 +5,7 @@ import (
 	entplayerqueststate "agentic-npc-backend/internal/db/ent/playerqueststate"
 	"agentic-npc-backend/internal/db/ent/schema"
 	pb "agentic-npc-backend/internal/proto"
+	"agentic-npc-backend/internal/ratelimit"
 	"context"
 	"crypto/rand"
 	"encoding/hex"
@@ -17,6 +18,8 @@ import (
 	"github.com/gorilla/websocket"
 	"google.golang.org/grpc/metadata"
 )
+
+const rateLimitedLine = "Easy, friend — you're talking faster than I can think. Give me a moment."
 
 // newRequestID returns a short random hex id used to correlate the Go and Python
 // log lines for one conversation event.
@@ -53,6 +56,18 @@ func (h *WebSocketHandler) HandleGameEvent(conn *websocket.Conn, ctx context.Con
 	if strings.HasPrefix(event.EventType, "ADMIN_") {
 		log.Println("Dungeon Master: Admin command processed successfully.")
 		h.sendSimpleResponse(conn, "ADMIN_ACK", "Admin command received and processed.")
+		return
+	}
+
+	// Rate limit check before calling the AI service
+	rlCtx, rlCancel := context.WithTimeout(ctx, 200*time.Millisecond)
+	allowed, count, err := ratelimit.Allow(rlCtx, h.redisClient, "ratelimit:llm:"+event.SourceEntityId, h.llmRateLimit, h.llmRateWindow)
+	rlCancel()
+	if err != nil {
+		slog.Warn("rate_limit_unavailable", "req_id", reqID, "player", event.SourceEntityId, "err", err.Error())
+	} else if !allowed {
+		slog.Warn("rate_limited", "req_id", reqID, "player", event.SourceEntityId, "count", count)
+		h.sendSimpleResponse(conn, "SPEAK", rateLimitedLine)
 		return
 	}
 

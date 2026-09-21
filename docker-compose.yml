@@ -87,6 +87,8 @@ services:
       SERVER_PORT: "8080"
       ADMIN_ENABLED: ${ADMIN_ENABLED:-false}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-null}
+      LLM_RATE_LIMIT: ${LLM_RATE_LIMIT:-20}
+      LLM_RATE_WINDOW_SECONDS: ${LLM_RATE_WINDOW_SECONDS:-60}
     ports:
       - "${SERVER_PORT:-8080}:8080"
     depends_on:

@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
@@ -47,6 +48,8 @@ type WebSocketHandler struct {
 	redisClient    *redis.Client
 	emotionManager *npc_logic.EmotionManager
 	upgrader       websocket.Upgrader
+	llmRateLimit   int
+	llmRateWindow  time.Duration
 }
 
 // NewWebSocketHandler creates a new handler with all dependencies
@@ -57,6 +60,8 @@ func NewWebSocketHandler(
 	redisClient *redis.Client,
 	emotionManager *npc_logic.EmotionManager,
 	allowedOrigins []string,
+	llmRateLimit int,
+	llmRateWindow time.Duration,
 ) *WebSocketHandler {
 	return &WebSocketHandler{
 		dbClient:       dbClient,
@@ -64,6 +69,8 @@ func NewWebSocketHandler(
 		questManager:   questManager,
 		redisClient:    redisClient,
 		emotionManager: emotionManager,
+		llmRateLimit:   llmRateLimit,
+		llmRateWindow:  llmRateWindow,
 		upgrader: websocket.Upgrader{
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,

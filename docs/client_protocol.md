@@ -60,7 +60,7 @@ A streaming client appends each `SPEAK_PARTIAL` delta to the live bubble; on the
 care about progressive rendering can **ignore `SPEAK_PARTIAL` entirely** and act only on
 the final `SPEAK` — the full reply always arrives there. Non-AI replies (`ADMIN_ACK`,
 quest fail-responses, the non-LLM `"Greetings."`) are sent as a single frame with no
-preceding partials.
+preceding partials. Over the per-player limit, the server answers with a fixed in-character SPEAK line instead of calling the AI.
 
 ## Session flow
 
