@@ -10,6 +10,7 @@ require (
 	github.com/gorilla/websocket v1.5.3
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9
+	github.com/mattn/go-sqlite3 v1.14.52
 	golang.org/x/crypto v0.40.0
 	google.golang.org/grpc v1.75.1
 	google.golang.org/protobuf v1.36.9
