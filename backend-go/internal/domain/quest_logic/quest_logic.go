@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -28,6 +29,24 @@ func trustMet(level float64, operator string, value float64) bool {
 	default:
 		return false
 	}
+}
+
+// keywordMatches checks whether the event's text matches the quest step trigger keyword.
+// An empty keyword matches any text. For question events, the keyword must appear as a
+// whole word or phrase (case-insensitive). Other event types require an exact case-insensitive match.
+func keywordMatches(eventType, keyword, text string) bool {
+	if keyword == "" {
+		return true
+	}
+	if eventType == "PLAYER_ASKED_QUESTION" {
+		pattern := `(?i)\b` + regexp.QuoteMeta(keyword) + `\b`
+		matched, err := regexp.MatchString(pattern, text)
+		if err != nil {
+			return false
+		}
+		return matched
+	}
+	return strings.EqualFold(keyword, text)
 }
 
 // checkQuestCompletion is the main quest logic loop
@@ -73,7 +92,7 @@ func (qm *QuestManager) checkQuestCompletion(ctx context.Context, db *ent.Client
 			}
 
 			// Perform the keyword check (case-insensitive)
-			if trigger.Keyword == "" || strings.EqualFold(trigger.Keyword, textToMatch) {
+			if keywordMatches(event.EventType, trigger.Keyword, textToMatch) {
 				eventMatchesTrigger = true // All conditions met!
 			}
 		}

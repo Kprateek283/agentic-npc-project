@@ -30,6 +30,80 @@ func TestTrustMet(t *testing.T) {
 	}
 }
 
+func TestKeywordMatches(t *testing.T) {
+	tests := []struct {
+		name      string
+		eventType string
+		keyword   string
+		text      string
+		want      bool
+	}{
+		{
+			name:      "empty keyword",
+			eventType: "PLAYER_ASKED_QUESTION",
+			keyword:   "",
+			text:      "any question",
+			want:      true,
+		},
+		{
+			name:      "question contains keyword",
+			eventType: "PLAYER_ASKED_QUESTION",
+			keyword:   "cure",
+			text:      "Do you know of a cure?",
+			want:      true,
+		},
+		{
+			name:      "question case insensitive",
+			eventType: "PLAYER_ASKED_QUESTION",
+			keyword:   "cure",
+			text:      "CURE please",
+			want:      true,
+		},
+		{
+			name:      "word boundary secure does not match cure",
+			eventType: "PLAYER_ASKED_QUESTION",
+			keyword:   "cure",
+			text:      "Is the gate secure?",
+			want:      false,
+		},
+		{
+			name:      "word boundary obscure does not match cure",
+			eventType: "PLAYER_ASKED_QUESTION",
+			keyword:   "cure",
+			text:      "That is obscure",
+			want:      false,
+		},
+		{
+			name:      "multi-word keyword inside a question",
+			eventType: "PLAYER_ASKED_QUESTION",
+			keyword:   "ancient scroll",
+			text:      "Where can I find the ancient scroll in the cave?",
+			want:      true,
+		},
+		{
+			name:      "item event exact match case insensitive",
+			eventType: "PLAYER_SUBMITTED_ITEM",
+			keyword:   "Sunpetal",
+			text:      "sunpetal",
+			want:      true,
+		},
+		{
+			name:      "item event non exact match",
+			eventType: "PLAYER_SUBMITTED_ITEM",
+			keyword:   "Sunpetal",
+			text:      "Sunpetal Seed",
+			want:      false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := keywordMatches(tt.eventType, tt.keyword, tt.text); got != tt.want {
+				t.Errorf("keywordMatches(%q, %q, %q) = %v, want %v", tt.eventType, tt.keyword, tt.text, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestGetItemDefinition(t *testing.T) {
 	qm := &QuestManager{Items: map[string]ItemDefinition{
 		"apple": {ItemID: "apple", Name: "Apple"},

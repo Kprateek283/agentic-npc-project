@@ -14,10 +14,9 @@ Design choices (ponytail):
   ponytail: in-process dict + O(n) scan per NPC. Upgrade path if this ever grows: move the
   store to Redis and the lookup to Redis vector search (RediSearch KNN).
 
-Only near-neutral emotional contexts are cached (see cacheable_context): the RAG prompt
-conditions tone on live emotion, so a cached answer is only reused when the live context is
-also baseline. Memory variation is ignored — lore answers are grounded on retrieved facts,
-not on the low-importance per-event memory line (documented simplification, per the plan).
+Only anonymous, memory-free contexts (REST, evals, benchmarks) are cached (see
+cacheable_context); in-game requests always carry a speaker and are never cached.
+Cached answers are only reused when the live context is also baseline (near-neutral).
 """
 
 import math
@@ -35,10 +34,13 @@ def _cosine(a, b) -> float:
 
 
 def cacheable_context(dynamic_context: dict) -> bool:
-    """Only baseline (near-neutral) contexts are cached, so a cached answer is never reused
-    under a different emotional tone. Trust is ignored (relationship state, not lore)."""
-    e = dynamic_context.get("emotions", {})
-    return all(abs(e.get(k, 0.0)) < 0.2 for k in ("joy", "sadness", "anger", "fear"))
+    """Only anonymous, memory-free contexts (REST, evals, benchmarks) are cached; in-game
+    requests always carry a speaker and are never cached. Also requires baseline (near-neutral)
+    emotions. Trust is ignored (relationship state, not lore)."""
+    if not dynamic_context.get("memories") and not dynamic_context.get("speaker"):
+        e = dynamic_context.get("emotions", {})
+        return all(abs(e.get(k, 0.0)) < 0.2 for k in ("joy", "sadness", "anger", "fear"))
+    return False
 
 
 class SemanticCache:
@@ -95,4 +97,7 @@ if __name__ == "__main__":
     assert c.get([1.0, 0.0, 0.0]) is None, "evicted entry must miss"
     assert cacheable_context({"emotions": {"joy": 0.0, "sadness": 0.1, "anger": 0.0, "fear": 0.0}})
     assert not cacheable_context({"emotions": {"joy": 0.0, "sadness": 0.0, "anger": 0.9, "fear": 0.0}})
+    assert not cacheable_context({"emotions": {"joy": 0.0, "sadness": 0.0, "anger": 0.0, "fear": 0.0}, "speaker": "p1"})
+    assert not cacheable_context({"emotions": {"joy": 0.0, "sadness": 0.0, "anger": 0.0, "fear": 0.0}, "memories": ["met before"]})
+    assert cacheable_context({"emotions": {"joy": 0.0, "sadness": 0.0, "anger": 0.0, "fear": 0.0}, "speaker": "", "memories": []})
     print("semantic_cache self-check OK")

@@ -107,7 +107,8 @@ p95 (~3.2 s) is a one-off cold embedding-model call; steady-state hits are ~40�
 Threshold 0.90 is tuned to sit above measured same-topic/different-intent question pairs
 (≤0.81) so the cache never serves a wrong answer — the trade is that loosely-worded
 paraphrases (~0.82) miss and pay for the LLM. Only near-neutral emotional contexts are
-cached, since the RAG prompt conditions tone on live emotion.
+cached, since the RAG prompt conditions tone on live emotion. The cache only serves anonymous,
+memory-free requests (REST/evals/benchmarks); in-game requests carry a speaker and bypass it.
 
 ## The headline finding
 
