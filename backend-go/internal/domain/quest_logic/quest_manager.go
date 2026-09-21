@@ -10,8 +10,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/go-redis/redis/v8"
 )
 
 // QuestManager holds the preloaded static game data ("rulebook")
@@ -82,34 +80,34 @@ func (qm *QuestManager) loadGameData(gamedataPath string) error {
 }
 
 // ProcessEvent is the main "brain" of the Go backend.
-func (qm *QuestManager) ProcessEvent(ctx context.Context, db *ent.Client, rdb *redis.Client, event dto.EventMessage) (*FailResponseAction, error) {
+func (qm *QuestManager) ProcessEvent(ctx context.Context, db *ent.Client, event dto.EventMessage) (*FailResponseAction, error) {
 	log.Println("Dungeon Master is processing the event...")
 
 	// 1. Get the Player
-	p, err := qm.GetPlayer(ctx, db, rdb, event.SourceEntityId)
+	p, err := qm.GetPlayer(ctx, db, event.SourceEntityId)
 	if err != nil {
 		return nil, err
 	}
 
 	// 2. Route to Admin Handler
 	if strings.HasPrefix(event.EventType, "ADMIN_") {
-		err := qm.HandleAdminCommand(ctx, db, rdb, event)
+		err := qm.HandleAdminCommand(ctx, db, event)
 		return nil, err // Admin commands don't have fail responses
 	}
 
 	// 3. Get the Target NPC (required for all other events)
-	n, err := qm.GetNpc(ctx, db, rdb, event.TargetNpcName)
+	n, err := qm.GetNpc(ctx, db, event.TargetNpcName)
 	if err != nil {
 		return nil, err
 	}
 
 	// 4. Route to Gifting Handler
 	if event.EventType == "PLAYER_GAVE_GIFT" {
-		err := qm.handleGifting(ctx, db, rdb, p, n, event.Keyword)
+		err := qm.handleGifting(ctx, db, p, n, event.Keyword)
 		return nil, err // Gifting doesn't trigger quest checks, return directly
 	}
 
 	// 5. Route to Quest Logic Handler
 	// This will check for quest completion and return a failResponse if preconditions fail
-	return qm.checkQuestCompletion(ctx, db, rdb, p, n, event)
+	return qm.checkQuestCompletion(ctx, db, p, n, event)
 }

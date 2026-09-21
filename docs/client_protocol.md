@@ -114,7 +114,7 @@ Example question → answer:
 ```
 
 Every event first passes through the quest manager (precondition checks, emotion update,
-memory write, cache-aside player/NPC lookups). If a quest precondition fails, the server
+memory write, player/NPC lookups). If a quest precondition fails, the server
 returns that quest's fail-response instead of calling the AI. Otherwise the orchestrator
 gathers context (emotions, recent memories, player-specific trust, quest state) and calls
 the Python AI service over gRPC, then relays its `action_type`/`content`.

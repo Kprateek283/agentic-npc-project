@@ -139,7 +139,7 @@ func TestNewQuestManagerLoadsGamedata(t *testing.T) {
 
 func TestHandleAdminCommand_Disabled(t *testing.T) {
 	qm := &QuestManager{AdminEnabled: false}
-	err := qm.HandleAdminCommand(context.Background(), nil, nil, dto.EventMessage{
+	err := qm.HandleAdminCommand(context.Background(), nil, dto.EventMessage{
 		EventType:      "ADMIN_SET_TRUST",
 		SourceEntityId: "player1",
 	})

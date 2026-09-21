@@ -33,7 +33,7 @@ func (h *WebSocketHandler) HandleGameEvent(conn *websocket.Conn, ctx context.Con
 
 	// 1. Process all game logic (quests, gifting, AND admin commands)
 	questStart := time.Now()
-	failResponse, err := h.questManager.ProcessEvent(ctx, h.dbClient, h.redisClient, event)
+	failResponse, err := h.questManager.ProcessEvent(ctx, h.dbClient, event)
 	questMs := time.Since(questStart).Milliseconds()
 	if err != nil {
 		log.Printf("Error processing event in QuestManager: %v", err)
@@ -102,14 +102,14 @@ type aiRequestArgs struct {
 // they cannot drift; it must run exactly once per event.
 func (h *WebSocketHandler) gatherAIContext(ctx context.Context, event EventMessage) (*aiRequestArgs, error) {
 	// 4a. Get Target NPC
-	targetNPC, err := h.questManager.GetNpc(ctx, h.dbClient, h.redisClient, event.TargetNpcName)
+	targetNPC, err := h.questManager.GetNpc(ctx, h.dbClient, event.TargetNpcName)
 	if err != nil {
 		log.Printf("Error finding NPC: %v", err)
 		return nil, fmt.Errorf("target NPC not found")
 	}
 
 	// 4b. Get Player (needed for relationship)
-	player, err := h.questManager.GetPlayer(ctx, h.dbClient, h.redisClient, event.SourceEntityId)
+	player, err := h.questManager.GetPlayer(ctx, h.dbClient, event.SourceEntityId)
 	if err != nil {
 		log.Printf("Error finding Player: %v", err)
 		return nil, fmt.Errorf("player not found")
@@ -149,7 +149,7 @@ func (h *WebSocketHandler) gatherAIContext(ctx context.Context, event EventMessa
 	currentQuestStep, completionRate := h.getPlayerQuestState(ctx, player)
 
 	// 4g. Get Player-Specific Trust
-	rel, err := h.questManager.GetOrCreateRelationship(ctx, h.dbClient, h.redisClient, player, targetNPC)
+	rel, err := h.questManager.GetOrCreateRelationship(ctx, h.dbClient, player, targetNPC)
 	if err != nil {
 		log.Printf("Error getting relationship: %v", err)
 		return nil, err

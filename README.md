@@ -46,7 +46,7 @@ flowchart LR
     Client -- "WebSocket<br/>(JSON events)" --> Go
 
     subgraph Go["Go Orchestrator — Gin"]
-        WS["WebSocket handler"] --> Logic["Quest / emotion /<br/>memory + cache-aside"]
+        WS["WebSocket handler"] --> Logic["Quest / emotion /<br/>memory"]
     end
 
     Go -- "gRPC (protobuf)" --> Router
@@ -69,7 +69,6 @@ The Go service acts as the authoritative source of truth and the central hub for
 - State Machine: Manages quest lifecycles, player inventories, and NPC relationships.
 - Orchestration: Routes player events to the appropriate AI brain via high-performance gRPC calls.
 - Persistence Layer: Utilizes the Ent ORM for type-safe, graph-based interactions with PostgreSQL.
-- Caching: Implements a cache-aside strategy with Redis to minimize database I/O for frequently accessed player and NPC states (e.g., trust levels, active session data).
 
 ### 2. Python AI Service (The Brain)
 The Python service encapsulates all LLM logic and cognitive processes.
@@ -183,13 +182,12 @@ Every figure below comes from a committed, re-runnable script — see
 |---|---|---|
 | gRPC round-trip (no LLM) | **0.14 ms** | protobuf + HTTP/2 + routing, no inference |
 | End-to-end infra (WebSocket → Go → gRPC → Python) | **7.37 ms** | full orchestration, no inference |
-| Cache hit (Redis + Postgres PK) vs miss (Postgres lookup) | **0.15 / 0.20 ms** | cache-aside read path |
 | Fast brain — RAG (cloud, gemini-3.5-flash) | **~2.9 s** | inference-dominated (n=3, free-tier cap) |
 
-**Headline:** infrastructure is sub-10 ms; inference is seconds. The Go/gRPC/Redis
+**Headline:** infrastructure is sub-10 ms; inference is seconds. The Go/gRPC
 orchestration is ~0.2% of a cloud RAG turn — **latency is inference-dominated, not an
-infrastructure bottleneck.** (Earlier README figures of ~14 ms gRPC and ~8/42 ms cache were
-never measured; the real values above are 50–200× lower.)
+infrastructure bottleneck.** (Earlier README figures of ~14 ms gRPC were never measured;
+the real values above are ~100× lower.)
 
 ### Evaluation (RAG quality)
 
@@ -237,7 +235,6 @@ The system employs an 8-table relational schema designed for extensibility:
 ## Deployment & Scaling
 
 The framework is designed for horizontal scalability:
-- Stateless Orchestration: The Go service can be scaled behind a load balancer with Redis handling session state.
 - GPU-Aware AI Routing: The Python service is structured to support multi-instance deployment on GPU-accelerated nodes for local inference or high-throughput cloud API routing.
 - Containerization: Full Docker Compose support for standardized development and production environments.
 

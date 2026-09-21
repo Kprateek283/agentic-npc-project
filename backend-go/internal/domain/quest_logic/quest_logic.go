@@ -6,14 +6,11 @@ import (
 	entplayerqueststate "agentic-npc-backend/internal/db/ent/playerqueststate"
 	"agentic-npc-backend/internal/dto"
 	"context"
-	"fmt"
 	"log"
 	"log/slog"
 	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/go-redis/redis/v8"
 )
 
 // --- CORE QUEST LOGIC FUNCTIONS ---
@@ -50,7 +47,7 @@ func keywordMatches(eventType, keyword, text string) bool {
 }
 
 // checkQuestCompletion is the main quest logic loop
-func (qm *QuestManager) checkQuestCompletion(ctx context.Context, db *ent.Client, rdb *redis.Client, p *ent.Player, n *ent.NPC, event dto.EventMessage) (failResponse *FailResponseAction, err error) {
+func (qm *QuestManager) checkQuestCompletion(ctx context.Context, db *ent.Client, p *ent.Player, n *ent.NPC, event dto.EventMessage) (failResponse *FailResponseAction, err error) {
 	// Find all active quests for this player
 	activeQuests, err := db.PlayerQuestState.Query().Where(
 		entplayerqueststate.HasPlayerWith(entplayer.IDEQ(p.ID)),
@@ -101,7 +98,7 @@ func (qm *QuestManager) checkQuestCompletion(ctx context.Context, db *ent.Client
 			slog.Debug("event matches trigger", "quest_id", questState.QuestIdentifier, "step", currentStepStr)
 
 			// Event matches! Now check preconditions
-			preconditionsMet, err := qm.checkPreconditions(ctx, db, rdb, p, n, stepDef.Preconditions)
+			preconditionsMet, err := qm.checkPreconditions(ctx, db, p, n, stepDef.Preconditions)
 			if err != nil {
 				return nil, err
 			}
@@ -111,7 +108,7 @@ func (qm *QuestManager) checkQuestCompletion(ctx context.Context, db *ent.Client
 			}
 
 			// Preconditions met! Apply rewards
-			if err := qm.applyRewards(ctx, db, rdb, p, n, stepDef.Rewards); err != nil {
+			if err := qm.applyRewards(ctx, db, p, n, stepDef.Rewards); err != nil {
 				log.Printf("Warning: failed to apply rewards: %v", err)
 				// Don't block quest completion on reward failure
 			} else {
@@ -146,13 +143,13 @@ func (qm *QuestManager) checkQuestCompletion(ctx context.Context, db *ent.Client
 }
 
 // checkPreconditions validates all rules for a quest step
-func (qm *QuestManager) checkPreconditions(ctx context.Context, db *ent.Client, rdb *redis.Client, p *ent.Player, n *ent.NPC, preconditions []Precondition) (bool, error) {
+func (qm *QuestManager) checkPreconditions(ctx context.Context, db *ent.Client, p *ent.Player, n *ent.NPC, preconditions []Precondition) (bool, error) {
 	slog.Debug("checking preconditions", "player_id", p.PlayerID, "npc_name", n.Name)
 	for _, precond := range preconditions {
 		slog.Debug("checking precondition type", "type", precond.Type)
 		switch precond.Type {
 		case "RELATIONSHIP_TRUST":
-			rel, err := qm.GetOrCreateRelationship(ctx, db, rdb, p, n)
+			rel, err := qm.GetOrCreateRelationship(ctx, db, p, n)
 			if err != nil {
 				slog.Debug("error getting relationship", "error", err)
 				return false, err
@@ -192,7 +189,7 @@ func (qm *QuestManager) checkPreconditions(ctx context.Context, db *ent.Client, 
 }
 
 // applyRewards gives the player items, XP, or relationship changes
-func (qm *QuestManager) applyRewards(ctx context.Context, db *ent.Client, rdb *redis.Client, p *ent.Player, n *ent.NPC, rewards Rewards) error {
+func (qm *QuestManager) applyRewards(ctx context.Context, db *ent.Client, p *ent.Player, n *ent.NPC, rewards Rewards) error {
 	// 1. Apply Relationship Change
 	if rewards.RelationshipChange.TargetNPCName != "" {
 		targetNpcName := rewards.RelationshipChange.TargetNPCName
@@ -200,12 +197,12 @@ func (qm *QuestManager) applyRewards(ctx context.Context, db *ent.Client, rdb *r
 			targetNpcName = n.Name // "SELF" means the NPC they're talking to
 		}
 
-		rewardNpc, err := qm.GetNpc(ctx, db, rdb, targetNpcName)
+		rewardNpc, err := qm.GetNpc(ctx, db, targetNpcName)
 		if err != nil {
 			return err
 		}
 
-		rel, err := qm.GetOrCreateRelationship(ctx, db, rdb, p, rewardNpc)
+		rel, err := qm.GetOrCreateRelationship(ctx, db, p, rewardNpc)
 		if err != nil {
 			return err
 		}
@@ -221,10 +218,6 @@ func (qm *QuestManager) applyRewards(ctx context.Context, db *ent.Client, rdb *r
 			return err
 		}
 		log.Printf("Applied Trust Reward: Player %s trust with NPC %s is now %.2f", p.PlayerID, rewardNpc.Name, newTrustLevel)
-
-		// Invalidate this relationship's cache
-		cacheKey := fmt.Sprintf("relationship:%s:%s", p.ID.String(), rewardNpc.ID.String())
-		rdb.Del(ctx, cacheKey)
 	}
 
 	return nil
