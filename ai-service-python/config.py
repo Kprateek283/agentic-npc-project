@@ -1,7 +1,10 @@
+import logging
 import os
 
 from dotenv import load_dotenv
 from langchain_ollama import OllamaEmbeddings
+
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -58,6 +61,9 @@ VECTOR_STORE = os.getenv("VECTOR_STORE", "faiss").lower()
 QDRANT_URL = os.getenv("QDRANT_URL", "http://localhost:6333")
 RETRIEVER_K = int(os.getenv("RETRIEVER_K", "3"))
 
+# Path to shared gamedata directory (defaults to ../gamedata).
+GAMEDATA_DIR = os.getenv("GAMEDATA_DIR", "../gamedata")
+
 if VECTOR_STORE not in ("faiss", "qdrant"):
     raise ValueError(f"Unsupported VECTOR_STORE={VECTOR_STORE!r} (expected 'faiss' or 'qdrant')")
 
@@ -74,9 +80,14 @@ if VECTOR_STORE == "qdrant":
             f"Start it with `docker compose up -d qdrant`."
         ) from exc
 
-print("--- AI Config Loaded ---")
-print(f"Chat Provider: {LLM_PROVIDER}")
-print(f"Chat Model (light/heavy): {CHAT_MODEL_LIGHT} / {CHAT_MODEL_HEAVY}")
-print(f"Embedding Model: {EMBEDDING_MODEL} (local via Ollama at {OLLAMA_HOST})")
-print(f"Vector Store: {VECTOR_STORE}" + (f" ({QDRANT_URL})" if VECTOR_STORE == "qdrant" else "") + f", retriever k={RETRIEVER_K}")
-print("------------------------")
+logger.info("--- AI Config Loaded ---")
+logger.info("Chat Provider: %s", LLM_PROVIDER)
+logger.info("Chat Model (light/heavy): %s / %s", CHAT_MODEL_LIGHT, CHAT_MODEL_HEAVY)
+logger.info("Embedding Model: %s (local via Ollama at %s)", EMBEDDING_MODEL, OLLAMA_HOST)
+logger.info(
+    "Vector Store: %s%s, retriever k=%d",
+    VECTOR_STORE,
+    " (" + QDRANT_URL + ")" if VECTOR_STORE == "qdrant" else "",
+    RETRIEVER_K,
+)
+logger.info("------------------------")

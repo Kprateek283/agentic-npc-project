@@ -13,7 +13,7 @@ implements it lives in [`client-demo/`](../client-demo/).
 ws://<host>:<SERVER_PORT>/api/v1/ws      # SERVER_PORT defaults to 8080
 ```
 
-No subprotocol, no query params. All origins are accepted (dev setting).
+No subprotocol, no query params. Origins are validated against `ALLOWED_ORIGINS`: non-browser clients (no `Origin` header) and matching origins (or `*`) are allowed, an empty list enforces same-origin, and unlisted origins are rejected.
 
 ## Message envelope
 
@@ -60,7 +60,7 @@ A streaming client appends each `SPEAK_PARTIAL` delta to the live bubble; on the
 care about progressive rendering can **ignore `SPEAK_PARTIAL` entirely** and act only on
 the final `SPEAK` — the full reply always arrives there. Non-AI replies (`ADMIN_ACK`,
 quest fail-responses, the non-LLM `"Greetings."`) are sent as a single frame with no
-preceding partials.
+preceding partials. Over the per-player limit, the server answers with a fixed in-character SPEAK line instead of calling the AI.
 
 ## Session flow
 
@@ -100,8 +100,8 @@ Failure (bad credentials, duplicate registration, …):
 | `PLAYER_INTERACT_QUEST`      | `target_npc_name`                  | LangGraph agent → `SPEAK` |
 | `PLAYER_ATTACKED`            | `target_npc_name`                  | LangGraph agent → `SPEAK` |
 | `PLAYER_LOOKED_AT_NPC`       | `target_npc_name`                  | Non-LLM emotion rule → `SPEAK` `"Greetings."` (`"Get lost."` if the NPC's anger > 0.7) |
-| `ADMIN_SET_TRUST`            | `target_npc_name`, `keyword`       | State mutation → `ADMIN_ACK` |
-| `ADMIN_SET_QUEST_STAGE`      | `target_npc_name`, `keyword`       | State mutation → `ADMIN_ACK` |
+| `ADMIN_SET_TRUST`            | `target_npc_name`, `keyword`       | State mutation → `ADMIN_ACK` (requires ADMIN_ENABLED=true, otherwise returns ERROR) |
+| `ADMIN_SET_QUEST_STAGE`      | `target_npc_name`, `keyword`       | State mutation → `ADMIN_ACK` (requires ADMIN_ENABLED=true, otherwise returns ERROR) |
 
 Example question → answer:
 
@@ -114,7 +114,7 @@ Example question → answer:
 ```
 
 Every event first passes through the quest manager (precondition checks, emotion update,
-memory write, cache-aside player/NPC lookups). If a quest precondition fails, the server
+memory write, player/NPC lookups). If a quest precondition fails, the server
 returns that quest's fail-response instead of calling the AI. Otherwise the orchestrator
 gathers context (emotions, recent memories, player-specific trust, quest state) and calls
 the Python AI service over gRPC, then relays its `action_type`/`content`.

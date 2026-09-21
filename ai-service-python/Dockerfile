@@ -8,8 +8,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Service code + its gamedata (agents build embeddings from lore.json at startup).
+# Service code (agents build embeddings from lore.json at startup).
 COPY . .
+COPY --from=gamedata . /app/gamedata
+ENV GAMEDATA_DIR=/app/gamedata
 
 # gRPC (Go orchestrator) and REST (evals/benchmarks/healthcheck) — both in one process.
 EXPOSE 50051 8000

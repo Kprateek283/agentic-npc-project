@@ -12,6 +12,7 @@ import traceback
 import config
 from agent_manager import live_agents
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from router import KNOWN_EVENTS, UnknownAgentError, default_context, route_event
 
@@ -73,7 +74,20 @@ def _dispatch(npc: str, event_type: str, text: str, context: DynamicContext) -> 
 
 
 @app.get("/health")
-def health() -> dict:
+def health():
+    if not live_agents:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "no_agents",
+                "agents_loaded": 0,
+                "llm_provider": config.LLM_PROVIDER,
+                "chat_model": config.CHAT_MODEL_HEAVY,
+                "embedding_model": config.EMBEDDING_MODEL,
+                "vector_store": config.VECTOR_STORE,
+                "retriever_k": config.RETRIEVER_K,
+            },
+        )
     return {
         "status": "ok",
         "agents_loaded": len(live_agents),
@@ -90,7 +104,7 @@ def list_npcs() -> list[NpcSummary]:
     return [
         NpcSummary(
             key=key,
-            npc=key.split("/")[-2],
+            npc=key,
             name=agent.npc_name,
             occupation=agent.npc_occupation,
         )

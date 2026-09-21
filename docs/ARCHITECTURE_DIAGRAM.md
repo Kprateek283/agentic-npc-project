@@ -183,7 +183,7 @@
 │                                                                   │
 │  6. Agent Manager                                                │
 │     ├─ Lookup agent in live_agents registry                      │
-│     │  agent = live_agents["gamedata/npcs/elara/personality.json"]│
+│     │  agent = live_agents["elara"]                              │
 │     └─ Return NpcAgent instance (pre-loaded)                     │
 │                                                                   │
 │  7. NpcAgent.run_rag_agent()                                     │

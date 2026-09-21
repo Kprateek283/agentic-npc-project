@@ -1,6 +1,10 @@
 package quest_logic
 
-import "testing"
+import (
+	"agentic-npc-backend/internal/dto"
+	"context"
+	"testing"
+)
 
 func TestTrustMet(t *testing.T) {
 	tests := []struct {
@@ -21,6 +25,80 @@ func TestTrustMet(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := trustMet(tt.level, tt.operator, tt.value); got != tt.want {
 				t.Errorf("trustMet(%v, %q, %v) = %v, want %v", tt.level, tt.operator, tt.value, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestKeywordMatches(t *testing.T) {
+	tests := []struct {
+		name      string
+		eventType string
+		keyword   string
+		text      string
+		want      bool
+	}{
+		{
+			name:      "empty keyword",
+			eventType: "PLAYER_ASKED_QUESTION",
+			keyword:   "",
+			text:      "any question",
+			want:      true,
+		},
+		{
+			name:      "question contains keyword",
+			eventType: "PLAYER_ASKED_QUESTION",
+			keyword:   "cure",
+			text:      "Do you know of a cure?",
+			want:      true,
+		},
+		{
+			name:      "question case insensitive",
+			eventType: "PLAYER_ASKED_QUESTION",
+			keyword:   "cure",
+			text:      "CURE please",
+			want:      true,
+		},
+		{
+			name:      "word boundary secure does not match cure",
+			eventType: "PLAYER_ASKED_QUESTION",
+			keyword:   "cure",
+			text:      "Is the gate secure?",
+			want:      false,
+		},
+		{
+			name:      "word boundary obscure does not match cure",
+			eventType: "PLAYER_ASKED_QUESTION",
+			keyword:   "cure",
+			text:      "That is obscure",
+			want:      false,
+		},
+		{
+			name:      "multi-word keyword inside a question",
+			eventType: "PLAYER_ASKED_QUESTION",
+			keyword:   "ancient scroll",
+			text:      "Where can I find the ancient scroll in the cave?",
+			want:      true,
+		},
+		{
+			name:      "item event exact match case insensitive",
+			eventType: "PLAYER_SUBMITTED_ITEM",
+			keyword:   "Sunpetal",
+			text:      "sunpetal",
+			want:      true,
+		},
+		{
+			name:      "item event non exact match",
+			eventType: "PLAYER_SUBMITTED_ITEM",
+			keyword:   "Sunpetal",
+			text:      "Sunpetal Seed",
+			want:      false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := keywordMatches(tt.eventType, tt.keyword, tt.text); got != tt.want {
+				t.Errorf("keywordMatches(%q, %q, %q) = %v, want %v", tt.eventType, tt.keyword, tt.text, got, tt.want)
 			}
 		})
 	}
@@ -47,7 +125,7 @@ func TestGetItemDefinition(t *testing.T) {
 // TestNewQuestManagerLoadsGamedata reads the real gamedata directory (file access only,
 // no DB/Redis) and asserts the static definitions load.
 func TestNewQuestManagerLoadsGamedata(t *testing.T) {
-	qm, err := NewQuestManager("../../../gamedata")
+	qm, err := NewQuestManager("../../../../gamedata")
 	if err != nil {
 		t.Fatalf("NewQuestManager: %v", err)
 	}
@@ -58,3 +136,19 @@ func TestNewQuestManagerLoadsGamedata(t *testing.T) {
 		t.Error("expected 'apple' item to be loaded from gamedata")
 	}
 }
+
+func TestHandleAdminCommand_Disabled(t *testing.T) {
+	qm := &QuestManager{AdminEnabled: false}
+	err := qm.HandleAdminCommand(context.Background(), nil, dto.EventMessage{
+		EventType:      "ADMIN_SET_TRUST",
+		SourceEntityId: "player1",
+	})
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	wantErr := "admin commands are disabled (set ADMIN_ENABLED=true)"
+	if err.Error() != wantErr {
+		t.Errorf("got error %q, want %q", err.Error(), wantErr)
+	}
+}
+

@@ -14,9 +14,9 @@ RUN CGO_ENABLED=0 go build -o /out/server ./cmd/server
 # --- runtime stage ---
 FROM alpine:3.20
 WORKDIR /app
-# gamedata is read from disk at startup (seeder + quest/emotion managers) via relative
-# paths, so it must sit beside the binary in the working directory.
+ENV GAMEDATA_DIR=/app/gamedata
+# gamedata is read from disk at startup (seeder + quest/emotion managers) via GAMEDATA_DIR.
 COPY --from=build /out/server /app/server
-COPY gamedata /app/gamedata
+COPY --from=gamedata . /app/gamedata
 EXPOSE 8080
 ENTRYPOINT ["/app/server"]

@@ -11,6 +11,7 @@ import (
 	"agentic-npc-backend/internal/infra/httpsapi"
 	"fmt"
 	"log"
+	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
@@ -52,7 +53,7 @@ func New() (*App, error) {
 	log.Println("Redis client initialized")
 
 	// 5. Seed Database (NPCs)
-	err = database.SeedNPCs(dbClient, "gamedata/npcs")
+	err = database.SeedNPCs(dbClient, filepath.Join(cfg.GamedataDir, "npcs"))
 	if err != nil {
 		err := dbClient.Close()
 		if err != nil {
@@ -64,7 +65,7 @@ func New() (*App, error) {
 	log.Println("NPC database seeded successfully")
 
 	// 5b. Seed Database (Quests)
-	err = database.SeedQuests(dbClient, "gamedata/quests") // <-- CORRECTED LINE
+	err = database.SeedQuests(dbClient, filepath.Join(cfg.GamedataDir, "quests"))
 	if err != nil {
 		err := dbClient.Close()
 		if err != nil {
@@ -76,7 +77,7 @@ func New() (*App, error) {
 	log.Println("Quest database seeded successfully")
 
 	// 6. Initialize QuestManager
-	questManager, err := quest_logic.NewQuestManager("gamedata")
+	questManager, err := quest_logic.NewQuestManager(cfg.GamedataDir)
 	if err != nil {
 		err := dbClient.Close()
 		if err != nil {
@@ -85,10 +86,11 @@ func New() (*App, error) {
 		redisClient.Close()
 		return nil, fmt.Errorf("failed to create quest manager: %w", err)
 	}
+	questManager.AdminEnabled = cfg.AdminEnabled
 	log.Println("Dungeon Master (QuestManager) initialized successfully")
 
 	// 7. Initialize EmotionManager
-	emotionManager, err := npc_logic.NewEmotionManager("gamedata")
+	emotionManager, err := npc_logic.NewEmotionManager(cfg.GamedataDir)
 	if err != nil {
 		err := dbClient.Close()
 		if err != nil {
@@ -113,7 +115,7 @@ func New() (*App, error) {
 
 	// 9. Create Handlers
 	healthHandler := handlers.HealthHandler
-	wsHandler := handlers.NewWebSocketHandler(dbClient, aiClient, questManager, redisClient, emotionManager)
+	wsHandler := handlers.NewWebSocketHandler(dbClient, aiClient, questManager, redisClient, emotionManager, cfg.AllowedOrigins, cfg.LLMRateLimit, cfg.LLMRateWindow)
 	log.Println("API Handlers initialized")
 
 	// 10. Initialize HTTP Server

@@ -1,3 +1,4 @@
+import contextlib
 import logging
 import os
 import time
@@ -6,16 +7,14 @@ from langchain_core.messages import HumanMessage
 from langgraph.errors import GraphRecursionError
 
 # --- Local Imports ---
-from config import embeddings
+from config import embeddings, llm_light
 from semantic_cache import SemanticCache, cacheable_context
 from tools.lore_retriever_tool import create_lore_tool_from_file
 from tools.quest_status_tool import quest_status
-# --- THIS IS THE FIX: Use relative imports ('.') ---
 from .context_formatter import format_dynamic_context
 from .prompt_loader import load_static_prompt
 from .rag_builder import build_rag_chain
 from .graph_builder import build_langgraph_agent
-# ---------------------------------------------------
 
 # Hard cap on agent<->tool loops, so a confused model cannot spin forever or burn quota.
 # One loop costs two graph super-steps (agent, then tools), plus the final agent turn.
@@ -43,7 +42,7 @@ class NpcAgent:
     """
 
     def __init__(self, personality_path: str, backstory_path: str, lore_path: str):
-        print(f"Initializing new agent from: {personality_path}")
+        logger.info("Initializing new agent from: %s", personality_path)
 
         # 1. Load Static Prompt Data
         (
@@ -61,14 +60,18 @@ class NpcAgent:
 
         # 3. Build Brains
         # Pass the prompt and retriever to the builders
-        self.rag_chain = build_rag_chain(self.static_system_prompt, self.lore_retriever)
+        self.rag_prompt_chain, self.rag_chain = build_rag_chain(self.static_system_prompt, self.lore_retriever)
         self.langgraph_chain = build_langgraph_agent(self.static_system_prompt, self.tools)
 
         # 4. Per-NPC semantic response cache for repeated lore questions (C4).
         self._cache = SemanticCache()
 
-        print(f"Successfully initialized agent: {self.npc_name} ({self.npc_occupation}) "
-              f"[tools: {self.tool_names}]")
+        logger.info(
+            "Successfully initialized agent: %s (%s) [tools: %s]",
+            self.npc_name,
+            self.npc_occupation,
+            self.tool_names,
+        )
 
 
     def _cache_lookup(self, dynamic_context: dict, question: str):
@@ -117,11 +120,15 @@ class NpcAgent:
             "question": player_question,
             **format_dynamic_context(dynamic_context),
         }
-        # The chain ends in StrOutputParser, so .stream() yields incremental strings.
+        prompt_value = self.rag_prompt_chain.invoke(input_dict)
         parts = []
-        for delta in self.rag_chain.stream(input_dict):
-            parts.append(delta)
-            yield delta
+        stream_gen = llm_light.stream(prompt_value)
+        with contextlib.closing(stream_gen):
+            for chunk in stream_gen:
+                text = chunk.text
+                if text:
+                    parts.append(text)
+                    yield text
 
         if q_emb is not None:
             self._cache.put(q_emb, "".join(parts))

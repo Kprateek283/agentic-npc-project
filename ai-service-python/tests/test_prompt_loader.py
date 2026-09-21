@@ -3,7 +3,7 @@ import json
 import pytest
 from agents.prompt_loader import load_static_prompt
 
-GAMEDATA = "gamedata/npcs"
+GAMEDATA = "../gamedata/npcs"
 
 
 def test_loads_string_occupation():

@@ -12,20 +12,18 @@ import (
 	"log"
 	"strconv"
 	"strings"
-
-	"github.com/go-redis/redis/v8"
 )
 
 // --- SPECIFIC EVENT HANDLERS ---
 
 // handleGifting applies the diminishing returns logic for gifts
-func (qm *QuestManager) handleGifting(ctx context.Context, db *ent.Client, rdb *redis.Client, p *ent.Player, n *ent.NPC, itemID string) error {
+func (qm *QuestManager) handleGifting(ctx context.Context, db *ent.Client, p *ent.Player, n *ent.NPC, itemID string) error {
 	itemDef, err := qm.getItemDefinition(itemID)
 	if err != nil {
 		return err
 	}
 
-	rel, err := qm.GetOrCreateRelationship(ctx, db, rdb, p, n)
+	rel, err := qm.GetOrCreateRelationship(ctx, db, p, n)
 	if err != nil {
 		return err
 	}
@@ -50,18 +48,16 @@ func (qm *QuestManager) handleGifting(ctx context.Context, db *ent.Client, rdb *
 		return err
 	}
 
-	// Invalidate this relationship's cache
-	cacheKey := fmt.Sprintf("relationship:%s:%s", p.ID.String(), n.ID.String())
-	rdb.Del(ctx, cacheKey)
-
 	log.Printf("Gifting successful: NPC %s trust is now %f (Gift #%d)", n.Name, newTrustLevel, newGiftCount)
 	return nil
 }
 
 // HandleAdminCommand processes debug commands
-func (qm *QuestManager) HandleAdminCommand(ctx context.Context, db *ent.Client, rdb *redis.Client, event dto.EventMessage) error { // <-- ADDED rdb argument
+func (qm *QuestManager) HandleAdminCommand(ctx context.Context, db *ent.Client, event dto.EventMessage) error {
+	if !qm.AdminEnabled {
+		return fmt.Errorf("admin commands are disabled (set ADMIN_ENABLED=true)")
+	}
 	log.Printf("Dungeon Master: Received ADMIN COMMAND: %s", event.EventType)
-	// Admin commands don't use cache to get the player, ensuring fresh data
 	p, err := db.Player.Query().Where(entplayer.PlayerIDEQ(event.SourceEntityId)).Only(ctx)
 	if err != nil {
 		return fmt.Errorf("admin command failed: could not find player %s", event.SourceEntityId)
@@ -128,15 +124,14 @@ func (qm *QuestManager) HandleAdminCommand(ctx context.Context, db *ent.Client, 
 			return fmt.Errorf("invalid admin trust value: %w", err)
 		}
 
-		// Find the target NPC (don't use cache for admin commands)
+		// Find the target NPC
 		n, err := db.NPC.Query().Where(entnpc.NameEQ(npcName)).Only(ctx)
 		if err != nil {
 			return fmt.Errorf("admin command failed: could not find NPC %s", npcName)
 		}
 
 		// Get or create the relationship
-		// NOTE: Use GetOrCreateRelationship which handles DB+Cache logic
-		rel, err := qm.GetOrCreateRelationship(ctx, db, rdb, p, n)
+		rel, err := qm.GetOrCreateRelationship(ctx, db, p, n)
 		if err != nil {
 			return fmt.Errorf("failed to get/create relationship for admin command: %w", err)
 		}
@@ -146,10 +141,6 @@ func (qm *QuestManager) HandleAdminCommand(ctx context.Context, db *ent.Client, 
 		if err != nil {
 			return fmt.Errorf("failed to set trust level: %w", err)
 		}
-
-		// Invalidate cache explicitly (GetOrCreateRelationship already does this on create, but not update)
-		cacheKey := fmt.Sprintf("relationship:%s:%s", p.ID.String(), n.ID.String())
-		rdb.Del(ctx, cacheKey)
 
 		log.Printf("ADMIN: Set player %s trust with NPC %s to %.2f", p.PlayerID, npcName, trustValue)
 

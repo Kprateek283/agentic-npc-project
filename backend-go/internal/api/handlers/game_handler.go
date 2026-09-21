@@ -4,9 +4,8 @@ import (
 	"agentic-npc-backend/internal/db/ent"
 	entplayerqueststate "agentic-npc-backend/internal/db/ent/playerqueststate"
 	"agentic-npc-backend/internal/db/ent/schema"
-	_ "agentic-npc-backend/internal/domain/npc_logic"
-	_ "agentic-npc-backend/internal/dto"
 	pb "agentic-npc-backend/internal/proto"
+	"agentic-npc-backend/internal/ratelimit"
 	"context"
 	"crypto/rand"
 	"encoding/hex"
@@ -16,10 +15,11 @@ import (
 	"strings"
 	"time"
 
-	_ "github.com/go-redis/redis/v8"
 	"github.com/gorilla/websocket"
 	"google.golang.org/grpc/metadata"
 )
+
+const rateLimitedLine = "Easy, friend — you're talking faster than I can think. Give me a moment."
 
 // newRequestID returns a short random hex id used to correlate the Go and Python
 // log lines for one conversation event.
@@ -36,7 +36,7 @@ func (h *WebSocketHandler) HandleGameEvent(conn *websocket.Conn, ctx context.Con
 
 	// 1. Process all game logic (quests, gifting, AND admin commands)
 	questStart := time.Now()
-	failResponse, err := h.questManager.ProcessEvent(ctx, h.dbClient, h.redisClient, event)
+	failResponse, err := h.questManager.ProcessEvent(ctx, h.dbClient, event)
 	questMs := time.Since(questStart).Milliseconds()
 	if err != nil {
 		log.Printf("Error processing event in QuestManager: %v", err)
@@ -56,6 +56,18 @@ func (h *WebSocketHandler) HandleGameEvent(conn *websocket.Conn, ctx context.Con
 	if strings.HasPrefix(event.EventType, "ADMIN_") {
 		log.Println("Dungeon Master: Admin command processed successfully.")
 		h.sendSimpleResponse(conn, "ADMIN_ACK", "Admin command received and processed.")
+		return
+	}
+
+	// Rate limit check before calling the AI service
+	rlCtx, rlCancel := context.WithTimeout(ctx, 200*time.Millisecond)
+	allowed, count, err := ratelimit.Allow(rlCtx, h.redisClient, "ratelimit:llm:"+event.SourceEntityId, h.llmRateLimit, h.llmRateWindow)
+	rlCancel()
+	if err != nil {
+		slog.Warn("rate_limit_unavailable", "req_id", reqID, "player", event.SourceEntityId, "err", err.Error())
+	} else if !allowed {
+		slog.Warn("rate_limited", "req_id", reqID, "player", event.SourceEntityId, "count", count)
+		h.sendSimpleResponse(conn, "SPEAK", rateLimitedLine)
 		return
 	}
 
@@ -105,14 +117,14 @@ type aiRequestArgs struct {
 // they cannot drift; it must run exactly once per event.
 func (h *WebSocketHandler) gatherAIContext(ctx context.Context, event EventMessage) (*aiRequestArgs, error) {
 	// 4a. Get Target NPC
-	targetNPC, err := h.questManager.GetNpc(ctx, h.dbClient, h.redisClient, event.TargetNpcName)
+	targetNPC, err := h.questManager.GetNpc(ctx, h.dbClient, event.TargetNpcName)
 	if err != nil {
 		log.Printf("Error finding NPC: %v", err)
 		return nil, fmt.Errorf("target NPC not found")
 	}
 
 	// 4b. Get Player (needed for relationship)
-	player, err := h.questManager.GetPlayer(ctx, h.dbClient, h.redisClient, event.SourceEntityId)
+	player, err := h.questManager.GetPlayer(ctx, h.dbClient, event.SourceEntityId)
 	if err != nil {
 		log.Printf("Error finding Player: %v", err)
 		return nil, fmt.Errorf("player not found")
@@ -152,7 +164,7 @@ func (h *WebSocketHandler) gatherAIContext(ctx context.Context, event EventMessa
 	currentQuestStep, completionRate := h.getPlayerQuestState(ctx, player)
 
 	// 4g. Get Player-Specific Trust
-	rel, err := h.questManager.GetOrCreateRelationship(ctx, h.dbClient, h.redisClient, player, targetNPC)
+	rel, err := h.questManager.GetOrCreateRelationship(ctx, h.dbClient, player, targetNPC)
 	if err != nil {
 		log.Printf("Error getting relationship: %v", err)
 		return nil, err

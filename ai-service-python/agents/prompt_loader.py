@@ -1,4 +1,7 @@
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def load_static_prompt(personality_path: str, backstory_path: str) -> (str, str, str, str):
@@ -33,5 +36,5 @@ detail of your own past, stay vague rather than making one up.
         return static_system_prompt, npc_name, npc_occupation, personality_summary
 
     except Exception as e:
-        print(f"CRITICAL ERROR: Failed to load static files from {personality_path}: {e}")
+        logger.exception("CRITICAL ERROR: Failed to load static files from %s: %s", personality_path, e)
         raise

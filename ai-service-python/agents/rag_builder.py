@@ -23,16 +23,15 @@ def build_rag_chain(static_system_prompt: str, lore_retriever):
         ("human", "{question}"),
     ])
 
-    rag_chain = (
-            {
-                "context": itemgetter("question") | lore_retriever | _format_docs,
-                "question": itemgetter("question"),
-                "emotions": itemgetter("emotions"),
-                "npc_memories": itemgetter("npc_memories"),
-                "speaker": itemgetter("speaker"),
-            }
-            | full_rag_prompt
-            | llm_light
-            | StrOutputParser()
+    prompt_chain = (
+        {
+            "context": itemgetter("question") | lore_retriever | _format_docs,
+            "question": itemgetter("question"),
+            "emotions": itemgetter("emotions"),
+            "npc_memories": itemgetter("npc_memories"),
+            "speaker": itemgetter("speaker"),
+        }
+        | full_rag_prompt
     )
-    return rag_chain
+    rag_chain = prompt_chain | llm_light | StrOutputParser()
+    return prompt_chain, rag_chain

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"agentic-npc-backend/internal/app" // <-- Import the new app package
+	"agentic-npc-backend/internal/app"
 	"log"
 )
 

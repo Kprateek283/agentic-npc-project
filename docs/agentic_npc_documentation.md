@@ -8,7 +8,7 @@ The Agentic NPC Framework is a high-performance distributed system for generativ
    - **Role**: The central hub and authoritative source of truth for the game world.
    - **Communication**: Manages bidirectional communication with game clients (e.g., Unreal Engine) via WebSockets.
    - **State Machine & Logic**: Handles quest lifecycles, player inventories, NPC relationships, and emotions.
-   - **Persistence**: Uses PostgreSQL (via Ent ORM) for relational data and Redis for cache-aside fast retrieval.
+   - **Persistence**: Uses PostgreSQL (via Ent ORM) for relational data and Redis for a per-player LLM rate limit.
    - **Orchestration**: Validates game events and routes them to the Python AI service via gRPC.
 
 2. **Python AI Service (The Brain)**:
@@ -77,7 +77,7 @@ The Go application acts as the real-time server, state machine, and bridge betwe
 
 #### Domain Logic (`backend-go/internal/domain/`)
 - **`quest_logic/quest_manager.go`**: Serves as the "rulebook". It loads static definitions (items, quests) from disk into memory. Its `ProcessEvent` method acts as the gatekeeper, validating player actions against quest preconditions before any AI gets involved.
-- **`quest_logic/event_handlers.go`, `quest_logic.go`, `gamedata_defs.go`, `cache_helpers.go`**: Contain specific domain logic for checking quest progression, resolving gifting logic, and handling Redis cache lookups.
+- **`quest_logic/event_handlers.go`, `quest_logic.go`, `gamedata_defs.go`, `lookups.go`**: Contain specific domain logic for checking quest progression, resolving gifting logic, and handling database lookups.
 - **`npc_logic/emotion_manager.go`**: Loads static emotion deltas from `event_emotions.json`. Modifies an NPC's core emotional state (Joy, Sadness, Anger, Fear, Trust) when specific events occur.
 - **`user_logic/user_manager.go`**: Contains domain logic for managing user creation and queries.
 

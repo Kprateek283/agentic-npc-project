@@ -6,12 +6,11 @@ import (
 	entplayerqueststate "agentic-npc-backend/internal/db/ent/playerqueststate"
 	"agentic-npc-backend/internal/dto"
 	"context"
-	"fmt"
 	"log"
+	"log/slog"
+	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/go-redis/redis/v8"
 )
 
 // --- CORE QUEST LOGIC FUNCTIONS ---
@@ -29,8 +28,26 @@ func trustMet(level float64, operator string, value float64) bool {
 	}
 }
 
+// keywordMatches checks whether the event's text matches the quest step trigger keyword.
+// An empty keyword matches any text. For question events, the keyword must appear as a
+// whole word or phrase (case-insensitive). Other event types require an exact case-insensitive match.
+func keywordMatches(eventType, keyword, text string) bool {
+	if keyword == "" {
+		return true
+	}
+	if eventType == "PLAYER_ASKED_QUESTION" {
+		pattern := `(?i)\b` + regexp.QuoteMeta(keyword) + `\b`
+		matched, err := regexp.MatchString(pattern, text)
+		if err != nil {
+			return false
+		}
+		return matched
+	}
+	return strings.EqualFold(keyword, text)
+}
+
 // checkQuestCompletion is the main quest logic loop
-func (qm *QuestManager) checkQuestCompletion(ctx context.Context, db *ent.Client, rdb *redis.Client, p *ent.Player, n *ent.NPC, event dto.EventMessage) (failResponse *FailResponseAction, err error) {
+func (qm *QuestManager) checkQuestCompletion(ctx context.Context, db *ent.Client, p *ent.Player, n *ent.NPC, event dto.EventMessage) (failResponse *FailResponseAction, err error) {
 	// Find all active quests for this player
 	activeQuests, err := db.PlayerQuestState.Query().Where(
 		entplayerqueststate.HasPlayerWith(entplayer.IDEQ(p.ID)),
@@ -39,9 +56,7 @@ func (qm *QuestManager) checkQuestCompletion(ctx context.Context, db *ent.Client
 	if err != nil {
 		return nil, err
 	}
-	// --- ADDED DEBUG ---
-	log.Printf("[DEBUG] Found %d active quests for player %s", len(activeQuests), p.PlayerID)
-	// ---------------
+	slog.Debug("found active quests", "count", len(activeQuests), "player_id", p.PlayerID)
 	if len(activeQuests) == 0 {
 		return nil, nil // No active quests, nothing to do
 	}
@@ -58,9 +73,6 @@ func (qm *QuestManager) checkQuestCompletion(ctx context.Context, db *ent.Client
 		if !ok {
 			continue // Player is on a step that doesn't exist
 		}
-		// --- ADDED DEBUG ---
-		// log.Printf("[DEBUG] Checking trigger for Quest '%s', Step %s...", questState.QuestIdentifier, currentStepStr)
-		// ---------------
 
 		// Check if the event matches the trigger for this step
 		trigger := stepDef.CompletionTrigger
@@ -77,18 +89,16 @@ func (qm *QuestManager) checkQuestCompletion(ctx context.Context, db *ent.Client
 			}
 
 			// Perform the keyword check (case-insensitive)
-			if trigger.Keyword == "" || strings.EqualFold(trigger.Keyword, textToMatch) {
+			if keywordMatches(event.EventType, trigger.Keyword, textToMatch) {
 				eventMatchesTrigger = true // All conditions met!
 			}
 		}
 
 		if eventMatchesTrigger {
-			// --- ADDED DEBUG ---
-			log.Printf("[DEBUG] Event matches trigger for Quest '%s', Step %s!", questState.QuestIdentifier, currentStepStr)
-			// ---------------
+			slog.Debug("event matches trigger", "quest_id", questState.QuestIdentifier, "step", currentStepStr)
 
 			// Event matches! Now check preconditions
-			preconditionsMet, err := qm.checkPreconditions(ctx, db, rdb, p, n, stepDef.Preconditions)
+			preconditionsMet, err := qm.checkPreconditions(ctx, db, p, n, stepDef.Preconditions)
 			if err != nil {
 				return nil, err
 			}
@@ -98,13 +108,11 @@ func (qm *QuestManager) checkQuestCompletion(ctx context.Context, db *ent.Client
 			}
 
 			// Preconditions met! Apply rewards
-			if err := qm.applyRewards(ctx, db, rdb, p, n, stepDef.Rewards); err != nil {
+			if err := qm.applyRewards(ctx, db, p, n, stepDef.Rewards); err != nil {
 				log.Printf("Warning: failed to apply rewards: %v", err)
 				// Don't block quest completion on reward failure
 			} else {
-				// --- ADDED LOG ---
 				log.Printf("Successfully applied rewards for Quest '%s', Step %s.", questState.QuestIdentifier, currentStepStr)
-				// ---------------
 			}
 
 			// Update quest state
@@ -115,19 +123,15 @@ func (qm *QuestManager) checkQuestCompletion(ctx context.Context, db *ent.Client
 					return nil, err
 				}
 				err = db.PlayerQuestState.UpdateOne(questState).SetCurrentStep(nextStep).Exec(ctx)
-				// --- ADDED LOG ---
 				if err == nil {
 					log.Printf("Updated Quest '%s' to Step %d.", questState.QuestIdentifier, nextStep)
 				}
-				// ---------------
 			} else {
 				// This was the last step, complete the quest
 				err = db.PlayerQuestState.UpdateOne(questState).SetIsCompleted(true).Exec(ctx)
-				// --- ADDED LOG ---
 				if err == nil {
 					log.Printf("Completed Quest '%s'.", questState.QuestIdentifier)
 				}
-				// ---------------
 			}
 			if err != nil {
 				return nil, err // Return error if DB update failed
@@ -135,34 +139,31 @@ func (qm *QuestManager) checkQuestCompletion(ctx context.Context, db *ent.Client
 			return nil, nil // Quest step completed successfully
 		}
 	}
-	// --- ADDED DEBUG ---
-	// log.Printf("[DEBUG] Event did not match any active quest step triggers.")
-	// ---------------
 	return nil, nil // Event didn't trigger any active quest steps
 }
 
 // checkPreconditions validates all rules for a quest step
-func (qm *QuestManager) checkPreconditions(ctx context.Context, db *ent.Client, rdb *redis.Client, p *ent.Player, n *ent.NPC, preconditions []Precondition) (bool, error) {
-	log.Printf("[DEBUG] Checking preconditions for player %s, npc %s, quest step...", p.PlayerID, n.Name) // Updated log
+func (qm *QuestManager) checkPreconditions(ctx context.Context, db *ent.Client, p *ent.Player, n *ent.NPC, preconditions []Precondition) (bool, error) {
+	slog.Debug("checking preconditions", "player_id", p.PlayerID, "npc_name", n.Name)
 	for _, precond := range preconditions {
-		log.Printf("[DEBUG]  - Precondition Type: %s", precond.Type)
+		slog.Debug("checking precondition type", "type", precond.Type)
 		switch precond.Type {
 		case "RELATIONSHIP_TRUST":
-			rel, err := qm.GetOrCreateRelationship(ctx, db, rdb, p, n)
+			rel, err := qm.GetOrCreateRelationship(ctx, db, p, n)
 			if err != nil {
-				log.Printf("[DEBUG]    -> Error getting relationship: %v", err)
+				slog.Debug("error getting relationship", "error", err)
 				return false, err
 			}
-			log.Printf("[DEBUG]    -> Got Relationship: Trust=%.2f", rel.TrustLevel)
-			log.Printf("[DEBUG]    -> Comparing Trust %.2f %s %.2f", rel.TrustLevel, precond.Operator, precond.Value)
+			slog.Debug("got relationship", "trust_level", rel.TrustLevel)
+			slog.Debug("comparing trust", "current", rel.TrustLevel, "operator", precond.Operator, "target", precond.Value)
 
 			trustMet := trustMet(rel.TrustLevel, precond.Operator, precond.Value)
-			log.Printf("[DEBUG]    -> trustMet = %t", trustMet)
+			slog.Debug("trust condition evaluated", "met", trustMet)
 			if !trustMet {
-				log.Printf("[DEBUG]    -> Precondition FAILED!")
+				slog.Debug("precondition failed")
 				return false, nil // Failed this precondition
 			}
-			log.Printf("[DEBUG]    -> Precondition PASSED.")
+			slog.Debug("precondition passed")
 
 		case "QUEST_COMPLETED":
 			count, err := db.PlayerQuestState.
@@ -177,18 +178,18 @@ func (qm *QuestManager) checkPreconditions(ctx context.Context, db *ent.Client, 
 				return false, err
 			}
 			if count == 0 {
-				log.Printf("[DEBUG]  - Precondition FAILED: Quest %s not completed.", precond.QuestID)
+				slog.Debug("precondition failed: quest not completed", "quest_id", precond.QuestID)
 				return false, nil // Required quest is not complete
 			}
-			log.Printf("[DEBUG]  - Precondition PASSED: Quest %s completed.", precond.QuestID)
+			slog.Debug("precondition passed: quest completed", "quest_id", precond.QuestID)
 		}
 	}
-	log.Printf("[DEBUG] All preconditions PASSED.")
+	slog.Debug("all preconditions passed")
 	return true, nil // All preconditions passed
 }
 
 // applyRewards gives the player items, XP, or relationship changes
-func (qm *QuestManager) applyRewards(ctx context.Context, db *ent.Client, rdb *redis.Client, p *ent.Player, n *ent.NPC, rewards Rewards) error {
+func (qm *QuestManager) applyRewards(ctx context.Context, db *ent.Client, p *ent.Player, n *ent.NPC, rewards Rewards) error {
 	// 1. Apply Relationship Change
 	if rewards.RelationshipChange.TargetNPCName != "" {
 		targetNpcName := rewards.RelationshipChange.TargetNPCName
@@ -196,12 +197,12 @@ func (qm *QuestManager) applyRewards(ctx context.Context, db *ent.Client, rdb *r
 			targetNpcName = n.Name // "SELF" means the NPC they're talking to
 		}
 
-		rewardNpc, err := qm.GetNpc(ctx, db, rdb, targetNpcName)
+		rewardNpc, err := qm.GetNpc(ctx, db, targetNpcName)
 		if err != nil {
 			return err
 		}
 
-		rel, err := qm.GetOrCreateRelationship(ctx, db, rdb, p, rewardNpc)
+		rel, err := qm.GetOrCreateRelationship(ctx, db, p, rewardNpc)
 		if err != nil {
 			return err
 		}
@@ -216,23 +217,7 @@ func (qm *QuestManager) applyRewards(ctx context.Context, db *ent.Client, rdb *r
 		if err != nil {
 			return err
 		}
-		// --- ADDED LOG ---
 		log.Printf("Applied Trust Reward: Player %s trust with NPC %s is now %.2f", p.PlayerID, rewardNpc.Name, newTrustLevel)
-		// ---------------
-
-		// Invalidate this relationship's cache
-		cacheKey := fmt.Sprintf("relationship:%s:%s", p.ID.String(), rewardNpc.ID.String())
-		rdb.Del(ctx, cacheKey)
-	}
-
-	// 2. Add XP, Give Items, etc. here
-	if rewards.XP > 0 {
-		// --- ADDED LOG (Example for XP) ---
-		log.Printf("Applied XP Reward: Player %s gained %d XP", p.PlayerID, rewards.XP)
-		// You would add the actual DB update here:
-		// err = p.Update().SetXP(p.XP + rewards.XP).Exec(ctx)
-		// if err != nil { return err }
-		// ---------------
 	}
 
 	return nil
