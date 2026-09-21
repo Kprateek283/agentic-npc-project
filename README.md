@@ -14,7 +14,7 @@ To balance the competing requirements of real-time responsiveness and cognitive 
 ## Quickstart
 
 Requires Docker and a host [Ollama](https://ollama.com) (used for embeddings in **both**
-provider modes).
+provider modes). If Ollama is not reachable when the AI service starts, the service exits and compose restarts it until Ollama is up.
 
 ```bash
 # 1. Host Ollama — bound to 0.0.0.0 so the containers can reach it via the host gateway
