@@ -78,6 +78,10 @@ func (h *WebSocketHandler) HandleGameEvent(conn *websocket.Conn, ctx context.Con
 	// an error or silence and the NPC recovers automatically once the service is back.
 	grpcMs, err := h.streamAI(conn, ctx, reqID, event)
 	if err != nil {
+		if ctx.Err() != nil {
+			slog.Info("client_disconnected", "req_id", reqID, "npc", event.TargetNpcName)
+			return
+		}
 		slog.Warn("ai_stream_failed", "req_id", reqID, "npc", event.TargetNpcName,
 			"event", event.EventType, "err", err.Error())
 		h.sendSimpleResponse(conn, "SPEAK",
@@ -228,6 +232,10 @@ func (h *WebSocketHandler) streamAI(conn *websocket.Conn, ctx context.Context, r
 			h.sendSimpleResponse(conn, "SPEAK_PARTIAL", tok)
 		})
 	grpcMs := time.Since(grpcStart).Milliseconds()
+
+	if ctx.Err() != nil {
+		return grpcMs, ctx.Err()
+	}
 
 	if err != nil && sent == 0 {
 		// Nothing streamed — signal the caller to fall back to the in-character line.

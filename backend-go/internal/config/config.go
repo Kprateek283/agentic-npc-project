@@ -13,6 +13,7 @@ type Config struct {
 	RedisAddr      string
 	ServerPort     string
 	AIServiceAddr  string
+	AICallTimeout  time.Duration
 	GamedataDir    string
 	AdminEnabled   bool
 	AllowedOrigins []string
@@ -39,6 +40,15 @@ func Load() (*Config, error) {
 	aiServiceAddr := os.Getenv("AI_SERVICE_ADDR")
 	if aiServiceAddr == "" {
 		aiServiceAddr = "localhost:50051"
+	}
+
+	aiCallTimeout := 40 * time.Second
+	if rawTimeout := os.Getenv("AI_CALL_TIMEOUT"); rawTimeout != "" {
+		v, err := strconv.Atoi(rawTimeout)
+		if err != nil || v <= 0 {
+			return nil, fmt.Errorf("invalid AI_CALL_TIMEOUT: %q", rawTimeout)
+		}
+		aiCallTimeout = time.Duration(v) * time.Second
 	}
 
 	gamedataDir := os.Getenv("GAMEDATA_DIR")
@@ -81,6 +91,7 @@ func Load() (*Config, error) {
 		RedisAddr:      redisAddr,
 		ServerPort:     serverPort,
 		AIServiceAddr:  aiServiceAddr,
+		AICallTimeout:  aiCallTimeout,
 		GamedataDir:    gamedataDir,
 		AdminEnabled:   adminEnabled,
 		AllowedOrigins: allowedOrigins,
