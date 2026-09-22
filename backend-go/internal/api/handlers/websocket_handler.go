@@ -99,7 +99,8 @@ func (h *WebSocketHandler) Handle(c *gin.Context) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	msgChan := make(chan []byte)
+	// Buffer allows the reader to continue reading to detect client disconnects while a request is in-flight; flooding >16 queued messages simply waits.
+	msgChan := make(chan []byte, 16)
 
 	go func() {
 		defer close(msgChan)

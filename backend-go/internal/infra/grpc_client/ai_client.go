@@ -7,8 +7,6 @@ import (
 	"context"
 	"io"
 	"log"
-	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -28,9 +26,8 @@ type AIClient struct {
 }
 
 // NewAIClient creates a new gRPC client for the AI service. The per-call deadline is
-// AI_CALL_TIMEOUT seconds (default 40 — a few seconds beyond worst-case local Ollama
-// inference, ~26s, so slow local runs are not cut off).
-func NewAIClient(address string) (*AIClient, error) {
+// set by the timeout parameter (typically configured via AI_CALL_TIMEOUT).
+func NewAIClient(address string, timeout time.Duration) (*AIClient, error) {
 	// grpc.NewClient is the current constructor (grpc.Dial is deprecated); it dials
 	// lazily, so a down AI service surfaces as an Unavailable RPC error, not here.
 	// Cap reconnect backoff at 5s (default max is 120s) so the channel re-establishes
@@ -44,13 +41,6 @@ func NewAIClient(address string) (*AIClient, error) {
 	)
 	if err != nil {
 		return nil, err
-	}
-
-	timeout := 40 * time.Second
-	if v := os.Getenv("AI_CALL_TIMEOUT"); v != "" {
-		if secs, err := strconv.Atoi(v); err == nil && secs > 0 {
-			timeout = time.Duration(secs) * time.Second
-		}
 	}
 
 	client := pb.NewAIBrainClient(conn)
