@@ -15,6 +15,9 @@ decision there rather than asking.
 - [ ] Step 5 — gRPC contract, Python formatting and prompts
 - [ ] Step 6 — `EMOTIONS` frame and browser panel
 - [ ] Step 7 — demo verification (needs a local machine: Ollama + Docker), then PR
+- [ ] Step 8 — documentation pass: README and `docs/agentic_npc_documentation.md` still describe
+      the deleted `EmotionManager` and `event_emotions.json`, and the README's Known limitations
+      section predates this redesign.
 
 ## Working rules
 
