@@ -69,4 +69,13 @@ the code will be adjusted to match. Written 2026-09-23; appended to as further c
     old `EmotionManager` still runs but from an empty base each event, so non-trust emotions are
     per-event deltas and do not accumulate. Step 4 replaces this with emotions computed from
     episodes. In-game non-trust emotions are therefore temporarily wrong until step 4.
+19. **Gifting and quest reward authoring:** `PLAYER_GAVE_GIFT` and `QUEST_REWARD` episodes are
+    authored and merged authoritatively by `quest_logic` (`handleGifting` and `applyRewards`) during
+    `questManager.ProcessEvent`; `recordEpisode` ignores these event types to avoid duplicate rows.
+20. **Episode salience sorting tie-breaker:** In `buildAIArgs`, when sorting speaker and bystander
+    episodes by `memory.Weight`, ties in salience weight maintain stable order (newest first from
+    `npcstate.Load`).
+21. **Deterministic memory line wording:** Memory line attribution replaces leading actor ID with
+    `"You"` for the speaker and `"Someone"` for other actors when the description begins with the
+    actor ID.
 

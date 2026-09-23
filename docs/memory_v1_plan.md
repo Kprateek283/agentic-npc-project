@@ -11,7 +11,7 @@ decision there rather than asking.
 - [x] Step 2 — `gamedata/events.json` + `backend-go/internal/domain/rules`: the rules file and a
       validating loader producing a `memory.Config`, 11 tests.
 - [x] Step 3 — schema and episode plumbing (memory rows are episodes; trust computed; gifts and quest rewards recorded as episodes)
-- [ ] Step 4 — rewrite `gatherAIContext`
+- [x] Step 4 — rewrite `gatherAIContext`
 - [ ] Step 5 — gRPC contract, Python formatting and prompts
 - [ ] Step 6 — `EMOTIONS` frame and browser panel
 - [ ] Step 7 — demo verification (needs a local machine: Ollama + Docker), then PR

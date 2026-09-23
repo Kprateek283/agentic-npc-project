@@ -2,8 +2,6 @@
 package grpc_client
 
 import (
-	"agentic-npc-backend/internal/db/ent"
-	"agentic-npc-backend/internal/db/ent/schema"
 	"context"
 	"io"
 	"log"
@@ -65,12 +63,14 @@ func (c *AIClient) callThink(ctx context.Context, req *pb.EventRequest) (*pb.Act
 
 // buildEventRequest converts the Go-side context into the gRPC EventRequest. Shared by
 // the unary (CallAIThink) and streaming (CallAIThinkStream) paths so they cannot drift.
+// Note: Step 5 replaces this with two maps (speaker_emotions, general_mood) and repeated
+// string memory_lines.
 func buildEventRequest(
 	personalityPath string,
 	backstoryPath string,
 	lorePath string,
-	emotions *schema.EmotionState,
-	memories []*ent.Memory,
+	emotions map[string]float64,
+	memoryLines []string,
 	eventType string,
 	questionText string,
 	sourceEntityId string,
@@ -78,20 +78,17 @@ func buildEventRequest(
 	completionRate float32,
 ) *pb.EventRequest {
 	grpcEmotions := &pb.EmotionStateMessage{
-		Joy:     emotions.Joy,
-		Sadness: emotions.Sadness,
-		Anger:   emotions.Anger,
-		Fear:    emotions.Fear,
-		Trust:   emotions.Trust,
+		Joy:     emotions["joy"],
+		Sadness: emotions["sadness"],
+		Anger:   emotions["anger"],
+		Fear:    emotions["fear"],
+		Trust:   emotions["trust"],
 	}
 
 	var grpcMemories []*pb.MemoryMessage
-	for _, mem := range memories {
+	for _, line := range memoryLines {
 		grpcMemories = append(grpcMemories, &pb.MemoryMessage{
-			Description:  mem.Description,
-			Importance:   mem.Importance,
-			EventType:    mem.EventType,
-			Participants: mem.Participants,
+			Description: line,
 		})
 	}
 
@@ -116,15 +113,15 @@ func (c *AIClient) CallAIThink(
 	personalityPath string,
 	backstoryPath string,
 	lorePath string,
-	emotions *schema.EmotionState,
-	memories []*ent.Memory,
+	emotions map[string]float64,
+	memoryLines []string,
 	eventType string,
 	questionText string,
 	sourceEntityId string,
 	currentQuestStep int,
 	completionRate float32,
 ) (*pb.ActionResponse, error) {
-	req := buildEventRequest(personalityPath, backstoryPath, lorePath, emotions, memories,
+	req := buildEventRequest(personalityPath, backstoryPath, lorePath, emotions, memoryLines,
 		eventType, questionText, sourceEntityId, currentQuestStep, completionRate)
 
 	res, err := c.callThink(ctx, req)
@@ -144,8 +141,8 @@ func (c *AIClient) CallAIThinkStream(
 	personalityPath string,
 	backstoryPath string,
 	lorePath string,
-	emotions *schema.EmotionState,
-	memories []*ent.Memory,
+	emotions map[string]float64,
+	memoryLines []string,
 	eventType string,
 	questionText string,
 	sourceEntityId string,
@@ -153,7 +150,7 @@ func (c *AIClient) CallAIThinkStream(
 	completionRate float32,
 	onToken func(string),
 ) (string, error) {
-	req := buildEventRequest(personalityPath, backstoryPath, lorePath, emotions, memories,
+	req := buildEventRequest(personalityPath, backstoryPath, lorePath, emotions, memoryLines,
 		eventType, questionText, sourceEntityId, currentQuestStep, completionRate)
 
 	ctx, cancel := context.WithTimeout(ctx, c.timeout)

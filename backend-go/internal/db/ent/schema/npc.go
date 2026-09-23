@@ -7,15 +7,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// EmotionState holds the emotional values for an NPC.
-// This will be stored as a JSON object in the database.
-type EmotionState struct {
-	Joy     float64 `json:"joy"`
-	Sadness float64 `json:"sadness"`
-	Anger   float64 `json:"anger"`
-	Fear    float64 `json:"fear"`
-	Trust   float64 `json:"trust"`
-}
 
 // NPC holds the schema definition for the NPC entity.
 type NPC struct {

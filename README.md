@@ -81,8 +81,9 @@ flowchart LR
   `ALLOWED_ORIGINS`, and clients without an `Origin` header (game engines) are accepted.
 - **Quest engine:** triggers, trust/quest preconditions and rewards defined in
   `gamedata/quests/`. Question triggers match the keyword as a whole word.
-- **NPC state:** fixed emotion deltas per event type (`gamedata/event_emotions.json`), per-player
-  trust, and a memory row for each event that reaches the AI.
+- **NPC state:** every event is remembered as an "episode" (`gamedata/events.json` defines its
+  emotion deltas and intensity); feelings toward a player and the NPC's general mood are computed
+  from those memories rather than stored.
 - **Rate limiting:** a per-player fixed-window limit on AI calls, kept in Redis
   (`LLM_RATE_LIMIT` per `LLM_RATE_WINDOW_SECONDS`, default 20 per 60 s), protects the shared
   LLM quota; if Redis is unreachable the check fails open.

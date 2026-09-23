@@ -3,9 +3,9 @@ package handlers
 import (
 	"agentic-npc-backend/internal/db/ent"
 	entplayerqueststate "agentic-npc-backend/internal/db/ent/playerqueststate"
-	"agentic-npc-backend/internal/db/ent/schema"
 	"agentic-npc-backend/internal/domain/memory"
 	"agentic-npc-backend/internal/domain/npcstate"
+	"agentic-npc-backend/internal/domain/rules"
 	pb "agentic-npc-backend/internal/proto"
 	"agentic-npc-backend/internal/ratelimit"
 	"context"
@@ -14,6 +14,8 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
+	"math"
+	"sort"
 	"strings"
 	"time"
 
@@ -49,7 +51,6 @@ func (h *WebSocketHandler) HandleGameEvent(conn *websocket.Conn, ctx context.Con
 	// 2. Check for "Fail Response" from quest preconditions
 	if failResponse != nil {
 		log.Printf("Dungeon Master: Precondition failed. Sending fail-response: %s", failResponse.Content)
-		// Send the ActionType and Content from the FailResponseAction struct
 		h.sendSimpleResponse(conn, failResponse.ActionType, failResponse.Content)
 		return
 	}
@@ -61,7 +62,27 @@ func (h *WebSocketHandler) HandleGameEvent(conn *websocket.Conn, ctx context.Con
 		return
 	}
 
-	// Rate limit check before calling the AI service
+	// Find Target NPC and Player
+	targetNPC, err := h.questManager.GetNpc(ctx, h.dbClient, event.TargetNpcName)
+	if err != nil {
+		log.Printf("Error finding NPC: %v", err)
+		h.sendError(conn, "target NPC not found")
+		return
+	}
+
+	player, err := h.questManager.GetPlayer(ctx, h.dbClient, event.SourceEntityId)
+	if err != nil {
+		log.Printf("Error finding Player: %v", err)
+		h.sendError(conn, "player not found")
+		return
+	}
+
+	// 4. Record episode before rate limit check
+	if err := h.recordEpisode(ctx, event, targetNPC, player); err != nil {
+		log.Printf("Error recording episode: %v", err)
+	}
+
+	// 5. Rate limit check before calling the AI service
 	rlCtx, rlCancel := context.WithTimeout(ctx, 200*time.Millisecond)
 	allowed, count, err := ratelimit.Allow(rlCtx, h.redisClient, "ratelimit:llm:"+event.SourceEntityId, h.llmRateLimit, h.llmRateWindow)
 	rlCancel()
@@ -73,12 +94,8 @@ func (h *WebSocketHandler) HandleGameEvent(conn *websocket.Conn, ctx context.Con
 		return
 	}
 
-	// 4. Normal event -> stream the AI response (C3). RAG answers stream token-by-token
-	// (SPEAK_PARTIAL frames) and close with a SPEAK frame; other events arrive as a single
-	// frame. streamAI returns a non-nil error only when nothing streamed at all — in that
-	// case fall back to a graceful in-character line (C2), so the player is never left with
-	// an error or silence and the NPC recovers automatically once the service is back.
-	grpcMs, err := h.streamAI(conn, ctx, reqID, event)
+	// 6. Normal event -> stream the AI response (C3).
+	grpcMs, err := h.streamAI(conn, ctx, reqID, event, targetNPC, player)
 	if err != nil {
 		if ctx.Err() != nil {
 			slog.Info("client_disconnected", "req_id", reqID, "npc", event.TargetNpcName)
@@ -91,8 +108,6 @@ func (h *WebSocketHandler) HandleGameEvent(conn *websocket.Conn, ctx context.Con
 		return
 	}
 
-	// One correlated summary line per event: the M4 latency attribution, made continuous.
-	// grpc_ms is the streaming RPC (first token to last); total_ms is the whole handler.
 	slog.Info("game_event",
 		"req_id", reqID,
 		"player", event.SourceEntityId,
@@ -104,13 +119,225 @@ func (h *WebSocketHandler) HandleGameEvent(conn *websocket.Conn, ctx context.Con
 	)
 }
 
+// recordEpisode writes the event into the memory table using the rules from h.questManager.Rules.
+func (h *WebSocketHandler) recordEpisode(ctx context.Context, event EventMessage, npc *ent.NPC, player *ent.Player) error {
+	if event.EventType == "PLAYER_GAVE_GIFT" || event.EventType == "QUEST_REWARD" {
+		return nil
+	}
+
+	cfg := memory.DefaultConfig()
+	var rule rules.EventRule
+	var hasRule bool
+	if h.questManager != nil && h.questManager.Rules != nil {
+		cfg = h.questManager.Rules.Config
+		rule, hasRule = h.questManager.Rules.Rule(event.EventType)
+	}
+	if !hasRule {
+		return nil // unknown event type records nothing and is not an error
+	}
+
+	eps, rows, err := npcstate.Load(ctx, h.dbClient, npc)
+	if err != nil {
+		return err
+	}
+
+	subject := ""
+	if event.EventType == "PLAYER_GAVE_GIFT" || event.EventType == "PLAYER_SUBMITTED_QUEST_ITEM" {
+		subject = event.Keyword
+	}
+
+	now := time.Now()
+	memoryDesc := fmt.Sprintf("%s triggered %s on %s", player.PlayerID, event.EventType, npc.Name)
+	if event.EventType == "PLAYER_GAVE_GIFT" {
+		memoryDesc = fmt.Sprintf("%s gave %s to %s", player.PlayerID, event.Keyword, npc.Name)
+	}
+
+	if rule.Apology {
+		priorApologies := 0
+		for _, ep := range eps {
+			if ep.Actor == player.PlayerID && ep.EventType == event.EventType {
+				priorApologies++
+			}
+		}
+
+		_ = memory.Forgive(eps, player.PlayerID, priorApologies, cfg)
+
+		var covers []int
+		for i := range eps {
+			if eps[i].Forgiven != rows[i].Forgiven {
+				if err := h.dbClient.Memory.UpdateOne(rows[i]).SetForgiven(eps[i].Forgiven).Exec(ctx); err != nil {
+					return err
+				}
+				covers = append(covers, rows[i].ID)
+			}
+		}
+
+		createOp := h.dbClient.Memory.Create().
+			SetOwner(npc).
+			SetActor(player.PlayerID).
+			SetEventType(event.EventType).
+			SetSubject(subject).
+			SetIntensity(rule.Intensity).
+			SetHarmful(rule.Harmful).
+			SetCount(1.0).
+			SetFirstAt(now).
+			SetLastAt(now).
+			SetParticipants([]string{player.PlayerID, npc.ID.String()}).
+			SetDescription(memoryDesc)
+		if len(rule.Delta) > 0 {
+			createOp.SetDelta(rule.Delta)
+		}
+		if len(covers) > 0 {
+			createOp.SetCovers(covers)
+		}
+		_, err := createOp.Save(ctx)
+		return err
+	}
+
+	actorHasForgiven := false
+	for _, ep := range eps {
+		if ep.Actor == player.PlayerID && ep.Forgiven > 0 {
+			actorHasForgiven = true
+			break
+		}
+	}
+
+	if rule.Harmful && actorHasForgiven {
+		_ = memory.RevokeForgiveness(eps, player.PlayerID)
+		for i := range eps {
+			if rows[i].Actor == player.PlayerID && rows[i].Forgiven > 0 && eps[i].Forgiven == 0 {
+				if err := h.dbClient.Memory.UpdateOne(rows[i]).SetForgiven(0).Exec(ctx); err != nil {
+					return err
+				}
+			}
+		}
+
+		delta := make(map[string]float64, len(rule.Delta)+1)
+		for k, v := range rule.Delta {
+			delta[k] = v
+		}
+		delta["trust"] += cfg.BetrayalTrust
+
+		createOp := h.dbClient.Memory.Create().
+			SetOwner(npc).
+			SetActor(player.PlayerID).
+			SetEventType(event.EventType).
+			SetSubject(subject).
+			SetDelta(delta).
+			SetIntensity(rule.Intensity).
+			SetHarmful(rule.Harmful).
+			SetBetrayal(true).
+			SetCount(1.0).
+			SetFirstAt(now).
+			SetLastAt(now).
+			SetParticipants([]string{player.PlayerID, npc.ID.String()}).
+			SetDescription(memoryDesc)
+		_, err := createOp.Save(ctx)
+		return err
+	}
+
+	if rule.Conversation {
+		createOp := h.dbClient.Memory.Create().
+			SetOwner(npc).
+			SetActor(player.PlayerID).
+			SetEventType(event.EventType).
+			SetSubject(subject).
+			SetText(event.QuestionText).
+			SetIntensity(rule.Intensity).
+			SetHarmful(rule.Harmful).
+			SetCount(1.0).
+			SetFirstAt(now).
+			SetLastAt(now).
+			SetParticipants([]string{player.PlayerID, npc.ID.String()}).
+			SetDescription(memoryDesc)
+		if len(rule.Delta) > 0 {
+			createOp.SetDelta(rule.Delta)
+		}
+		_, err := createOp.Save(ctx)
+		return err
+	}
+
+	// Otherwise: merge into existing episode if CanMerge allows, else insert new row.
+	mergeIndex := -1
+	for i, ep := range eps {
+		if ep.Actor == player.PlayerID && ep.EventType == event.EventType && ep.Subject == subject {
+			if memory.CanMerge(ep, now, cfg, false, actorHasForgiven) {
+				mergeIndex = i
+				break
+			}
+		}
+	}
+
+	if mergeIndex >= 0 {
+		ep := eps[mergeIndex]
+		memory.Merge(&ep, now, cfg)
+		return h.dbClient.Memory.UpdateOne(rows[mergeIndex]).
+			SetCount(ep.Count).
+			SetLastAt(ep.LastAt).
+			Exec(ctx)
+	}
+
+	createOp := h.dbClient.Memory.Create().
+		SetOwner(npc).
+		SetActor(player.PlayerID).
+		SetEventType(event.EventType).
+		SetSubject(subject).
+		SetIntensity(rule.Intensity).
+		SetHarmful(rule.Harmful).
+		SetCount(1.0).
+		SetFirstAt(now).
+		SetLastAt(now).
+		SetParticipants([]string{player.PlayerID, npc.ID.String()}).
+		SetDescription(memoryDesc)
+	if len(rule.Delta) > 0 {
+		createOp.SetDelta(rule.Delta)
+	}
+	_, err = createOp.Save(ctx)
+	return err
+}
+
+type episodeRanked struct {
+	ep     memory.Episode
+	desc   string
+	weight float64
+	order  int
+}
+
+func formatMemoryLine(desc string, actor string, speakerID string, count float64, betrayal bool) string {
+	line := desc
+	if actor != "" {
+		if strings.HasPrefix(line, actor+" ") {
+			if actor == speakerID {
+				line = "You " + line[len(actor)+1:]
+			} else {
+				line = "Someone " + line[len(actor)+1:]
+			}
+		} else if strings.HasPrefix(line, actor) {
+			if actor == speakerID {
+				line = "You" + line[len(actor):]
+			} else {
+				line = "Someone" + line[len(actor):]
+			}
+		}
+	}
+	roundCount := int(math.Round(count))
+	if roundCount >= 2 {
+		line = fmt.Sprintf("%s (%d times)", line, roundCount)
+	}
+	if betrayal {
+		line = line + " — after apologising"
+	}
+	return line
+}
+
 // aiRequestArgs is the fully-gathered per-event context the AI service needs.
 type aiRequestArgs struct {
 	personalityPath string
 	backstoryPath   string
 	lorePath        string
-	emotions        *schema.EmotionState
-	memories        []*ent.Memory
+	emotions        map[string]float64
+	generalMood     map[string]float64
+	memoryLines     []string
 	eventType       string
 	text            string
 	sourceEntityId  string
@@ -118,87 +345,113 @@ type aiRequestArgs struct {
 	completionRate  float32
 }
 
-// gatherAIContext runs the per-event side effects (emotion update, memory write) and
-// collects everything the AI service needs. Shared by the unary and streaming paths so
-// they cannot drift; it must run exactly once per event.
-func (h *WebSocketHandler) gatherAIContext(ctx context.Context, event EventMessage) (*aiRequestArgs, error) {
-	// 4a. Get Target NPC
-	targetNPC, err := h.questManager.GetNpc(ctx, h.dbClient, event.TargetNpcName)
-	if err != nil {
-		log.Printf("Error finding NPC: %v", err)
-		return nil, fmt.Errorf("target NPC not found")
+// buildAIArgs reads the state and computes emotions, general mood, and ranked memory lines.
+func (h *WebSocketHandler) buildAIArgs(ctx context.Context, event EventMessage, npc *ent.NPC, player *ent.Player) (*aiRequestArgs, error) {
+	if npc == nil {
+		var err error
+		npc, err = h.questManager.GetNpc(ctx, h.dbClient, event.TargetNpcName)
+		if err != nil {
+			return nil, fmt.Errorf("target NPC not found")
+		}
+	}
+	if player == nil {
+		var err error
+		player, err = h.questManager.GetPlayer(ctx, h.dbClient, event.SourceEntityId)
+		if err != nil {
+			return nil, fmt.Errorf("player not found")
+		}
 	}
 
-	// 4b. Get Player (needed for relationship)
-	player, err := h.questManager.GetPlayer(ctx, h.dbClient, event.SourceEntityId)
-	if err != nil {
-		log.Printf("Error finding Player: %v", err)
-		return nil, fmt.Errorf("player not found")
+	cfg := memory.DefaultConfig()
+	if h.questManager != nil && h.questManager.Rules != nil {
+		cfg = h.questManager.Rules.Config
 	}
 
-	// 4c. Modify NPC's base emotions
-	newEmotions := h.emotionManager.ModifyEmotionsOnEvent(event, &schema.EmotionState{})
-	updatedNPC := targetNPC
-
-	// 4d. Create Memory
-	memoryDesc := fmt.Sprintf("%s triggered %s on %s", event.SourceEntityId, event.EventType, updatedNPC.Name)
-	if event.EventType == "PLAYER_GAVE_GIFT" {
-		memoryDesc = fmt.Sprintf("%s gave %s to %s", event.SourceEntityId, event.Keyword, updatedNPC.Name)
-	}
-	newMemory, err := h.dbClient.Memory.Create().
-		SetEventType(event.EventType).
-		SetParticipants([]string{event.SourceEntityId, updatedNPC.ID.String()}).
-		SetDescription(memoryDesc).
-		SetOwner(updatedNPC).
-		Save(ctx)
+	eps, rows, err := npcstate.Load(ctx, h.dbClient, npc)
 	if err != nil {
-		log.Printf("Error creating memory: %v", err)
-	} else {
-		log.Printf("Successfully saved Memory ID %d.", newMemory.ID)
-	}
-
-	// 4e. Get Recent Memories
-	recentMemories, err := updatedNPC.QueryMemories().Order(ent.Desc("created_at")).Limit(5).All(ctx)
-	if err != nil {
-		log.Printf("Error fetching recent memories: %v", err)
-	}
-
-	// 4f. Get Player Quest State
-	currentQuestStep, completionRate := h.getPlayerQuestState(ctx, player)
-
-	// 4g. Get Player-Specific Trust
-	_, err = h.questManager.GetOrCreateRelationship(ctx, h.dbClient, player, targetNPC)
-	if err != nil {
-		log.Printf("Error getting relationship: %v", err)
 		return nil, err
 	}
 
-	// 4h/4i. The NPC's emotions with the player-specific trust overlaid.
-	aiEmotions := newEmotions
-	eps, _, err := npcstate.Load(ctx, h.dbClient, targetNPC)
-	if err == nil {
-		cfg := memory.DefaultConfig()
-		if h.questManager.Rules != nil {
-			cfg = h.questManager.Rules.Config
+	now := time.Now()
+	speakerEmotions := memory.EmotionsToward(player.PlayerID, eps, now, cfg)
+	generalMood := memory.GeneralMood(eps, now, cfg)
+
+	var speakerEpisodes []episodeRanked
+	var otherEpisodes []episodeRanked
+
+	for i, ep := range eps {
+		w := memory.Weight(ep, now, cfg)
+		desc := ""
+		if i < len(rows) && rows[i] != nil {
+			desc = rows[i].Description
 		}
-		aiEmotions.Trust = npcstate.TrustToward(eps, player.PlayerID, time.Now(), cfg)
+		item := episodeRanked{
+			ep:     ep,
+			desc:   desc,
+			weight: w,
+			order:  i,
+		}
+		if ep.Actor == player.PlayerID {
+			speakerEpisodes = append(speakerEpisodes, item)
+		} else {
+			if w >= cfg.NotabilityThreshold {
+				otherEpisodes = append(otherEpisodes, item)
+			}
+		}
 	}
 
-	// Main subject text: the item name for gifts/submissions, else the question text.
+	sort.SliceStable(speakerEpisodes, func(i, j int) bool {
+		if speakerEpisodes[i].weight != speakerEpisodes[j].weight {
+			return speakerEpisodes[i].weight > speakerEpisodes[j].weight
+		}
+		return speakerEpisodes[i].order < speakerEpisodes[j].order
+	})
+
+	sort.SliceStable(otherEpisodes, func(i, j int) bool {
+		if otherEpisodes[i].weight != otherEpisodes[j].weight {
+			return otherEpisodes[i].weight > otherEpisodes[j].weight
+		}
+		return otherEpisodes[i].order < otherEpisodes[j].order
+	})
+
+	var memoryLines []string
+	limitSpeaker := 5
+	if len(speakerEpisodes) < limitSpeaker {
+		limitSpeaker = len(speakerEpisodes)
+	}
+	for i := 0; i < limitSpeaker; i++ {
+		item := speakerEpisodes[i]
+		line := formatMemoryLine(item.desc, item.ep.Actor, player.PlayerID, item.ep.Count, item.ep.Betrayal)
+		memoryLines = append(memoryLines, line)
+	}
+
+	limitOther := 3
+	if len(otherEpisodes) < limitOther {
+		limitOther = len(otherEpisodes)
+	}
+	for i := 0; i < limitOther; i++ {
+		item := otherEpisodes[i]
+		line := formatMemoryLine(item.desc, item.ep.Actor, player.PlayerID, item.ep.Count, item.ep.Betrayal)
+		memoryLines = append(memoryLines, line)
+	}
+
+	currentQuestStep, completionRate := h.getPlayerQuestState(ctx, player)
+
 	text := event.QuestionText
 	if event.EventType == "PLAYER_GAVE_GIFT" || event.EventType == "PLAYER_SUBMITTED_QUEST_ITEM" {
 		text = event.Keyword
 	}
 
 	return &aiRequestArgs{
-		personalityPath: updatedNPC.PersonalityPath,
-		backstoryPath:   updatedNPC.BackstoryPath,
-		lorePath:        updatedNPC.LorePath,
-		emotions:        aiEmotions,
-		memories:        recentMemories,
+		personalityPath: npc.PersonalityPath,
+		backstoryPath:   npc.BackstoryPath,
+		lorePath:        npc.LorePath,
+		emotions:        speakerEmotions,
+		generalMood:     generalMood,
+		memoryLines:     memoryLines,
 		eventType:       event.EventType,
 		text:            text,
-		sourceEntityId:  event.SourceEntityId,
+		sourceEntityId:  player.PlayerID,
 		questStep:       currentQuestStep,
 		completionRate:  completionRate,
 	}, nil
@@ -206,15 +459,15 @@ func (h *WebSocketHandler) gatherAIContext(ctx context.Context, event EventMessa
 
 // callAI is the unary path: gather context, call Think, return the response and the RPC's
 // own duration. Kept for the benchmark harness and as the non-streaming fallback.
-func (h *WebSocketHandler) callAI(ctx context.Context, reqID string, event EventMessage) (*pb.ActionResponse, int64, error) {
+func (h *WebSocketHandler) callAI(ctx context.Context, reqID string, event EventMessage, npc *ent.NPC, player *ent.Player) (*pb.ActionResponse, int64, error) {
 	ctx = metadata.AppendToOutgoingContext(ctx, "req-id", reqID)
-	a, err := h.gatherAIContext(ctx, event)
+	a, err := h.buildAIArgs(ctx, event, npc, player)
 	if err != nil {
 		return nil, 0, err
 	}
 	grpcStart := time.Now()
 	resp, err := h.aiClient.CallAIThink(ctx, a.personalityPath, a.backstoryPath, a.lorePath,
-		a.emotions, a.memories, a.eventType, a.text, a.sourceEntityId, a.questStep, a.completionRate)
+		a.emotions, a.memoryLines, a.eventType, a.text, a.sourceEntityId, a.questStep, a.completionRate)
 	return resp, time.Since(grpcStart).Milliseconds(), err
 }
 
@@ -222,9 +475,9 @@ func (h *WebSocketHandler) callAI(ctx context.Context, reqID string, event Event
 // delta as a SPEAK_PARTIAL frame, and close with a SPEAK frame carrying the full text.
 // It returns a non-nil error only when the stream never produced anything (so the caller
 // can fall back); a mid-stream failure is finalized best-effort with the partial text.
-func (h *WebSocketHandler) streamAI(conn *websocket.Conn, ctx context.Context, reqID string, event EventMessage) (int64, error) {
+func (h *WebSocketHandler) streamAI(conn *websocket.Conn, ctx context.Context, reqID string, event EventMessage, npc *ent.NPC, player *ent.Player) (int64, error) {
 	ctx = metadata.AppendToOutgoingContext(ctx, "req-id", reqID)
-	a, err := h.gatherAIContext(ctx, event)
+	a, err := h.buildAIArgs(ctx, event, npc, player)
 	if err != nil {
 		return 0, err
 	}
@@ -232,7 +485,7 @@ func (h *WebSocketHandler) streamAI(conn *websocket.Conn, ctx context.Context, r
 	sent := 0
 	grpcStart := time.Now()
 	full, err := h.aiClient.CallAIThinkStream(ctx, a.personalityPath, a.backstoryPath, a.lorePath,
-		a.emotions, a.memories, a.eventType, a.text, a.sourceEntityId, a.questStep, a.completionRate,
+		a.emotions, a.memoryLines, a.eventType, a.text, a.sourceEntityId, a.questStep, a.completionRate,
 		func(tok string) {
 			sent++
 			h.sendSimpleResponse(conn, "SPEAK_PARTIAL", tok)
@@ -257,7 +510,6 @@ func (h *WebSocketHandler) streamAI(conn *websocket.Conn, ctx context.Context, r
 
 // getPlayerQuestState is a helper to find the active quest state for the AI context
 func (h *WebSocketHandler) getPlayerQuestState(ctx context.Context, player *ent.Player) (int, float32) {
-	// Player object is now passed in
 	if player == nil {
 		return 0, 0.0
 	}
