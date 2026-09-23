@@ -12,7 +12,7 @@ decision there rather than asking.
       validating loader producing a `memory.Config`, 11 tests.
 - [x] Step 3 — schema and episode plumbing (memory rows are episodes; trust computed; gifts and quest rewards recorded as episodes)
 - [x] Step 4 — rewrite `gatherAIContext`
-- [ ] Step 5 — gRPC contract, Python formatting and prompts
+- [x] Step 5 — gRPC contract, Python formatting and prompts
 - [ ] Step 6 — `EMOTIONS` frame and browser panel
 - [ ] Step 7 — demo verification (needs a local machine: Ollama + Docker), then PR
 - [ ] Step 8 — documentation pass: README and `docs/agentic_npc_documentation.md` still describe

@@ -467,7 +467,7 @@ func (h *WebSocketHandler) callAI(ctx context.Context, reqID string, event Event
 	}
 	grpcStart := time.Now()
 	resp, err := h.aiClient.CallAIThink(ctx, a.personalityPath, a.backstoryPath, a.lorePath,
-		a.emotions, a.memoryLines, a.eventType, a.text, a.sourceEntityId, a.questStep, a.completionRate)
+		a.emotions, a.generalMood, a.memoryLines, a.eventType, a.text, a.sourceEntityId, a.questStep, a.completionRate)
 	return resp, time.Since(grpcStart).Milliseconds(), err
 }
 
@@ -485,7 +485,7 @@ func (h *WebSocketHandler) streamAI(conn *websocket.Conn, ctx context.Context, r
 	sent := 0
 	grpcStart := time.Now()
 	full, err := h.aiClient.CallAIThinkStream(ctx, a.personalityPath, a.backstoryPath, a.lorePath,
-		a.emotions, a.memoryLines, a.eventType, a.text, a.sourceEntityId, a.questStep, a.completionRate,
+		a.emotions, a.generalMood, a.memoryLines, a.eventType, a.text, a.sourceEntityId, a.questStep, a.completionRate,
 		func(tok string) {
 			sent++
 			h.sendSimpleResponse(conn, "SPEAK_PARTIAL", tok)

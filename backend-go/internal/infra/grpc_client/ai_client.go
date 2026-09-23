@@ -63,13 +63,12 @@ func (c *AIClient) callThink(ctx context.Context, req *pb.EventRequest) (*pb.Act
 
 // buildEventRequest converts the Go-side context into the gRPC EventRequest. Shared by
 // the unary (CallAIThink) and streaming (CallAIThinkStream) paths so they cannot drift.
-// Note: Step 5 replaces this with two maps (speaker_emotions, general_mood) and repeated
-// string memory_lines.
 func buildEventRequest(
 	personalityPath string,
 	backstoryPath string,
 	lorePath string,
-	emotions map[string]float64,
+	speakerEmotions map[string]float64,
+	generalMood map[string]float64,
 	memoryLines []string,
 	eventType string,
 	questionText string,
@@ -77,27 +76,23 @@ func buildEventRequest(
 	currentQuestStep int,
 	completionRate float32,
 ) *pb.EventRequest {
-	grpcEmotions := &pb.EmotionStateMessage{
-		Joy:     emotions["joy"],
-		Sadness: emotions["sadness"],
-		Anger:   emotions["anger"],
-		Fear:    emotions["fear"],
-		Trust:   emotions["trust"],
+	protoSpeakerEmotions := make(map[string]float32, len(speakerEmotions))
+	for k, v := range speakerEmotions {
+		protoSpeakerEmotions[k] = float32(v)
 	}
 
-	var grpcMemories []*pb.MemoryMessage
-	for _, line := range memoryLines {
-		grpcMemories = append(grpcMemories, &pb.MemoryMessage{
-			Description: line,
-		})
+	protoGeneralMood := make(map[string]float32, len(generalMood))
+	for k, v := range generalMood {
+		protoGeneralMood[k] = float32(v)
 	}
 
 	return &pb.EventRequest{
 		PersonalityPath:  personalityPath,
 		BackstoryPath:    backstoryPath,
 		LorePath:         lorePath,
-		CurrentEmotions:  grpcEmotions,
-		RecentMemories:   grpcMemories,
+		SpeakerEmotions:  protoSpeakerEmotions,
+		GeneralMood:      protoGeneralMood,
+		MemoryLines:      memoryLines,
 		EventType:        eventType,
 		QuestionText:     questionText,
 		SourceEntityId:   sourceEntityId,
@@ -113,7 +108,8 @@ func (c *AIClient) CallAIThink(
 	personalityPath string,
 	backstoryPath string,
 	lorePath string,
-	emotions map[string]float64,
+	speakerEmotions map[string]float64,
+	generalMood map[string]float64,
 	memoryLines []string,
 	eventType string,
 	questionText string,
@@ -121,7 +117,7 @@ func (c *AIClient) CallAIThink(
 	currentQuestStep int,
 	completionRate float32,
 ) (*pb.ActionResponse, error) {
-	req := buildEventRequest(personalityPath, backstoryPath, lorePath, emotions, memoryLines,
+	req := buildEventRequest(personalityPath, backstoryPath, lorePath, speakerEmotions, generalMood, memoryLines,
 		eventType, questionText, sourceEntityId, currentQuestStep, completionRate)
 
 	res, err := c.callThink(ctx, req)
@@ -141,7 +137,8 @@ func (c *AIClient) CallAIThinkStream(
 	personalityPath string,
 	backstoryPath string,
 	lorePath string,
-	emotions map[string]float64,
+	speakerEmotions map[string]float64,
+	generalMood map[string]float64,
 	memoryLines []string,
 	eventType string,
 	questionText string,
@@ -150,7 +147,7 @@ func (c *AIClient) CallAIThinkStream(
 	completionRate float32,
 	onToken func(string),
 ) (string, error) {
-	req := buildEventRequest(personalityPath, backstoryPath, lorePath, emotions, memoryLines,
+	req := buildEventRequest(personalityPath, backstoryPath, lorePath, speakerEmotions, generalMood, memoryLines,
 		eventType, questionText, sourceEntityId, currentQuestStep, completionRate)
 
 	ctx, cancel := context.WithTimeout(ctx, c.timeout)

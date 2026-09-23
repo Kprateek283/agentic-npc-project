@@ -19,23 +19,28 @@ class FakeContext:
 
 
 def make_request():
-    emotions = types.SimpleNamespace(
-        joy=0.0,
-        sadness=0.0,
-        anger=0.0,
-        fear=0.0,
-        trust=0.0,
-    )
     return types.SimpleNamespace(
         personality_path="elara",
         event_type="PLAYER_ASKED_QUESTION",
         question_text="hello",
-        current_emotions=emotions,
-        recent_memories=[],
-        current_quest_step=0,
-        completion_rate=0.0,
-        source_entity_id="",
+        speaker_emotions={"anger": 0.5},
+        general_mood={"joy": 0.2},
+        memory_lines=["You gave an apple."],
+        current_quest_step=1,
+        completion_rate=0.5,
+        source_entity_id="player1",
     )
+
+
+def test_dynamic_context_unpacking():
+    req = make_request()
+    ctx = servicer._dynamic_context(req)
+    assert ctx["speaker_emotions"] == {"anger": 0.5}
+    assert ctx["general_mood"] == {"joy": 0.2}
+    assert ctx["memory_lines"] == ["You gave an apple."]
+    assert ctx["quest_step"] == 1
+    assert ctx["completion_rate"] == 0.5
+    assert ctx["speaker"] == "player1"
 
 
 def test_think_stream_cancelled_after_n_chunks(monkeypatch):

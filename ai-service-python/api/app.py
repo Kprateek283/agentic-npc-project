@@ -19,17 +19,10 @@ from router import KNOWN_EVENTS, UnknownAgentError, default_context, route_event
 app = FastAPI(title="Agentic NPC AI Service", version="1.0.0")
 
 
-class Emotions(BaseModel):
-    joy: float = 0.0
-    sadness: float = 0.0
-    anger: float = 0.0
-    fear: float = 0.0
-    trust: float = 0.0
-
-
 class DynamicContext(BaseModel):
-    emotions: Emotions = Field(default_factory=Emotions)
-    memories: list[str] = Field(default_factory=list)
+    speaker_emotions: dict[str, float] = Field(default_factory=dict)
+    general_mood: dict[str, float] = Field(default_factory=dict)
+    memory_lines: list[str] = Field(default_factory=list)
     quest_step: int = 0
     completion_rate: float = 0.0
 

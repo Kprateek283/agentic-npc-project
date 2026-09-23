@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x08\x61i.proto\x12\x02\x61i\"b\n\rMemoryMessage\x12\x13\n\x0b\x64\x65scription\x18\x01 \x01(\t\x12\x12\n\nimportance\x18\x02 \x01(\x01\x12\x12\n\nevent_type\x18\x03 \x01(\t\x12\x14\n\x0cparticipants\x18\x04 \x03(\t\"_\n\x13\x45motionStateMessage\x12\x0b\n\x03joy\x18\x01 \x01(\x01\x12\x0f\n\x07sadness\x18\x02 \x01(\x01\x12\r\n\x05\x61nger\x18\x03 \x01(\x01\x12\x0c\n\x04\x66\x65\x61r\x18\x04 \x01(\x01\x12\r\n\x05trust\x18\x05 \x01(\x01\"\xac\x02\n\x0c\x45ventRequest\x12\x18\n\x10personality_path\x18\x01 \x01(\t\x12\x16\n\x0e\x62\x61\x63kstory_path\x18\x02 \x01(\t\x12\x11\n\tlore_path\x18\x03 \x01(\t\x12\x31\n\x10\x63urrent_emotions\x18\x04 \x01(\x0b\x32\x17.ai.EmotionStateMessage\x12*\n\x0frecent_memories\x18\x05 \x03(\x0b\x32\x11.ai.MemoryMessage\x12\x12\n\nevent_type\x18\x06 \x01(\t\x12\x15\n\rquestion_text\x18\x07 \x01(\t\x12\x18\n\x10source_entity_id\x18\x08 \x01(\t\x12\x1a\n\x12\x63urrent_quest_step\x18\t \x01(\x05\x12\x17\n\x0f\x63ompletion_rate\x18\n \x01(\x02\"6\n\x0e\x41\x63tionResponse\x12\x13\n\x0b\x61\x63tion_type\x18\x01 \x01(\t\x12\x0f\n\x07\x63ontent\x18\x02 \x01(\t\"=\n\nTokenChunk\x12\x0c\n\x04text\x18\x01 \x01(\t\x12\x0c\n\x04\x64one\x18\x02 \x01(\x08\x12\x13\n\x0b\x61\x63tion_type\x18\x03 \x01(\t2o\n\x07\x41IBrain\x12/\n\x05Think\x12\x10.ai.EventRequest\x1a\x12.ai.ActionResponse\"\x00\x12\x33\n\x0bThinkStream\x12\x10.ai.EventRequest\x1a\x0e.ai.TokenChunk\"\x00\x30\x01\x42\x12Z\x10./internal/protob\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x08\x61i.proto\x12\x02\x61i\"\xc9\x03\n\x0c\x45ventRequest\x12\x18\n\x10personality_path\x18\x01 \x01(\t\x12\x16\n\x0e\x62\x61\x63kstory_path\x18\x02 \x01(\t\x12\x11\n\tlore_path\x18\x03 \x01(\t\x12?\n\x10speaker_emotions\x18\x04 \x03(\x0b\x32%.ai.EventRequest.SpeakerEmotionsEntry\x12\x37\n\x0cgeneral_mood\x18\x05 \x03(\x0b\x32!.ai.EventRequest.GeneralMoodEntry\x12\x14\n\x0cmemory_lines\x18\x0b \x03(\t\x12\x12\n\nevent_type\x18\x06 \x01(\t\x12\x15\n\rquestion_text\x18\x07 \x01(\t\x12\x18\n\x10source_entity_id\x18\x08 \x01(\t\x12\x1a\n\x12\x63urrent_quest_step\x18\t \x01(\x05\x12\x17\n\x0f\x63ompletion_rate\x18\n \x01(\x02\x1a\x36\n\x14SpeakerEmotionsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x02:\x02\x38\x01\x1a\x32\n\x10GeneralMoodEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x02:\x02\x38\x01\"6\n\x0e\x41\x63tionResponse\x12\x13\n\x0b\x61\x63tion_type\x18\x01 \x01(\t\x12\x0f\n\x07\x63ontent\x18\x02 \x01(\t\"=\n\nTokenChunk\x12\x0c\n\x04text\x18\x01 \x01(\t\x12\x0c\n\x04\x64one\x18\x02 \x01(\x08\x12\x13\n\x0b\x61\x63tion_type\x18\x03 \x01(\t2o\n\x07\x41IBrain\x12/\n\x05Think\x12\x10.ai.EventRequest\x1a\x12.ai.ActionResponse\"\x00\x12\x33\n\x0bThinkStream\x12\x10.ai.EventRequest\x1a\x0e.ai.TokenChunk\"\x00\x30\x01\x42\x12Z\x10./internal/protob\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -32,16 +32,20 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'ai_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'Z\020./internal/proto'
-  _globals['_MEMORYMESSAGE']._serialized_start=16
-  _globals['_MEMORYMESSAGE']._serialized_end=114
-  _globals['_EMOTIONSTATEMESSAGE']._serialized_start=116
-  _globals['_EMOTIONSTATEMESSAGE']._serialized_end=211
-  _globals['_EVENTREQUEST']._serialized_start=214
-  _globals['_EVENTREQUEST']._serialized_end=514
-  _globals['_ACTIONRESPONSE']._serialized_start=516
-  _globals['_ACTIONRESPONSE']._serialized_end=570
-  _globals['_TOKENCHUNK']._serialized_start=572
-  _globals['_TOKENCHUNK']._serialized_end=633
-  _globals['_AIBRAIN']._serialized_start=635
-  _globals['_AIBRAIN']._serialized_end=746
+  _globals['_EVENTREQUEST_SPEAKEREMOTIONSENTRY']._loaded_options = None
+  _globals['_EVENTREQUEST_SPEAKEREMOTIONSENTRY']._serialized_options = b'8\001'
+  _globals['_EVENTREQUEST_GENERALMOODENTRY']._loaded_options = None
+  _globals['_EVENTREQUEST_GENERALMOODENTRY']._serialized_options = b'8\001'
+  _globals['_EVENTREQUEST']._serialized_start=17
+  _globals['_EVENTREQUEST']._serialized_end=474
+  _globals['_EVENTREQUEST_SPEAKEREMOTIONSENTRY']._serialized_start=368
+  _globals['_EVENTREQUEST_SPEAKEREMOTIONSENTRY']._serialized_end=422
+  _globals['_EVENTREQUEST_GENERALMOODENTRY']._serialized_start=424
+  _globals['_EVENTREQUEST_GENERALMOODENTRY']._serialized_end=474
+  _globals['_ACTIONRESPONSE']._serialized_start=476
+  _globals['_ACTIONRESPONSE']._serialized_end=530
+  _globals['_TOKENCHUNK']._serialized_start=532
+  _globals['_TOKENCHUNK']._serialized_end=593
+  _globals['_AIBRAIN']._serialized_start=595
+  _globals['_AIBRAIN']._serialized_end=706
 # @@protoc_insertion_point(module_scope)

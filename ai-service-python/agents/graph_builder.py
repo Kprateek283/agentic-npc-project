@@ -22,6 +22,7 @@ def build_langgraph_agent(static_system_prompt: str, tools: list):
         dynamic_block = react_prompt.format(
             speaker=state["speaker"],
             emotions=state["emotions"],
+            general_mood=state["general_mood"],
             npc_memories=state["npc_memories"],
             current_quest_step=state["current_quest_step"],
             completion_rate=state["completion_rate"],

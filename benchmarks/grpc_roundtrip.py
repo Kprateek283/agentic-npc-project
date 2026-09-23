@@ -37,8 +37,9 @@ def main():
         personality_path="gamedata/npcs/elara/personality.json",
         backstory_path="gamedata/npcs/elara/backstory.json",
         lore_path="gamedata/npcs/elara/lore.json",
-        current_emotions=ai_pb2.EmotionStateMessage(joy=0.5, sadness=0.1, anger=0.1, fear=0.1, trust=0.5),
-        recent_memories=[ai_pb2.MemoryMessage(description="Player walked past.", importance=0.1)],
+        speaker_emotions={"joy": 0.5, "sadness": 0.1, "anger": 0.1, "fear": 0.1, "trust": 0.5},
+        general_mood={"joy": 0.5, "sadness": 0.1, "anger": 0.1, "fear": 0.1, "trust": 0.5},
+        memory_lines=["Player walked past."],
         event_type="PLAYER_LOOKED_AT_NPC",  # unknown to the router -> non-LLM branch
         question_text="",
         source_entity_id="bench_player",

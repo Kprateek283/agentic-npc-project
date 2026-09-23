@@ -78,4 +78,8 @@ the code will be adjusted to match. Written 2026-09-23; appended to as further c
 21. **Deterministic memory line wording:** Memory line attribution replaces leading actor ID with
     `"You"` for the speaker and `"Someone"` for other actors when the description begins with the
     actor ID.
+22. **Emotion map formatting in prompts and caches:** In `context_formatter.py` and `semantic_cache.py`,
+    emotions are formatted sorted alphabetically by key name; values rounding to 0.00 are omitted
+    from prompt rendering, and empty maps render as `"nothing in particular"`.
+
 
