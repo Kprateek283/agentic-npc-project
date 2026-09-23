@@ -6,6 +6,7 @@ import (
 	"agentic-npc-backend/internal/db/ent"
 	"agentic-npc-backend/internal/domain/npc_logic"
 	"agentic-npc-backend/internal/domain/quest_logic"
+	"agentic-npc-backend/internal/domain/rules"
 	"agentic-npc-backend/internal/infra/database"
 	"agentic-npc-backend/internal/infra/grpc_client"
 	"agentic-npc-backend/internal/infra/httpsapi"
@@ -87,6 +88,18 @@ func New() (*App, error) {
 		return nil, fmt.Errorf("failed to create quest manager: %w", err)
 	}
 	questManager.AdminEnabled = cfg.AdminEnabled
+
+	// 6b. Load Rules
+	rulesData, err := rules.Load(filepath.Join(cfg.GamedataDir, "events.json"))
+	if err != nil {
+		err := dbClient.Close()
+		if err != nil {
+			return nil, err
+		}
+		redisClient.Close()
+		return nil, fmt.Errorf("failed to load rules: %w", err)
+	}
+	questManager.Rules = rulesData
 	log.Println("Dungeon Master (QuestManager) initialized successfully")
 
 	// 7. Initialize EmotionManager

@@ -4,6 +4,8 @@ import (
 	"agentic-npc-backend/internal/db/ent"
 	entplayerqueststate "agentic-npc-backend/internal/db/ent/playerqueststate"
 	"agentic-npc-backend/internal/db/ent/schema"
+	"agentic-npc-backend/internal/domain/memory"
+	"agentic-npc-backend/internal/domain/npcstate"
 	pb "agentic-npc-backend/internal/proto"
 	"agentic-npc-backend/internal/ratelimit"
 	"context"
@@ -135,11 +137,8 @@ func (h *WebSocketHandler) gatherAIContext(ctx context.Context, event EventMessa
 	}
 
 	// 4c. Modify NPC's base emotions
-	newEmotions := h.emotionManager.ModifyEmotionsOnEvent(event, targetNPC.Emotions)
-	updatedNPC, err := targetNPC.Update().SetEmotions(newEmotions).Save(ctx)
-	if err != nil {
-		log.Printf("Error updating NPC emotions: %v", err)
-	}
+	newEmotions := h.emotionManager.ModifyEmotionsOnEvent(event, &schema.EmotionState{})
+	updatedNPC := targetNPC
 
 	// 4d. Create Memory
 	memoryDesc := fmt.Sprintf("%s triggered %s on %s", event.SourceEntityId, event.EventType, updatedNPC.Name)
@@ -168,15 +167,22 @@ func (h *WebSocketHandler) gatherAIContext(ctx context.Context, event EventMessa
 	currentQuestStep, completionRate := h.getPlayerQuestState(ctx, player)
 
 	// 4g. Get Player-Specific Trust
-	rel, err := h.questManager.GetOrCreateRelationship(ctx, h.dbClient, player, targetNPC)
+	_, err = h.questManager.GetOrCreateRelationship(ctx, h.dbClient, player, targetNPC)
 	if err != nil {
 		log.Printf("Error getting relationship: %v", err)
 		return nil, err
 	}
 
 	// 4h/4i. The NPC's emotions with the player-specific trust overlaid.
-	aiEmotions := updatedNPC.Emotions
-	aiEmotions.Trust = rel.TrustLevel
+	aiEmotions := newEmotions
+	eps, _, err := npcstate.Load(ctx, h.dbClient, targetNPC)
+	if err == nil {
+		cfg := memory.DefaultConfig()
+		if h.questManager.Rules != nil {
+			cfg = h.questManager.Rules.Config
+		}
+		aiEmotions.Trust = npcstate.TrustToward(eps, player.PlayerID, time.Now(), cfg)
+	}
 
 	// Main subject text: the item name for gifts/submissions, else the question text.
 	text := event.QuestionText

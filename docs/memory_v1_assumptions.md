@@ -60,3 +60,13 @@ the code will be adjusted to match. Written 2026-09-23; appended to as further c
 15. **Scope discipline:** anything not needed for the two demo moments (beliefs, knowledge
     memories, LLM severity scoring, LLM sincerity judging, per-NPC personality settings) stays
     out of v1, as the scope document says.
+16. **ADMIN_SET_TRUST rewrites history:** it forgets (deletes) all existing memory rows this NPC
+    holds about that player and writes one `QUEST_REWARD` episode worth exactly the requested
+    value (clamped to −1..1, intensity 0.3), because trust is computed rather than stored.
+17. **Episode merging rules:** gifts merge into an existing episode for the same actor+item when
+    `memory.CanMerge` allows; quest rewards and admin writes never merge.
+18. **Temporary bridging in gatherAIContext:** `gatherAIContext` is only bridged in this step: the
+    old `EmotionManager` still runs but from an empty base each event, so non-trust emotions are
+    per-event deltas and do not accumulate. Step 4 replaces this with emotions computed from
+    episodes. In-game non-trust emotions are therefore temporarily wrong until step 4.
+

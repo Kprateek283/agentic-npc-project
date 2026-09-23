@@ -10,7 +10,7 @@ decision there rather than asking.
       separate positive/negative caps, forgiveness, betrayal) with 10 table-driven tests.
 - [x] Step 2 — `gamedata/events.json` + `backend-go/internal/domain/rules`: the rules file and a
       validating loader producing a `memory.Config`, 11 tests.
-- [ ] Step 3 — schema and episode plumbing
+- [x] Step 3 — schema and episode plumbing (memory rows are episodes; trust computed; gifts and quest rewards recorded as episodes)
 - [ ] Step 4 — rewrite `gatherAIContext`
 - [ ] Step 5 — gRPC contract, Python formatting and prompts
 - [ ] Step 6 — `EMOTIONS` frame and browser panel

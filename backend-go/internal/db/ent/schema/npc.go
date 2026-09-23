@@ -59,10 +59,6 @@ func (NPC) Fields() []ent.Field {
 
 		// --- DYNAMIC STATE ---
 
-		// The NPC's current, changing emotional state.
-		field.JSON("emotions", new(EmotionState)).
-			Default(new(EmotionState)),
-
 		// The NPC's current, changing list of active goals.
 		field.Strings("current_goals").
 			Optional(),

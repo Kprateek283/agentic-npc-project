@@ -4,16 +4,30 @@ import (
 	"agentic-npc-backend/internal/db/ent"
 	entplayer "agentic-npc-backend/internal/db/ent/player"
 	entplayerqueststate "agentic-npc-backend/internal/db/ent/playerqueststate"
+	"agentic-npc-backend/internal/domain/memory"
+	"agentic-npc-backend/internal/domain/npcstate"
 	"agentic-npc-backend/internal/dto"
 	"context"
+	"fmt"
 	"log"
 	"log/slog"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // --- CORE QUEST LOGIC FUNCTIONS ---
+
+func clamp(v, min, max float64) float64 {
+	if v < min {
+		return min
+	}
+	if v > max {
+		return max
+	}
+	return v
+}
 
 // trustMet is the pure trust-precondition decision: does a trust level satisfy the
 // operator/threshold a quest step requires. An unknown or missing operator fails closed.
@@ -149,15 +163,20 @@ func (qm *QuestManager) checkPreconditions(ctx context.Context, db *ent.Client, 
 		slog.Debug("checking precondition type", "type", precond.Type)
 		switch precond.Type {
 		case "RELATIONSHIP_TRUST":
-			rel, err := qm.GetOrCreateRelationship(ctx, db, p, n)
+			cfg := memory.DefaultConfig()
+			if qm.Rules != nil {
+				cfg = qm.Rules.Config
+			}
+			eps, _, err := npcstate.Load(ctx, db, n)
 			if err != nil {
-				slog.Debug("error getting relationship", "error", err)
+				slog.Debug("error loading npc memories", "error", err)
 				return false, err
 			}
-			slog.Debug("got relationship", "trust_level", rel.TrustLevel)
-			slog.Debug("comparing trust", "current", rel.TrustLevel, "operator", precond.Operator, "target", precond.Value)
+			currentTrust := npcstate.TrustToward(eps, p.PlayerID, time.Now(), cfg)
+			slog.Debug("got relationship trust", "trust_level", currentTrust)
+			slog.Debug("comparing trust", "current", currentTrust, "operator", precond.Operator, "target", precond.Value)
 
-			trustMet := trustMet(rel.TrustLevel, precond.Operator, precond.Value)
+			trustMet := trustMet(currentTrust, precond.Operator, precond.Value)
 			slog.Debug("trust condition evaluated", "met", trustMet)
 			if !trustMet {
 				slog.Debug("precondition failed")
@@ -202,7 +221,7 @@ func (qm *QuestManager) applyRewards(ctx context.Context, db *ent.Client, p *ent
 			return err
 		}
 
-		rel, err := qm.GetOrCreateRelationship(ctx, db, p, rewardNpc)
+		_, err = qm.GetOrCreateRelationship(ctx, db, p, rewardNpc)
 		if err != nil {
 			return err
 		}
@@ -212,12 +231,23 @@ func (qm *QuestManager) applyRewards(ctx context.Context, db *ent.Client, p *ent
 			return err
 		}
 
-		newTrustLevel := rel.TrustLevel + trustChange
-		err = db.PlayerNPCRelationship.UpdateOne(rel).SetTrustLevel(newTrustLevel).Exec(ctx)
+		v := clamp(trustChange, -1.0, 1.0)
+		now := time.Now()
+		_, err = db.Memory.Create().
+			SetOwner(rewardNpc).
+			SetActor(p.PlayerID).
+			SetEventType("QUEST_REWARD").
+			SetDelta(map[string]float64{"trust": v}).
+			SetIntensity(0.3).
+			SetFirstAt(now).
+			SetLastAt(now).
+			SetDescription(fmt.Sprintf("Quest reward: trust changed by %.2f", trustChange)).
+			SetParticipants([]string{p.PlayerID, rewardNpc.ID.String()}).
+			Save(ctx)
 		if err != nil {
 			return err
 		}
-		log.Printf("Applied Trust Reward: Player %s trust with NPC %s is now %.2f", p.PlayerID, rewardNpc.Name, newTrustLevel)
+		log.Printf("Applied Trust Reward: Player %s trust with NPC %s added QUEST_REWARD episode delta=%.2f", p.PlayerID, rewardNpc.Name, v)
 	}
 
 	return nil

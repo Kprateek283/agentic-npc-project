@@ -106,6 +106,197 @@ func (_u *MemoryUpdate) AddImportance(v float64) *MemoryUpdate {
 	return _u
 }
 
+// SetActor sets the "actor" field.
+func (_u *MemoryUpdate) SetActor(v string) *MemoryUpdate {
+	_u.mutation.SetActor(v)
+	return _u
+}
+
+// SetNillableActor sets the "actor" field if the given value is not nil.
+func (_u *MemoryUpdate) SetNillableActor(v *string) *MemoryUpdate {
+	if v != nil {
+		_u.SetActor(*v)
+	}
+	return _u
+}
+
+// SetSubject sets the "subject" field.
+func (_u *MemoryUpdate) SetSubject(v string) *MemoryUpdate {
+	_u.mutation.SetSubject(v)
+	return _u
+}
+
+// SetNillableSubject sets the "subject" field if the given value is not nil.
+func (_u *MemoryUpdate) SetNillableSubject(v *string) *MemoryUpdate {
+	if v != nil {
+		_u.SetSubject(*v)
+	}
+	return _u
+}
+
+// SetDelta sets the "delta" field.
+func (_u *MemoryUpdate) SetDelta(v map[string]float64) *MemoryUpdate {
+	_u.mutation.SetDelta(v)
+	return _u
+}
+
+// ClearDelta clears the value of the "delta" field.
+func (_u *MemoryUpdate) ClearDelta() *MemoryUpdate {
+	_u.mutation.ClearDelta()
+	return _u
+}
+
+// SetIntensity sets the "intensity" field.
+func (_u *MemoryUpdate) SetIntensity(v float64) *MemoryUpdate {
+	_u.mutation.ResetIntensity()
+	_u.mutation.SetIntensity(v)
+	return _u
+}
+
+// SetNillableIntensity sets the "intensity" field if the given value is not nil.
+func (_u *MemoryUpdate) SetNillableIntensity(v *float64) *MemoryUpdate {
+	if v != nil {
+		_u.SetIntensity(*v)
+	}
+	return _u
+}
+
+// AddIntensity adds value to the "intensity" field.
+func (_u *MemoryUpdate) AddIntensity(v float64) *MemoryUpdate {
+	_u.mutation.AddIntensity(v)
+	return _u
+}
+
+// SetCount sets the "count" field.
+func (_u *MemoryUpdate) SetCount(v float64) *MemoryUpdate {
+	_u.mutation.ResetCount()
+	_u.mutation.SetCount(v)
+	return _u
+}
+
+// SetNillableCount sets the "count" field if the given value is not nil.
+func (_u *MemoryUpdate) SetNillableCount(v *float64) *MemoryUpdate {
+	if v != nil {
+		_u.SetCount(*v)
+	}
+	return _u
+}
+
+// AddCount adds value to the "count" field.
+func (_u *MemoryUpdate) AddCount(v float64) *MemoryUpdate {
+	_u.mutation.AddCount(v)
+	return _u
+}
+
+// SetHarmful sets the "harmful" field.
+func (_u *MemoryUpdate) SetHarmful(v bool) *MemoryUpdate {
+	_u.mutation.SetHarmful(v)
+	return _u
+}
+
+// SetNillableHarmful sets the "harmful" field if the given value is not nil.
+func (_u *MemoryUpdate) SetNillableHarmful(v *bool) *MemoryUpdate {
+	if v != nil {
+		_u.SetHarmful(*v)
+	}
+	return _u
+}
+
+// SetForgiven sets the "forgiven" field.
+func (_u *MemoryUpdate) SetForgiven(v float64) *MemoryUpdate {
+	_u.mutation.ResetForgiven()
+	_u.mutation.SetForgiven(v)
+	return _u
+}
+
+// SetNillableForgiven sets the "forgiven" field if the given value is not nil.
+func (_u *MemoryUpdate) SetNillableForgiven(v *float64) *MemoryUpdate {
+	if v != nil {
+		_u.SetForgiven(*v)
+	}
+	return _u
+}
+
+// AddForgiven adds value to the "forgiven" field.
+func (_u *MemoryUpdate) AddForgiven(v float64) *MemoryUpdate {
+	_u.mutation.AddForgiven(v)
+	return _u
+}
+
+// SetBetrayal sets the "betrayal" field.
+func (_u *MemoryUpdate) SetBetrayal(v bool) *MemoryUpdate {
+	_u.mutation.SetBetrayal(v)
+	return _u
+}
+
+// SetNillableBetrayal sets the "betrayal" field if the given value is not nil.
+func (_u *MemoryUpdate) SetNillableBetrayal(v *bool) *MemoryUpdate {
+	if v != nil {
+		_u.SetBetrayal(*v)
+	}
+	return _u
+}
+
+// SetText sets the "text" field.
+func (_u *MemoryUpdate) SetText(v string) *MemoryUpdate {
+	_u.mutation.SetText(v)
+	return _u
+}
+
+// SetNillableText sets the "text" field if the given value is not nil.
+func (_u *MemoryUpdate) SetNillableText(v *string) *MemoryUpdate {
+	if v != nil {
+		_u.SetText(*v)
+	}
+	return _u
+}
+
+// SetFirstAt sets the "first_at" field.
+func (_u *MemoryUpdate) SetFirstAt(v time.Time) *MemoryUpdate {
+	_u.mutation.SetFirstAt(v)
+	return _u
+}
+
+// SetNillableFirstAt sets the "first_at" field if the given value is not nil.
+func (_u *MemoryUpdate) SetNillableFirstAt(v *time.Time) *MemoryUpdate {
+	if v != nil {
+		_u.SetFirstAt(*v)
+	}
+	return _u
+}
+
+// SetLastAt sets the "last_at" field.
+func (_u *MemoryUpdate) SetLastAt(v time.Time) *MemoryUpdate {
+	_u.mutation.SetLastAt(v)
+	return _u
+}
+
+// SetNillableLastAt sets the "last_at" field if the given value is not nil.
+func (_u *MemoryUpdate) SetNillableLastAt(v *time.Time) *MemoryUpdate {
+	if v != nil {
+		_u.SetLastAt(*v)
+	}
+	return _u
+}
+
+// SetCovers sets the "covers" field.
+func (_u *MemoryUpdate) SetCovers(v []int) *MemoryUpdate {
+	_u.mutation.SetCovers(v)
+	return _u
+}
+
+// AppendCovers appends value to the "covers" field.
+func (_u *MemoryUpdate) AppendCovers(v []int) *MemoryUpdate {
+	_u.mutation.AppendCovers(v)
+	return _u
+}
+
+// ClearCovers clears the value of the "covers" field.
+func (_u *MemoryUpdate) ClearCovers() *MemoryUpdate {
+	_u.mutation.ClearCovers()
+	return _u
+}
+
 // SetOwnerID sets the "owner" edge to the NPC entity by ID.
 func (_u *MemoryUpdate) SetOwnerID(id uuid.UUID) *MemoryUpdate {
 	_u.mutation.SetOwnerID(id)
@@ -197,6 +388,62 @@ func (_u *MemoryUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.AddedImportance(); ok {
 		_spec.AddField(memory.FieldImportance, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.Actor(); ok {
+		_spec.SetField(memory.FieldActor, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Subject(); ok {
+		_spec.SetField(memory.FieldSubject, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Delta(); ok {
+		_spec.SetField(memory.FieldDelta, field.TypeJSON, value)
+	}
+	if _u.mutation.DeltaCleared() {
+		_spec.ClearField(memory.FieldDelta, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.Intensity(); ok {
+		_spec.SetField(memory.FieldIntensity, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedIntensity(); ok {
+		_spec.AddField(memory.FieldIntensity, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.Count(); ok {
+		_spec.SetField(memory.FieldCount, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedCount(); ok {
+		_spec.AddField(memory.FieldCount, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.Harmful(); ok {
+		_spec.SetField(memory.FieldHarmful, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Forgiven(); ok {
+		_spec.SetField(memory.FieldForgiven, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedForgiven(); ok {
+		_spec.AddField(memory.FieldForgiven, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.Betrayal(); ok {
+		_spec.SetField(memory.FieldBetrayal, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Text(); ok {
+		_spec.SetField(memory.FieldText, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.FirstAt(); ok {
+		_spec.SetField(memory.FieldFirstAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.LastAt(); ok {
+		_spec.SetField(memory.FieldLastAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.Covers(); ok {
+		_spec.SetField(memory.FieldCovers, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedCovers(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, memory.FieldCovers, value)
+		})
+	}
+	if _u.mutation.CoversCleared() {
+		_spec.ClearField(memory.FieldCovers, field.TypeJSON)
 	}
 	if _u.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -322,6 +569,197 @@ func (_u *MemoryUpdateOne) AddImportance(v float64) *MemoryUpdateOne {
 	return _u
 }
 
+// SetActor sets the "actor" field.
+func (_u *MemoryUpdateOne) SetActor(v string) *MemoryUpdateOne {
+	_u.mutation.SetActor(v)
+	return _u
+}
+
+// SetNillableActor sets the "actor" field if the given value is not nil.
+func (_u *MemoryUpdateOne) SetNillableActor(v *string) *MemoryUpdateOne {
+	if v != nil {
+		_u.SetActor(*v)
+	}
+	return _u
+}
+
+// SetSubject sets the "subject" field.
+func (_u *MemoryUpdateOne) SetSubject(v string) *MemoryUpdateOne {
+	_u.mutation.SetSubject(v)
+	return _u
+}
+
+// SetNillableSubject sets the "subject" field if the given value is not nil.
+func (_u *MemoryUpdateOne) SetNillableSubject(v *string) *MemoryUpdateOne {
+	if v != nil {
+		_u.SetSubject(*v)
+	}
+	return _u
+}
+
+// SetDelta sets the "delta" field.
+func (_u *MemoryUpdateOne) SetDelta(v map[string]float64) *MemoryUpdateOne {
+	_u.mutation.SetDelta(v)
+	return _u
+}
+
+// ClearDelta clears the value of the "delta" field.
+func (_u *MemoryUpdateOne) ClearDelta() *MemoryUpdateOne {
+	_u.mutation.ClearDelta()
+	return _u
+}
+
+// SetIntensity sets the "intensity" field.
+func (_u *MemoryUpdateOne) SetIntensity(v float64) *MemoryUpdateOne {
+	_u.mutation.ResetIntensity()
+	_u.mutation.SetIntensity(v)
+	return _u
+}
+
+// SetNillableIntensity sets the "intensity" field if the given value is not nil.
+func (_u *MemoryUpdateOne) SetNillableIntensity(v *float64) *MemoryUpdateOne {
+	if v != nil {
+		_u.SetIntensity(*v)
+	}
+	return _u
+}
+
+// AddIntensity adds value to the "intensity" field.
+func (_u *MemoryUpdateOne) AddIntensity(v float64) *MemoryUpdateOne {
+	_u.mutation.AddIntensity(v)
+	return _u
+}
+
+// SetCount sets the "count" field.
+func (_u *MemoryUpdateOne) SetCount(v float64) *MemoryUpdateOne {
+	_u.mutation.ResetCount()
+	_u.mutation.SetCount(v)
+	return _u
+}
+
+// SetNillableCount sets the "count" field if the given value is not nil.
+func (_u *MemoryUpdateOne) SetNillableCount(v *float64) *MemoryUpdateOne {
+	if v != nil {
+		_u.SetCount(*v)
+	}
+	return _u
+}
+
+// AddCount adds value to the "count" field.
+func (_u *MemoryUpdateOne) AddCount(v float64) *MemoryUpdateOne {
+	_u.mutation.AddCount(v)
+	return _u
+}
+
+// SetHarmful sets the "harmful" field.
+func (_u *MemoryUpdateOne) SetHarmful(v bool) *MemoryUpdateOne {
+	_u.mutation.SetHarmful(v)
+	return _u
+}
+
+// SetNillableHarmful sets the "harmful" field if the given value is not nil.
+func (_u *MemoryUpdateOne) SetNillableHarmful(v *bool) *MemoryUpdateOne {
+	if v != nil {
+		_u.SetHarmful(*v)
+	}
+	return _u
+}
+
+// SetForgiven sets the "forgiven" field.
+func (_u *MemoryUpdateOne) SetForgiven(v float64) *MemoryUpdateOne {
+	_u.mutation.ResetForgiven()
+	_u.mutation.SetForgiven(v)
+	return _u
+}
+
+// SetNillableForgiven sets the "forgiven" field if the given value is not nil.
+func (_u *MemoryUpdateOne) SetNillableForgiven(v *float64) *MemoryUpdateOne {
+	if v != nil {
+		_u.SetForgiven(*v)
+	}
+	return _u
+}
+
+// AddForgiven adds value to the "forgiven" field.
+func (_u *MemoryUpdateOne) AddForgiven(v float64) *MemoryUpdateOne {
+	_u.mutation.AddForgiven(v)
+	return _u
+}
+
+// SetBetrayal sets the "betrayal" field.
+func (_u *MemoryUpdateOne) SetBetrayal(v bool) *MemoryUpdateOne {
+	_u.mutation.SetBetrayal(v)
+	return _u
+}
+
+// SetNillableBetrayal sets the "betrayal" field if the given value is not nil.
+func (_u *MemoryUpdateOne) SetNillableBetrayal(v *bool) *MemoryUpdateOne {
+	if v != nil {
+		_u.SetBetrayal(*v)
+	}
+	return _u
+}
+
+// SetText sets the "text" field.
+func (_u *MemoryUpdateOne) SetText(v string) *MemoryUpdateOne {
+	_u.mutation.SetText(v)
+	return _u
+}
+
+// SetNillableText sets the "text" field if the given value is not nil.
+func (_u *MemoryUpdateOne) SetNillableText(v *string) *MemoryUpdateOne {
+	if v != nil {
+		_u.SetText(*v)
+	}
+	return _u
+}
+
+// SetFirstAt sets the "first_at" field.
+func (_u *MemoryUpdateOne) SetFirstAt(v time.Time) *MemoryUpdateOne {
+	_u.mutation.SetFirstAt(v)
+	return _u
+}
+
+// SetNillableFirstAt sets the "first_at" field if the given value is not nil.
+func (_u *MemoryUpdateOne) SetNillableFirstAt(v *time.Time) *MemoryUpdateOne {
+	if v != nil {
+		_u.SetFirstAt(*v)
+	}
+	return _u
+}
+
+// SetLastAt sets the "last_at" field.
+func (_u *MemoryUpdateOne) SetLastAt(v time.Time) *MemoryUpdateOne {
+	_u.mutation.SetLastAt(v)
+	return _u
+}
+
+// SetNillableLastAt sets the "last_at" field if the given value is not nil.
+func (_u *MemoryUpdateOne) SetNillableLastAt(v *time.Time) *MemoryUpdateOne {
+	if v != nil {
+		_u.SetLastAt(*v)
+	}
+	return _u
+}
+
+// SetCovers sets the "covers" field.
+func (_u *MemoryUpdateOne) SetCovers(v []int) *MemoryUpdateOne {
+	_u.mutation.SetCovers(v)
+	return _u
+}
+
+// AppendCovers appends value to the "covers" field.
+func (_u *MemoryUpdateOne) AppendCovers(v []int) *MemoryUpdateOne {
+	_u.mutation.AppendCovers(v)
+	return _u
+}
+
+// ClearCovers clears the value of the "covers" field.
+func (_u *MemoryUpdateOne) ClearCovers() *MemoryUpdateOne {
+	_u.mutation.ClearCovers()
+	return _u
+}
+
 // SetOwnerID sets the "owner" edge to the NPC entity by ID.
 func (_u *MemoryUpdateOne) SetOwnerID(id uuid.UUID) *MemoryUpdateOne {
 	_u.mutation.SetOwnerID(id)
@@ -443,6 +881,62 @@ func (_u *MemoryUpdateOne) sqlSave(ctx context.Context) (_node *Memory, err erro
 	}
 	if value, ok := _u.mutation.AddedImportance(); ok {
 		_spec.AddField(memory.FieldImportance, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.Actor(); ok {
+		_spec.SetField(memory.FieldActor, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Subject(); ok {
+		_spec.SetField(memory.FieldSubject, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Delta(); ok {
+		_spec.SetField(memory.FieldDelta, field.TypeJSON, value)
+	}
+	if _u.mutation.DeltaCleared() {
+		_spec.ClearField(memory.FieldDelta, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.Intensity(); ok {
+		_spec.SetField(memory.FieldIntensity, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedIntensity(); ok {
+		_spec.AddField(memory.FieldIntensity, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.Count(); ok {
+		_spec.SetField(memory.FieldCount, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedCount(); ok {
+		_spec.AddField(memory.FieldCount, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.Harmful(); ok {
+		_spec.SetField(memory.FieldHarmful, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Forgiven(); ok {
+		_spec.SetField(memory.FieldForgiven, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedForgiven(); ok {
+		_spec.AddField(memory.FieldForgiven, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.Betrayal(); ok {
+		_spec.SetField(memory.FieldBetrayal, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Text(); ok {
+		_spec.SetField(memory.FieldText, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.FirstAt(); ok {
+		_spec.SetField(memory.FieldFirstAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.LastAt(); ok {
+		_spec.SetField(memory.FieldLastAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.Covers(); ok {
+		_spec.SetField(memory.FieldCovers, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedCovers(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, memory.FieldCovers, value)
+		})
+	}
+	if _u.mutation.CoversCleared() {
+		_spec.ClearField(memory.FieldCovers, field.TypeJSON)
 	}
 	if _u.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{

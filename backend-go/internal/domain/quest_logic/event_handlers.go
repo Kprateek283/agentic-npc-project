@@ -6,49 +6,99 @@ import (
 	entplayer "agentic-npc-backend/internal/db/ent/player"
 	entplayerqueststate "agentic-npc-backend/internal/db/ent/playerqueststate"
 	entquest "agentic-npc-backend/internal/db/ent/quest"
+	"agentic-npc-backend/internal/domain/memory"
+	"agentic-npc-backend/internal/domain/npcstate"
 	"agentic-npc-backend/internal/dto"
 	"context"
 	"fmt"
 	"log"
+	"math"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // --- SPECIFIC EVENT HANDLERS ---
 
-// handleGifting applies the diminishing returns logic for gifts
+// handleGifting applies the episode-based memory and diminishing returns logic for gifts
 func (qm *QuestManager) handleGifting(ctx context.Context, db *ent.Client, p *ent.Player, n *ent.NPC, itemID string) error {
 	itemDef, err := qm.getItemDefinition(itemID)
 	if err != nil {
 		return err
 	}
 
-	rel, err := qm.GetOrCreateRelationship(ctx, db, p, n)
+	_, err = qm.GetOrCreateRelationship(ctx, db, p, n)
 	if err != nil {
 		return err
 	}
 
-	// Apply diminishing returns logic
-	var trustGained float64
-	giftCount := rel.GiftCount
-	if giftCount == 0 {
-		trustGained = itemDef.BaseTrustValue * 1.0 // 100% value
-	} else if giftCount == 1 {
-		trustGained = itemDef.BaseTrustValue / 5.0 // 20% value
-	} else {
-		trustGained = 0.0 // 0% value
+	v := clamp(itemDef.BaseTrustValue, -1.0, 1.0)
+	intensity := math.Abs(v)
+	now := time.Now()
+
+	cfg := memory.DefaultConfig()
+	if qm.Rules != nil {
+		cfg = qm.Rules.Config
 	}
 
-	newTrustLevel := rel.TrustLevel + trustGained
-	newGiftCount := giftCount + 1
-
-	// Update the relationship in the DB
-	err = db.PlayerNPCRelationship.UpdateOne(rel).SetTrustLevel(newTrustLevel).SetGiftCount(newGiftCount).Exec(ctx)
+	episodes, rows, err := npcstate.Load(ctx, db, n)
 	if err != nil {
 		return err
 	}
 
-	log.Printf("Gifting successful: NPC %s trust is now %f (Gift #%d)", n.Name, newTrustLevel, newGiftCount)
+	actorHasForgiven := false
+	for _, ep := range episodes {
+		if ep.Actor == p.PlayerID && ep.Forgiven > 0 {
+			actorHasForgiven = true
+			break
+		}
+	}
+
+	mergeIndex := -1
+	for i, ep := range episodes {
+		if ep.Actor == p.PlayerID && ep.EventType == "PLAYER_GAVE_GIFT" && ep.Subject == itemID {
+			if memory.CanMerge(ep, now, cfg, false, actorHasForgiven) {
+				mergeIndex = i
+				break
+			}
+		}
+	}
+
+	if mergeIndex >= 0 {
+		ep := episodes[mergeIndex]
+		memory.Merge(&ep, now, cfg)
+		row := rows[mergeIndex]
+		err = db.Memory.UpdateOne(row).
+			SetCount(ep.Count).
+			SetLastAt(ep.LastAt).
+			Exec(ctx)
+		if err != nil {
+			return err
+		}
+		log.Printf("Gifting merged: NPC %s updated gift %s count to %f", n.Name, itemID, ep.Count)
+		return nil
+	}
+
+	memoryDesc := fmt.Sprintf("%s gave %s to %s", p.PlayerID, itemID, n.Name)
+	_, err = db.Memory.Create().
+		SetOwner(n).
+		SetActor(p.PlayerID).
+		SetEventType("PLAYER_GAVE_GIFT").
+		SetSubject(itemID).
+		SetDelta(map[string]float64{"trust": v}).
+		SetIntensity(intensity).
+		SetHarmful(false).
+		SetCount(1.0).
+		SetFirstAt(now).
+		SetLastAt(now).
+		SetDescription(memoryDesc).
+		SetParticipants([]string{p.PlayerID, n.ID.String()}).
+		Save(ctx)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Gifting recorded: NPC %s received gift %s (trust delta: %f)", n.Name, itemID, v)
 	return nil
 }
 
@@ -131,13 +181,41 @@ func (qm *QuestManager) HandleAdminCommand(ctx context.Context, db *ent.Client, 
 		}
 
 		// Get or create the relationship
-		rel, err := qm.GetOrCreateRelationship(ctx, db, p, n)
+		_, err = qm.GetOrCreateRelationship(ctx, db, p, n)
 		if err != nil {
 			return fmt.Errorf("failed to get/create relationship for admin command: %w", err)
 		}
 
-		// Update the trust level
-		err = db.PlayerNPCRelationship.UpdateOne(rel).SetTrustLevel(trustValue).Exec(ctx)
+		// Delete existing memory rows for this player with this NPC
+		existingMems, err := n.QueryMemories().All(ctx)
+		if err != nil {
+			return fmt.Errorf("admin command failed: could not query NPC memories: %w", err)
+		}
+		for _, m := range existingMems {
+			actor := m.Actor
+			if actor == "" && len(m.Participants) > 0 {
+				actor = m.Participants[0]
+			}
+			if actor == p.PlayerID {
+				if err := db.Memory.DeleteOne(m).Exec(ctx); err != nil {
+					return fmt.Errorf("admin command failed: could not delete memory %d: %w", m.ID, err)
+				}
+			}
+		}
+
+		v := clamp(trustValue, -1.0, 1.0)
+		now := time.Now()
+		_, err = db.Memory.Create().
+			SetOwner(n).
+			SetActor(p.PlayerID).
+			SetEventType("QUEST_REWARD").
+			SetDelta(map[string]float64{"trust": v}).
+			SetIntensity(0.3).
+			SetFirstAt(now).
+			SetLastAt(now).
+			SetDescription(fmt.Sprintf("Admin set trust with %s to %.2f", npcName, trustValue)).
+			SetParticipants([]string{p.PlayerID, n.ID.String()}).
+			Save(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to set trust level: %w", err)
 		}

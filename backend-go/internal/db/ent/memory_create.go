@@ -70,6 +70,158 @@ func (_c *MemoryCreate) SetNillableImportance(v *float64) *MemoryCreate {
 	return _c
 }
 
+// SetActor sets the "actor" field.
+func (_c *MemoryCreate) SetActor(v string) *MemoryCreate {
+	_c.mutation.SetActor(v)
+	return _c
+}
+
+// SetNillableActor sets the "actor" field if the given value is not nil.
+func (_c *MemoryCreate) SetNillableActor(v *string) *MemoryCreate {
+	if v != nil {
+		_c.SetActor(*v)
+	}
+	return _c
+}
+
+// SetSubject sets the "subject" field.
+func (_c *MemoryCreate) SetSubject(v string) *MemoryCreate {
+	_c.mutation.SetSubject(v)
+	return _c
+}
+
+// SetNillableSubject sets the "subject" field if the given value is not nil.
+func (_c *MemoryCreate) SetNillableSubject(v *string) *MemoryCreate {
+	if v != nil {
+		_c.SetSubject(*v)
+	}
+	return _c
+}
+
+// SetDelta sets the "delta" field.
+func (_c *MemoryCreate) SetDelta(v map[string]float64) *MemoryCreate {
+	_c.mutation.SetDelta(v)
+	return _c
+}
+
+// SetIntensity sets the "intensity" field.
+func (_c *MemoryCreate) SetIntensity(v float64) *MemoryCreate {
+	_c.mutation.SetIntensity(v)
+	return _c
+}
+
+// SetNillableIntensity sets the "intensity" field if the given value is not nil.
+func (_c *MemoryCreate) SetNillableIntensity(v *float64) *MemoryCreate {
+	if v != nil {
+		_c.SetIntensity(*v)
+	}
+	return _c
+}
+
+// SetCount sets the "count" field.
+func (_c *MemoryCreate) SetCount(v float64) *MemoryCreate {
+	_c.mutation.SetCount(v)
+	return _c
+}
+
+// SetNillableCount sets the "count" field if the given value is not nil.
+func (_c *MemoryCreate) SetNillableCount(v *float64) *MemoryCreate {
+	if v != nil {
+		_c.SetCount(*v)
+	}
+	return _c
+}
+
+// SetHarmful sets the "harmful" field.
+func (_c *MemoryCreate) SetHarmful(v bool) *MemoryCreate {
+	_c.mutation.SetHarmful(v)
+	return _c
+}
+
+// SetNillableHarmful sets the "harmful" field if the given value is not nil.
+func (_c *MemoryCreate) SetNillableHarmful(v *bool) *MemoryCreate {
+	if v != nil {
+		_c.SetHarmful(*v)
+	}
+	return _c
+}
+
+// SetForgiven sets the "forgiven" field.
+func (_c *MemoryCreate) SetForgiven(v float64) *MemoryCreate {
+	_c.mutation.SetForgiven(v)
+	return _c
+}
+
+// SetNillableForgiven sets the "forgiven" field if the given value is not nil.
+func (_c *MemoryCreate) SetNillableForgiven(v *float64) *MemoryCreate {
+	if v != nil {
+		_c.SetForgiven(*v)
+	}
+	return _c
+}
+
+// SetBetrayal sets the "betrayal" field.
+func (_c *MemoryCreate) SetBetrayal(v bool) *MemoryCreate {
+	_c.mutation.SetBetrayal(v)
+	return _c
+}
+
+// SetNillableBetrayal sets the "betrayal" field if the given value is not nil.
+func (_c *MemoryCreate) SetNillableBetrayal(v *bool) *MemoryCreate {
+	if v != nil {
+		_c.SetBetrayal(*v)
+	}
+	return _c
+}
+
+// SetText sets the "text" field.
+func (_c *MemoryCreate) SetText(v string) *MemoryCreate {
+	_c.mutation.SetText(v)
+	return _c
+}
+
+// SetNillableText sets the "text" field if the given value is not nil.
+func (_c *MemoryCreate) SetNillableText(v *string) *MemoryCreate {
+	if v != nil {
+		_c.SetText(*v)
+	}
+	return _c
+}
+
+// SetFirstAt sets the "first_at" field.
+func (_c *MemoryCreate) SetFirstAt(v time.Time) *MemoryCreate {
+	_c.mutation.SetFirstAt(v)
+	return _c
+}
+
+// SetNillableFirstAt sets the "first_at" field if the given value is not nil.
+func (_c *MemoryCreate) SetNillableFirstAt(v *time.Time) *MemoryCreate {
+	if v != nil {
+		_c.SetFirstAt(*v)
+	}
+	return _c
+}
+
+// SetLastAt sets the "last_at" field.
+func (_c *MemoryCreate) SetLastAt(v time.Time) *MemoryCreate {
+	_c.mutation.SetLastAt(v)
+	return _c
+}
+
+// SetNillableLastAt sets the "last_at" field if the given value is not nil.
+func (_c *MemoryCreate) SetNillableLastAt(v *time.Time) *MemoryCreate {
+	if v != nil {
+		_c.SetLastAt(*v)
+	}
+	return _c
+}
+
+// SetCovers sets the "covers" field.
+func (_c *MemoryCreate) SetCovers(v []int) *MemoryCreate {
+	_c.mutation.SetCovers(v)
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *MemoryCreate) SetID(v int) *MemoryCreate {
 	_c.mutation.SetID(v)
@@ -130,6 +282,46 @@ func (_c *MemoryCreate) defaults() {
 		v := memory.DefaultImportance
 		_c.mutation.SetImportance(v)
 	}
+	if _, ok := _c.mutation.Actor(); !ok {
+		v := memory.DefaultActor
+		_c.mutation.SetActor(v)
+	}
+	if _, ok := _c.mutation.Subject(); !ok {
+		v := memory.DefaultSubject
+		_c.mutation.SetSubject(v)
+	}
+	if _, ok := _c.mutation.Intensity(); !ok {
+		v := memory.DefaultIntensity
+		_c.mutation.SetIntensity(v)
+	}
+	if _, ok := _c.mutation.Count(); !ok {
+		v := memory.DefaultCount
+		_c.mutation.SetCount(v)
+	}
+	if _, ok := _c.mutation.Harmful(); !ok {
+		v := memory.DefaultHarmful
+		_c.mutation.SetHarmful(v)
+	}
+	if _, ok := _c.mutation.Forgiven(); !ok {
+		v := memory.DefaultForgiven
+		_c.mutation.SetForgiven(v)
+	}
+	if _, ok := _c.mutation.Betrayal(); !ok {
+		v := memory.DefaultBetrayal
+		_c.mutation.SetBetrayal(v)
+	}
+	if _, ok := _c.mutation.Text(); !ok {
+		v := memory.DefaultText
+		_c.mutation.SetText(v)
+	}
+	if _, ok := _c.mutation.FirstAt(); !ok {
+		v := memory.DefaultFirstAt()
+		_c.mutation.SetFirstAt(v)
+	}
+	if _, ok := _c.mutation.LastAt(); !ok {
+		v := memory.DefaultLastAt()
+		_c.mutation.SetLastAt(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -148,6 +340,36 @@ func (_c *MemoryCreate) check() error {
 	}
 	if _, ok := _c.mutation.Importance(); !ok {
 		return &ValidationError{Name: "importance", err: errors.New(`ent: missing required field "Memory.importance"`)}
+	}
+	if _, ok := _c.mutation.Actor(); !ok {
+		return &ValidationError{Name: "actor", err: errors.New(`ent: missing required field "Memory.actor"`)}
+	}
+	if _, ok := _c.mutation.Subject(); !ok {
+		return &ValidationError{Name: "subject", err: errors.New(`ent: missing required field "Memory.subject"`)}
+	}
+	if _, ok := _c.mutation.Intensity(); !ok {
+		return &ValidationError{Name: "intensity", err: errors.New(`ent: missing required field "Memory.intensity"`)}
+	}
+	if _, ok := _c.mutation.Count(); !ok {
+		return &ValidationError{Name: "count", err: errors.New(`ent: missing required field "Memory.count"`)}
+	}
+	if _, ok := _c.mutation.Harmful(); !ok {
+		return &ValidationError{Name: "harmful", err: errors.New(`ent: missing required field "Memory.harmful"`)}
+	}
+	if _, ok := _c.mutation.Forgiven(); !ok {
+		return &ValidationError{Name: "forgiven", err: errors.New(`ent: missing required field "Memory.forgiven"`)}
+	}
+	if _, ok := _c.mutation.Betrayal(); !ok {
+		return &ValidationError{Name: "betrayal", err: errors.New(`ent: missing required field "Memory.betrayal"`)}
+	}
+	if _, ok := _c.mutation.Text(); !ok {
+		return &ValidationError{Name: "text", err: errors.New(`ent: missing required field "Memory.text"`)}
+	}
+	if _, ok := _c.mutation.FirstAt(); !ok {
+		return &ValidationError{Name: "first_at", err: errors.New(`ent: missing required field "Memory.first_at"`)}
+	}
+	if _, ok := _c.mutation.LastAt(); !ok {
+		return &ValidationError{Name: "last_at", err: errors.New(`ent: missing required field "Memory.last_at"`)}
 	}
 	if len(_c.mutation.OwnerIDs()) == 0 {
 		return &ValidationError{Name: "owner", err: errors.New(`ent: missing required edge "Memory.owner"`)}
@@ -204,6 +426,54 @@ func (_c *MemoryCreate) createSpec() (*Memory, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Importance(); ok {
 		_spec.SetField(memory.FieldImportance, field.TypeFloat64, value)
 		_node.Importance = value
+	}
+	if value, ok := _c.mutation.Actor(); ok {
+		_spec.SetField(memory.FieldActor, field.TypeString, value)
+		_node.Actor = value
+	}
+	if value, ok := _c.mutation.Subject(); ok {
+		_spec.SetField(memory.FieldSubject, field.TypeString, value)
+		_node.Subject = value
+	}
+	if value, ok := _c.mutation.Delta(); ok {
+		_spec.SetField(memory.FieldDelta, field.TypeJSON, value)
+		_node.Delta = value
+	}
+	if value, ok := _c.mutation.Intensity(); ok {
+		_spec.SetField(memory.FieldIntensity, field.TypeFloat64, value)
+		_node.Intensity = value
+	}
+	if value, ok := _c.mutation.Count(); ok {
+		_spec.SetField(memory.FieldCount, field.TypeFloat64, value)
+		_node.Count = value
+	}
+	if value, ok := _c.mutation.Harmful(); ok {
+		_spec.SetField(memory.FieldHarmful, field.TypeBool, value)
+		_node.Harmful = value
+	}
+	if value, ok := _c.mutation.Forgiven(); ok {
+		_spec.SetField(memory.FieldForgiven, field.TypeFloat64, value)
+		_node.Forgiven = value
+	}
+	if value, ok := _c.mutation.Betrayal(); ok {
+		_spec.SetField(memory.FieldBetrayal, field.TypeBool, value)
+		_node.Betrayal = value
+	}
+	if value, ok := _c.mutation.Text(); ok {
+		_spec.SetField(memory.FieldText, field.TypeString, value)
+		_node.Text = value
+	}
+	if value, ok := _c.mutation.FirstAt(); ok {
+		_spec.SetField(memory.FieldFirstAt, field.TypeTime, value)
+		_node.FirstAt = value
+	}
+	if value, ok := _c.mutation.LastAt(); ok {
+		_spec.SetField(memory.FieldLastAt, field.TypeTime, value)
+		_node.LastAt = value
+	}
+	if value, ok := _c.mutation.Covers(); ok {
+		_spec.SetField(memory.FieldCovers, field.TypeJSON, value)
+		_node.Covers = value
 	}
 	if nodes := _c.mutation.OwnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -340,6 +610,180 @@ func (u *MemoryUpsert) AddImportance(v float64) *MemoryUpsert {
 	return u
 }
 
+// SetActor sets the "actor" field.
+func (u *MemoryUpsert) SetActor(v string) *MemoryUpsert {
+	u.Set(memory.FieldActor, v)
+	return u
+}
+
+// UpdateActor sets the "actor" field to the value that was provided on create.
+func (u *MemoryUpsert) UpdateActor() *MemoryUpsert {
+	u.SetExcluded(memory.FieldActor)
+	return u
+}
+
+// SetSubject sets the "subject" field.
+func (u *MemoryUpsert) SetSubject(v string) *MemoryUpsert {
+	u.Set(memory.FieldSubject, v)
+	return u
+}
+
+// UpdateSubject sets the "subject" field to the value that was provided on create.
+func (u *MemoryUpsert) UpdateSubject() *MemoryUpsert {
+	u.SetExcluded(memory.FieldSubject)
+	return u
+}
+
+// SetDelta sets the "delta" field.
+func (u *MemoryUpsert) SetDelta(v map[string]float64) *MemoryUpsert {
+	u.Set(memory.FieldDelta, v)
+	return u
+}
+
+// UpdateDelta sets the "delta" field to the value that was provided on create.
+func (u *MemoryUpsert) UpdateDelta() *MemoryUpsert {
+	u.SetExcluded(memory.FieldDelta)
+	return u
+}
+
+// ClearDelta clears the value of the "delta" field.
+func (u *MemoryUpsert) ClearDelta() *MemoryUpsert {
+	u.SetNull(memory.FieldDelta)
+	return u
+}
+
+// SetIntensity sets the "intensity" field.
+func (u *MemoryUpsert) SetIntensity(v float64) *MemoryUpsert {
+	u.Set(memory.FieldIntensity, v)
+	return u
+}
+
+// UpdateIntensity sets the "intensity" field to the value that was provided on create.
+func (u *MemoryUpsert) UpdateIntensity() *MemoryUpsert {
+	u.SetExcluded(memory.FieldIntensity)
+	return u
+}
+
+// AddIntensity adds v to the "intensity" field.
+func (u *MemoryUpsert) AddIntensity(v float64) *MemoryUpsert {
+	u.Add(memory.FieldIntensity, v)
+	return u
+}
+
+// SetCount sets the "count" field.
+func (u *MemoryUpsert) SetCount(v float64) *MemoryUpsert {
+	u.Set(memory.FieldCount, v)
+	return u
+}
+
+// UpdateCount sets the "count" field to the value that was provided on create.
+func (u *MemoryUpsert) UpdateCount() *MemoryUpsert {
+	u.SetExcluded(memory.FieldCount)
+	return u
+}
+
+// AddCount adds v to the "count" field.
+func (u *MemoryUpsert) AddCount(v float64) *MemoryUpsert {
+	u.Add(memory.FieldCount, v)
+	return u
+}
+
+// SetHarmful sets the "harmful" field.
+func (u *MemoryUpsert) SetHarmful(v bool) *MemoryUpsert {
+	u.Set(memory.FieldHarmful, v)
+	return u
+}
+
+// UpdateHarmful sets the "harmful" field to the value that was provided on create.
+func (u *MemoryUpsert) UpdateHarmful() *MemoryUpsert {
+	u.SetExcluded(memory.FieldHarmful)
+	return u
+}
+
+// SetForgiven sets the "forgiven" field.
+func (u *MemoryUpsert) SetForgiven(v float64) *MemoryUpsert {
+	u.Set(memory.FieldForgiven, v)
+	return u
+}
+
+// UpdateForgiven sets the "forgiven" field to the value that was provided on create.
+func (u *MemoryUpsert) UpdateForgiven() *MemoryUpsert {
+	u.SetExcluded(memory.FieldForgiven)
+	return u
+}
+
+// AddForgiven adds v to the "forgiven" field.
+func (u *MemoryUpsert) AddForgiven(v float64) *MemoryUpsert {
+	u.Add(memory.FieldForgiven, v)
+	return u
+}
+
+// SetBetrayal sets the "betrayal" field.
+func (u *MemoryUpsert) SetBetrayal(v bool) *MemoryUpsert {
+	u.Set(memory.FieldBetrayal, v)
+	return u
+}
+
+// UpdateBetrayal sets the "betrayal" field to the value that was provided on create.
+func (u *MemoryUpsert) UpdateBetrayal() *MemoryUpsert {
+	u.SetExcluded(memory.FieldBetrayal)
+	return u
+}
+
+// SetText sets the "text" field.
+func (u *MemoryUpsert) SetText(v string) *MemoryUpsert {
+	u.Set(memory.FieldText, v)
+	return u
+}
+
+// UpdateText sets the "text" field to the value that was provided on create.
+func (u *MemoryUpsert) UpdateText() *MemoryUpsert {
+	u.SetExcluded(memory.FieldText)
+	return u
+}
+
+// SetFirstAt sets the "first_at" field.
+func (u *MemoryUpsert) SetFirstAt(v time.Time) *MemoryUpsert {
+	u.Set(memory.FieldFirstAt, v)
+	return u
+}
+
+// UpdateFirstAt sets the "first_at" field to the value that was provided on create.
+func (u *MemoryUpsert) UpdateFirstAt() *MemoryUpsert {
+	u.SetExcluded(memory.FieldFirstAt)
+	return u
+}
+
+// SetLastAt sets the "last_at" field.
+func (u *MemoryUpsert) SetLastAt(v time.Time) *MemoryUpsert {
+	u.Set(memory.FieldLastAt, v)
+	return u
+}
+
+// UpdateLastAt sets the "last_at" field to the value that was provided on create.
+func (u *MemoryUpsert) UpdateLastAt() *MemoryUpsert {
+	u.SetExcluded(memory.FieldLastAt)
+	return u
+}
+
+// SetCovers sets the "covers" field.
+func (u *MemoryUpsert) SetCovers(v []int) *MemoryUpsert {
+	u.Set(memory.FieldCovers, v)
+	return u
+}
+
+// UpdateCovers sets the "covers" field to the value that was provided on create.
+func (u *MemoryUpsert) UpdateCovers() *MemoryUpsert {
+	u.SetExcluded(memory.FieldCovers)
+	return u
+}
+
+// ClearCovers clears the value of the "covers" field.
+func (u *MemoryUpsert) ClearCovers() *MemoryUpsert {
+	u.SetNull(memory.FieldCovers)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -462,6 +906,209 @@ func (u *MemoryUpsertOne) AddImportance(v float64) *MemoryUpsertOne {
 func (u *MemoryUpsertOne) UpdateImportance() *MemoryUpsertOne {
 	return u.Update(func(s *MemoryUpsert) {
 		s.UpdateImportance()
+	})
+}
+
+// SetActor sets the "actor" field.
+func (u *MemoryUpsertOne) SetActor(v string) *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetActor(v)
+	})
+}
+
+// UpdateActor sets the "actor" field to the value that was provided on create.
+func (u *MemoryUpsertOne) UpdateActor() *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateActor()
+	})
+}
+
+// SetSubject sets the "subject" field.
+func (u *MemoryUpsertOne) SetSubject(v string) *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetSubject(v)
+	})
+}
+
+// UpdateSubject sets the "subject" field to the value that was provided on create.
+func (u *MemoryUpsertOne) UpdateSubject() *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateSubject()
+	})
+}
+
+// SetDelta sets the "delta" field.
+func (u *MemoryUpsertOne) SetDelta(v map[string]float64) *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetDelta(v)
+	})
+}
+
+// UpdateDelta sets the "delta" field to the value that was provided on create.
+func (u *MemoryUpsertOne) UpdateDelta() *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateDelta()
+	})
+}
+
+// ClearDelta clears the value of the "delta" field.
+func (u *MemoryUpsertOne) ClearDelta() *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.ClearDelta()
+	})
+}
+
+// SetIntensity sets the "intensity" field.
+func (u *MemoryUpsertOne) SetIntensity(v float64) *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetIntensity(v)
+	})
+}
+
+// AddIntensity adds v to the "intensity" field.
+func (u *MemoryUpsertOne) AddIntensity(v float64) *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.AddIntensity(v)
+	})
+}
+
+// UpdateIntensity sets the "intensity" field to the value that was provided on create.
+func (u *MemoryUpsertOne) UpdateIntensity() *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateIntensity()
+	})
+}
+
+// SetCount sets the "count" field.
+func (u *MemoryUpsertOne) SetCount(v float64) *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetCount(v)
+	})
+}
+
+// AddCount adds v to the "count" field.
+func (u *MemoryUpsertOne) AddCount(v float64) *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.AddCount(v)
+	})
+}
+
+// UpdateCount sets the "count" field to the value that was provided on create.
+func (u *MemoryUpsertOne) UpdateCount() *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateCount()
+	})
+}
+
+// SetHarmful sets the "harmful" field.
+func (u *MemoryUpsertOne) SetHarmful(v bool) *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetHarmful(v)
+	})
+}
+
+// UpdateHarmful sets the "harmful" field to the value that was provided on create.
+func (u *MemoryUpsertOne) UpdateHarmful() *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateHarmful()
+	})
+}
+
+// SetForgiven sets the "forgiven" field.
+func (u *MemoryUpsertOne) SetForgiven(v float64) *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetForgiven(v)
+	})
+}
+
+// AddForgiven adds v to the "forgiven" field.
+func (u *MemoryUpsertOne) AddForgiven(v float64) *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.AddForgiven(v)
+	})
+}
+
+// UpdateForgiven sets the "forgiven" field to the value that was provided on create.
+func (u *MemoryUpsertOne) UpdateForgiven() *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateForgiven()
+	})
+}
+
+// SetBetrayal sets the "betrayal" field.
+func (u *MemoryUpsertOne) SetBetrayal(v bool) *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetBetrayal(v)
+	})
+}
+
+// UpdateBetrayal sets the "betrayal" field to the value that was provided on create.
+func (u *MemoryUpsertOne) UpdateBetrayal() *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateBetrayal()
+	})
+}
+
+// SetText sets the "text" field.
+func (u *MemoryUpsertOne) SetText(v string) *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetText(v)
+	})
+}
+
+// UpdateText sets the "text" field to the value that was provided on create.
+func (u *MemoryUpsertOne) UpdateText() *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateText()
+	})
+}
+
+// SetFirstAt sets the "first_at" field.
+func (u *MemoryUpsertOne) SetFirstAt(v time.Time) *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetFirstAt(v)
+	})
+}
+
+// UpdateFirstAt sets the "first_at" field to the value that was provided on create.
+func (u *MemoryUpsertOne) UpdateFirstAt() *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateFirstAt()
+	})
+}
+
+// SetLastAt sets the "last_at" field.
+func (u *MemoryUpsertOne) SetLastAt(v time.Time) *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetLastAt(v)
+	})
+}
+
+// UpdateLastAt sets the "last_at" field to the value that was provided on create.
+func (u *MemoryUpsertOne) UpdateLastAt() *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateLastAt()
+	})
+}
+
+// SetCovers sets the "covers" field.
+func (u *MemoryUpsertOne) SetCovers(v []int) *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetCovers(v)
+	})
+}
+
+// UpdateCovers sets the "covers" field to the value that was provided on create.
+func (u *MemoryUpsertOne) UpdateCovers() *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateCovers()
+	})
+}
+
+// ClearCovers clears the value of the "covers" field.
+func (u *MemoryUpsertOne) ClearCovers() *MemoryUpsertOne {
+	return u.Update(func(s *MemoryUpsert) {
+		s.ClearCovers()
 	})
 }
 
@@ -753,6 +1400,209 @@ func (u *MemoryUpsertBulk) AddImportance(v float64) *MemoryUpsertBulk {
 func (u *MemoryUpsertBulk) UpdateImportance() *MemoryUpsertBulk {
 	return u.Update(func(s *MemoryUpsert) {
 		s.UpdateImportance()
+	})
+}
+
+// SetActor sets the "actor" field.
+func (u *MemoryUpsertBulk) SetActor(v string) *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetActor(v)
+	})
+}
+
+// UpdateActor sets the "actor" field to the value that was provided on create.
+func (u *MemoryUpsertBulk) UpdateActor() *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateActor()
+	})
+}
+
+// SetSubject sets the "subject" field.
+func (u *MemoryUpsertBulk) SetSubject(v string) *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetSubject(v)
+	})
+}
+
+// UpdateSubject sets the "subject" field to the value that was provided on create.
+func (u *MemoryUpsertBulk) UpdateSubject() *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateSubject()
+	})
+}
+
+// SetDelta sets the "delta" field.
+func (u *MemoryUpsertBulk) SetDelta(v map[string]float64) *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetDelta(v)
+	})
+}
+
+// UpdateDelta sets the "delta" field to the value that was provided on create.
+func (u *MemoryUpsertBulk) UpdateDelta() *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateDelta()
+	})
+}
+
+// ClearDelta clears the value of the "delta" field.
+func (u *MemoryUpsertBulk) ClearDelta() *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.ClearDelta()
+	})
+}
+
+// SetIntensity sets the "intensity" field.
+func (u *MemoryUpsertBulk) SetIntensity(v float64) *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetIntensity(v)
+	})
+}
+
+// AddIntensity adds v to the "intensity" field.
+func (u *MemoryUpsertBulk) AddIntensity(v float64) *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.AddIntensity(v)
+	})
+}
+
+// UpdateIntensity sets the "intensity" field to the value that was provided on create.
+func (u *MemoryUpsertBulk) UpdateIntensity() *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateIntensity()
+	})
+}
+
+// SetCount sets the "count" field.
+func (u *MemoryUpsertBulk) SetCount(v float64) *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetCount(v)
+	})
+}
+
+// AddCount adds v to the "count" field.
+func (u *MemoryUpsertBulk) AddCount(v float64) *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.AddCount(v)
+	})
+}
+
+// UpdateCount sets the "count" field to the value that was provided on create.
+func (u *MemoryUpsertBulk) UpdateCount() *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateCount()
+	})
+}
+
+// SetHarmful sets the "harmful" field.
+func (u *MemoryUpsertBulk) SetHarmful(v bool) *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetHarmful(v)
+	})
+}
+
+// UpdateHarmful sets the "harmful" field to the value that was provided on create.
+func (u *MemoryUpsertBulk) UpdateHarmful() *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateHarmful()
+	})
+}
+
+// SetForgiven sets the "forgiven" field.
+func (u *MemoryUpsertBulk) SetForgiven(v float64) *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetForgiven(v)
+	})
+}
+
+// AddForgiven adds v to the "forgiven" field.
+func (u *MemoryUpsertBulk) AddForgiven(v float64) *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.AddForgiven(v)
+	})
+}
+
+// UpdateForgiven sets the "forgiven" field to the value that was provided on create.
+func (u *MemoryUpsertBulk) UpdateForgiven() *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateForgiven()
+	})
+}
+
+// SetBetrayal sets the "betrayal" field.
+func (u *MemoryUpsertBulk) SetBetrayal(v bool) *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetBetrayal(v)
+	})
+}
+
+// UpdateBetrayal sets the "betrayal" field to the value that was provided on create.
+func (u *MemoryUpsertBulk) UpdateBetrayal() *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateBetrayal()
+	})
+}
+
+// SetText sets the "text" field.
+func (u *MemoryUpsertBulk) SetText(v string) *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetText(v)
+	})
+}
+
+// UpdateText sets the "text" field to the value that was provided on create.
+func (u *MemoryUpsertBulk) UpdateText() *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateText()
+	})
+}
+
+// SetFirstAt sets the "first_at" field.
+func (u *MemoryUpsertBulk) SetFirstAt(v time.Time) *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetFirstAt(v)
+	})
+}
+
+// UpdateFirstAt sets the "first_at" field to the value that was provided on create.
+func (u *MemoryUpsertBulk) UpdateFirstAt() *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateFirstAt()
+	})
+}
+
+// SetLastAt sets the "last_at" field.
+func (u *MemoryUpsertBulk) SetLastAt(v time.Time) *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetLastAt(v)
+	})
+}
+
+// UpdateLastAt sets the "last_at" field to the value that was provided on create.
+func (u *MemoryUpsertBulk) UpdateLastAt() *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateLastAt()
+	})
+}
+
+// SetCovers sets the "covers" field.
+func (u *MemoryUpsertBulk) SetCovers(v []int) *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.SetCovers(v)
+	})
+}
+
+// UpdateCovers sets the "covers" field to the value that was provided on create.
+func (u *MemoryUpsertBulk) UpdateCovers() *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.UpdateCovers()
+	})
+}
+
+// ClearCovers clears the value of the "covers" field.
+func (u *MemoryUpsertBulk) ClearCovers() *MemoryUpsertBulk {
+	return u.Update(func(s *MemoryUpsert) {
+		s.ClearCovers()
 	})
 }
 

@@ -8,7 +8,6 @@ import (
 	"agentic-npc-backend/internal/db/ent/memory"
 	"agentic-npc-backend/internal/db/ent/npc"
 	"agentic-npc-backend/internal/db/ent/player"
-	"agentic-npc-backend/internal/db/ent/playernpcrelationship"
 	"agentic-npc-backend/internal/db/ent/playerqueststate"
 	"agentic-npc-backend/internal/db/ent/quest"
 	"agentic-npc-backend/internal/db/ent/schema"
@@ -59,6 +58,46 @@ func init() {
 	memoryDescImportance := memoryFields[5].Descriptor()
 	// memory.DefaultImportance holds the default value on creation for the importance field.
 	memory.DefaultImportance = memoryDescImportance.Default.(float64)
+	// memoryDescActor is the schema descriptor for actor field.
+	memoryDescActor := memoryFields[6].Descriptor()
+	// memory.DefaultActor holds the default value on creation for the actor field.
+	memory.DefaultActor = memoryDescActor.Default.(string)
+	// memoryDescSubject is the schema descriptor for subject field.
+	memoryDescSubject := memoryFields[7].Descriptor()
+	// memory.DefaultSubject holds the default value on creation for the subject field.
+	memory.DefaultSubject = memoryDescSubject.Default.(string)
+	// memoryDescIntensity is the schema descriptor for intensity field.
+	memoryDescIntensity := memoryFields[9].Descriptor()
+	// memory.DefaultIntensity holds the default value on creation for the intensity field.
+	memory.DefaultIntensity = memoryDescIntensity.Default.(float64)
+	// memoryDescCount is the schema descriptor for count field.
+	memoryDescCount := memoryFields[10].Descriptor()
+	// memory.DefaultCount holds the default value on creation for the count field.
+	memory.DefaultCount = memoryDescCount.Default.(float64)
+	// memoryDescHarmful is the schema descriptor for harmful field.
+	memoryDescHarmful := memoryFields[11].Descriptor()
+	// memory.DefaultHarmful holds the default value on creation for the harmful field.
+	memory.DefaultHarmful = memoryDescHarmful.Default.(bool)
+	// memoryDescForgiven is the schema descriptor for forgiven field.
+	memoryDescForgiven := memoryFields[12].Descriptor()
+	// memory.DefaultForgiven holds the default value on creation for the forgiven field.
+	memory.DefaultForgiven = memoryDescForgiven.Default.(float64)
+	// memoryDescBetrayal is the schema descriptor for betrayal field.
+	memoryDescBetrayal := memoryFields[13].Descriptor()
+	// memory.DefaultBetrayal holds the default value on creation for the betrayal field.
+	memory.DefaultBetrayal = memoryDescBetrayal.Default.(bool)
+	// memoryDescText is the schema descriptor for text field.
+	memoryDescText := memoryFields[14].Descriptor()
+	// memory.DefaultText holds the default value on creation for the text field.
+	memory.DefaultText = memoryDescText.Default.(string)
+	// memoryDescFirstAt is the schema descriptor for first_at field.
+	memoryDescFirstAt := memoryFields[15].Descriptor()
+	// memory.DefaultFirstAt holds the default value on creation for the first_at field.
+	memory.DefaultFirstAt = memoryDescFirstAt.Default.(func() time.Time)
+	// memoryDescLastAt is the schema descriptor for last_at field.
+	memoryDescLastAt := memoryFields[16].Descriptor()
+	// memory.DefaultLastAt holds the default value on creation for the last_at field.
+	memory.DefaultLastAt = memoryDescLastAt.Default.(func() time.Time)
 	npcFields := schema.NPC{}.Fields()
 	_ = npcFields
 	// npcDescName is the schema descriptor for name field.
@@ -81,10 +120,6 @@ func init() {
 	npcDescLorePath := npcFields[5].Descriptor()
 	// npc.LorePathValidator is a validator for the "lore_path" field. It is called by the builders before save.
 	npc.LorePathValidator = npcDescLorePath.Validators[0].(func(string) error)
-	// npcDescEmotions is the schema descriptor for emotions field.
-	npcDescEmotions := npcFields[6].Descriptor()
-	// npc.DefaultEmotions holds the default value on creation for the emotions field.
-	npc.DefaultEmotions = npcDescEmotions.Default.(*schema.EmotionState)
 	// npcDescID is the schema descriptor for id field.
 	npcDescID := npcFields[0].Descriptor()
 	// npc.DefaultID holds the default value on creation for the id field.
@@ -107,16 +142,6 @@ func init() {
 	playerDescID := playerFields[0].Descriptor()
 	// player.DefaultID holds the default value on creation for the id field.
 	player.DefaultID = playerDescID.Default.(func() uuid.UUID)
-	playernpcrelationshipFields := schema.PlayerNPCRelationship{}.Fields()
-	_ = playernpcrelationshipFields
-	// playernpcrelationshipDescTrustLevel is the schema descriptor for trust_level field.
-	playernpcrelationshipDescTrustLevel := playernpcrelationshipFields[0].Descriptor()
-	// playernpcrelationship.DefaultTrustLevel holds the default value on creation for the trust_level field.
-	playernpcrelationship.DefaultTrustLevel = playernpcrelationshipDescTrustLevel.Default.(float64)
-	// playernpcrelationshipDescGiftCount is the schema descriptor for gift_count field.
-	playernpcrelationshipDescGiftCount := playernpcrelationshipFields[1].Descriptor()
-	// playernpcrelationship.DefaultGiftCount holds the default value on creation for the gift_count field.
-	playernpcrelationship.DefaultGiftCount = playernpcrelationshipDescGiftCount.Default.(int)
 	playerqueststateFields := schema.PlayerQuestState{}.Fields()
 	_ = playerqueststateFields
 	// playerqueststateDescQuestIdentifier is the schema descriptor for quest_identifier field.

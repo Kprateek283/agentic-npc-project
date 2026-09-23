@@ -24,6 +24,30 @@ const (
 	FieldParticipants = "participants"
 	// FieldImportance holds the string denoting the importance field in the database.
 	FieldImportance = "importance"
+	// FieldActor holds the string denoting the actor field in the database.
+	FieldActor = "actor"
+	// FieldSubject holds the string denoting the subject field in the database.
+	FieldSubject = "subject"
+	// FieldDelta holds the string denoting the delta field in the database.
+	FieldDelta = "delta"
+	// FieldIntensity holds the string denoting the intensity field in the database.
+	FieldIntensity = "intensity"
+	// FieldCount holds the string denoting the count field in the database.
+	FieldCount = "count"
+	// FieldHarmful holds the string denoting the harmful field in the database.
+	FieldHarmful = "harmful"
+	// FieldForgiven holds the string denoting the forgiven field in the database.
+	FieldForgiven = "forgiven"
+	// FieldBetrayal holds the string denoting the betrayal field in the database.
+	FieldBetrayal = "betrayal"
+	// FieldText holds the string denoting the text field in the database.
+	FieldText = "text"
+	// FieldFirstAt holds the string denoting the first_at field in the database.
+	FieldFirstAt = "first_at"
+	// FieldLastAt holds the string denoting the last_at field in the database.
+	FieldLastAt = "last_at"
+	// FieldCovers holds the string denoting the covers field in the database.
+	FieldCovers = "covers"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
 	EdgeOwner = "owner"
 	// Table holds the table name of the memory in the database.
@@ -45,6 +69,18 @@ var Columns = []string{
 	FieldEventType,
 	FieldParticipants,
 	FieldImportance,
+	FieldActor,
+	FieldSubject,
+	FieldDelta,
+	FieldIntensity,
+	FieldCount,
+	FieldHarmful,
+	FieldForgiven,
+	FieldBetrayal,
+	FieldText,
+	FieldFirstAt,
+	FieldLastAt,
+	FieldCovers,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "memories"
@@ -73,6 +109,26 @@ var (
 	DefaultCreatedAt func() time.Time
 	// DefaultImportance holds the default value on creation for the "importance" field.
 	DefaultImportance float64
+	// DefaultActor holds the default value on creation for the "actor" field.
+	DefaultActor string
+	// DefaultSubject holds the default value on creation for the "subject" field.
+	DefaultSubject string
+	// DefaultIntensity holds the default value on creation for the "intensity" field.
+	DefaultIntensity float64
+	// DefaultCount holds the default value on creation for the "count" field.
+	DefaultCount float64
+	// DefaultHarmful holds the default value on creation for the "harmful" field.
+	DefaultHarmful bool
+	// DefaultForgiven holds the default value on creation for the "forgiven" field.
+	DefaultForgiven float64
+	// DefaultBetrayal holds the default value on creation for the "betrayal" field.
+	DefaultBetrayal bool
+	// DefaultText holds the default value on creation for the "text" field.
+	DefaultText string
+	// DefaultFirstAt holds the default value on creation for the "first_at" field.
+	DefaultFirstAt func() time.Time
+	// DefaultLastAt holds the default value on creation for the "last_at" field.
+	DefaultLastAt func() time.Time
 )
 
 // OrderOption defines the ordering options for the Memory queries.
@@ -101,6 +157,56 @@ func ByEventType(opts ...sql.OrderTermOption) OrderOption {
 // ByImportance orders the results by the importance field.
 func ByImportance(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldImportance, opts...).ToFunc()
+}
+
+// ByActor orders the results by the actor field.
+func ByActor(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldActor, opts...).ToFunc()
+}
+
+// BySubject orders the results by the subject field.
+func BySubject(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSubject, opts...).ToFunc()
+}
+
+// ByIntensity orders the results by the intensity field.
+func ByIntensity(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIntensity, opts...).ToFunc()
+}
+
+// ByCount orders the results by the count field.
+func ByCount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCount, opts...).ToFunc()
+}
+
+// ByHarmful orders the results by the harmful field.
+func ByHarmful(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldHarmful, opts...).ToFunc()
+}
+
+// ByForgiven orders the results by the forgiven field.
+func ByForgiven(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldForgiven, opts...).ToFunc()
+}
+
+// ByBetrayal orders the results by the betrayal field.
+func ByBetrayal(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBetrayal, opts...).ToFunc()
+}
+
+// ByText orders the results by the text field.
+func ByText(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldText, opts...).ToFunc()
+}
+
+// ByFirstAt orders the results by the first_at field.
+func ByFirstAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFirstAt, opts...).ToFunc()
+}
+
+// ByLastAt orders the results by the last_at field.
+func ByLastAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastAt, opts...).ToFunc()
 }
 
 // ByOwnerField orders the results by owner field.

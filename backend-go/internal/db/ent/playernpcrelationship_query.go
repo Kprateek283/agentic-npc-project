@@ -332,18 +332,6 @@ func (_q *PlayerNPCRelationshipQuery) WithNpc(opts ...func(*NPCQuery)) *PlayerNP
 
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
-//
-// Example:
-//
-//	var v []struct {
-//		TrustLevel float64 `json:"trust_level,omitempty"`
-//		Count int `json:"count,omitempty"`
-//	}
-//
-//	client.PlayerNPCRelationship.Query().
-//		GroupBy(playernpcrelationship.FieldTrustLevel).
-//		Aggregate(ent.Count()).
-//		Scan(ctx, &v)
 func (_q *PlayerNPCRelationshipQuery) GroupBy(field string, fields ...string) *PlayerNPCRelationshipGroupBy {
 	_q.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &PlayerNPCRelationshipGroupBy{build: _q}
@@ -355,16 +343,6 @@ func (_q *PlayerNPCRelationshipQuery) GroupBy(field string, fields ...string) *P
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
-//
-// Example:
-//
-//	var v []struct {
-//		TrustLevel float64 `json:"trust_level,omitempty"`
-//	}
-//
-//	client.PlayerNPCRelationship.Query().
-//		Select(playernpcrelationship.FieldTrustLevel).
-//		Scan(ctx, &v)
 func (_q *PlayerNPCRelationshipQuery) Select(fields ...string) *PlayerNPCRelationshipSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)
 	sbuild := &PlayerNPCRelationshipSelect{PlayerNPCRelationshipQuery: _q}

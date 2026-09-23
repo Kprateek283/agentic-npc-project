@@ -30,48 +30,6 @@ func (_u *PlayerNPCRelationshipUpdate) Where(ps ...predicate.PlayerNPCRelationsh
 	return _u
 }
 
-// SetTrustLevel sets the "trust_level" field.
-func (_u *PlayerNPCRelationshipUpdate) SetTrustLevel(v float64) *PlayerNPCRelationshipUpdate {
-	_u.mutation.ResetTrustLevel()
-	_u.mutation.SetTrustLevel(v)
-	return _u
-}
-
-// SetNillableTrustLevel sets the "trust_level" field if the given value is not nil.
-func (_u *PlayerNPCRelationshipUpdate) SetNillableTrustLevel(v *float64) *PlayerNPCRelationshipUpdate {
-	if v != nil {
-		_u.SetTrustLevel(*v)
-	}
-	return _u
-}
-
-// AddTrustLevel adds value to the "trust_level" field.
-func (_u *PlayerNPCRelationshipUpdate) AddTrustLevel(v float64) *PlayerNPCRelationshipUpdate {
-	_u.mutation.AddTrustLevel(v)
-	return _u
-}
-
-// SetGiftCount sets the "gift_count" field.
-func (_u *PlayerNPCRelationshipUpdate) SetGiftCount(v int) *PlayerNPCRelationshipUpdate {
-	_u.mutation.ResetGiftCount()
-	_u.mutation.SetGiftCount(v)
-	return _u
-}
-
-// SetNillableGiftCount sets the "gift_count" field if the given value is not nil.
-func (_u *PlayerNPCRelationshipUpdate) SetNillableGiftCount(v *int) *PlayerNPCRelationshipUpdate {
-	if v != nil {
-		_u.SetGiftCount(*v)
-	}
-	return _u
-}
-
-// AddGiftCount adds value to the "gift_count" field.
-func (_u *PlayerNPCRelationshipUpdate) AddGiftCount(v int) *PlayerNPCRelationshipUpdate {
-	_u.mutation.AddGiftCount(v)
-	return _u
-}
-
 // SetPlayerID sets the "player" edge to the Player entity by ID.
 func (_u *PlayerNPCRelationshipUpdate) SetPlayerID(id uuid.UUID) *PlayerNPCRelationshipUpdate {
 	_u.mutation.SetPlayerID(id)
@@ -161,18 +119,6 @@ func (_u *PlayerNPCRelationshipUpdate) sqlSave(ctx context.Context) (_node int, 
 			}
 		}
 	}
-	if value, ok := _u.mutation.TrustLevel(); ok {
-		_spec.SetField(playernpcrelationship.FieldTrustLevel, field.TypeFloat64, value)
-	}
-	if value, ok := _u.mutation.AddedTrustLevel(); ok {
-		_spec.AddField(playernpcrelationship.FieldTrustLevel, field.TypeFloat64, value)
-	}
-	if value, ok := _u.mutation.GiftCount(); ok {
-		_spec.SetField(playernpcrelationship.FieldGiftCount, field.TypeInt, value)
-	}
-	if value, ok := _u.mutation.AddedGiftCount(); ok {
-		_spec.AddField(playernpcrelationship.FieldGiftCount, field.TypeInt, value)
-	}
 	if _u.mutation.PlayerCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -249,48 +195,6 @@ type PlayerNPCRelationshipUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *PlayerNPCRelationshipMutation
-}
-
-// SetTrustLevel sets the "trust_level" field.
-func (_u *PlayerNPCRelationshipUpdateOne) SetTrustLevel(v float64) *PlayerNPCRelationshipUpdateOne {
-	_u.mutation.ResetTrustLevel()
-	_u.mutation.SetTrustLevel(v)
-	return _u
-}
-
-// SetNillableTrustLevel sets the "trust_level" field if the given value is not nil.
-func (_u *PlayerNPCRelationshipUpdateOne) SetNillableTrustLevel(v *float64) *PlayerNPCRelationshipUpdateOne {
-	if v != nil {
-		_u.SetTrustLevel(*v)
-	}
-	return _u
-}
-
-// AddTrustLevel adds value to the "trust_level" field.
-func (_u *PlayerNPCRelationshipUpdateOne) AddTrustLevel(v float64) *PlayerNPCRelationshipUpdateOne {
-	_u.mutation.AddTrustLevel(v)
-	return _u
-}
-
-// SetGiftCount sets the "gift_count" field.
-func (_u *PlayerNPCRelationshipUpdateOne) SetGiftCount(v int) *PlayerNPCRelationshipUpdateOne {
-	_u.mutation.ResetGiftCount()
-	_u.mutation.SetGiftCount(v)
-	return _u
-}
-
-// SetNillableGiftCount sets the "gift_count" field if the given value is not nil.
-func (_u *PlayerNPCRelationshipUpdateOne) SetNillableGiftCount(v *int) *PlayerNPCRelationshipUpdateOne {
-	if v != nil {
-		_u.SetGiftCount(*v)
-	}
-	return _u
-}
-
-// AddGiftCount adds value to the "gift_count" field.
-func (_u *PlayerNPCRelationshipUpdateOne) AddGiftCount(v int) *PlayerNPCRelationshipUpdateOne {
-	_u.mutation.AddGiftCount(v)
-	return _u
 }
 
 // SetPlayerID sets the "player" edge to the Player entity by ID.
@@ -411,18 +315,6 @@ func (_u *PlayerNPCRelationshipUpdateOne) sqlSave(ctx context.Context) (_node *P
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := _u.mutation.TrustLevel(); ok {
-		_spec.SetField(playernpcrelationship.FieldTrustLevel, field.TypeFloat64, value)
-	}
-	if value, ok := _u.mutation.AddedTrustLevel(); ok {
-		_spec.AddField(playernpcrelationship.FieldTrustLevel, field.TypeFloat64, value)
-	}
-	if value, ok := _u.mutation.GiftCount(); ok {
-		_spec.SetField(playernpcrelationship.FieldGiftCount, field.TypeInt, value)
-	}
-	if value, ok := _u.mutation.AddedGiftCount(); ok {
-		_spec.AddField(playernpcrelationship.FieldGiftCount, field.TypeInt, value)
 	}
 	if _u.mutation.PlayerCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -7,7 +7,6 @@ import (
 	"agentic-npc-backend/internal/db/ent/npc"
 	"agentic-npc-backend/internal/db/ent/playernpcrelationship"
 	"agentic-npc-backend/internal/db/ent/predicate"
-	"agentic-npc-backend/internal/db/ent/schema"
 	"context"
 	"errors"
 	"fmt"
@@ -98,12 +97,6 @@ func (_u *NPCUpdate) SetNillableLorePath(v *string) *NPCUpdate {
 	if v != nil {
 		_u.SetLorePath(*v)
 	}
-	return _u
-}
-
-// SetEmotions sets the "emotions" field.
-func (_u *NPCUpdate) SetEmotions(v *schema.EmotionState) *NPCUpdate {
-	_u.mutation.SetEmotions(v)
 	return _u
 }
 
@@ -280,9 +273,6 @@ func (_u *NPCUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.LorePath(); ok {
 		_spec.SetField(npc.FieldLorePath, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Emotions(); ok {
-		_spec.SetField(npc.FieldEmotions, field.TypeJSON, value)
 	}
 	if value, ok := _u.mutation.CurrentGoals(); ok {
 		_spec.SetField(npc.FieldCurrentGoals, field.TypeJSON, value)
@@ -472,12 +462,6 @@ func (_u *NPCUpdateOne) SetNillableLorePath(v *string) *NPCUpdateOne {
 	if v != nil {
 		_u.SetLorePath(*v)
 	}
-	return _u
-}
-
-// SetEmotions sets the "emotions" field.
-func (_u *NPCUpdateOne) SetEmotions(v *schema.EmotionState) *NPCUpdateOne {
-	_u.mutation.SetEmotions(v)
 	return _u
 }
 
@@ -684,9 +668,6 @@ func (_u *NPCUpdateOne) sqlSave(ctx context.Context) (_node *NPC, err error) {
 	}
 	if value, ok := _u.mutation.LorePath(); ok {
 		_spec.SetField(npc.FieldLorePath, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Emotions(); ok {
-		_spec.SetField(npc.FieldEmotions, field.TypeJSON, value)
 	}
 	if value, ok := _u.mutation.CurrentGoals(); ok {
 		_spec.SetField(npc.FieldCurrentGoals, field.TypeJSON, value)

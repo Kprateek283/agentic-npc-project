@@ -75,6 +75,56 @@ func Importance(v float64) predicate.Memory {
 	return predicate.Memory(sql.FieldEQ(FieldImportance, v))
 }
 
+// Actor applies equality check predicate on the "actor" field. It's identical to ActorEQ.
+func Actor(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldEQ(FieldActor, v))
+}
+
+// Subject applies equality check predicate on the "subject" field. It's identical to SubjectEQ.
+func Subject(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldEQ(FieldSubject, v))
+}
+
+// Intensity applies equality check predicate on the "intensity" field. It's identical to IntensityEQ.
+func Intensity(v float64) predicate.Memory {
+	return predicate.Memory(sql.FieldEQ(FieldIntensity, v))
+}
+
+// Count applies equality check predicate on the "count" field. It's identical to CountEQ.
+func Count(v float64) predicate.Memory {
+	return predicate.Memory(sql.FieldEQ(FieldCount, v))
+}
+
+// Harmful applies equality check predicate on the "harmful" field. It's identical to HarmfulEQ.
+func Harmful(v bool) predicate.Memory {
+	return predicate.Memory(sql.FieldEQ(FieldHarmful, v))
+}
+
+// Forgiven applies equality check predicate on the "forgiven" field. It's identical to ForgivenEQ.
+func Forgiven(v float64) predicate.Memory {
+	return predicate.Memory(sql.FieldEQ(FieldForgiven, v))
+}
+
+// Betrayal applies equality check predicate on the "betrayal" field. It's identical to BetrayalEQ.
+func Betrayal(v bool) predicate.Memory {
+	return predicate.Memory(sql.FieldEQ(FieldBetrayal, v))
+}
+
+// Text applies equality check predicate on the "text" field. It's identical to TextEQ.
+func Text(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldEQ(FieldText, v))
+}
+
+// FirstAt applies equality check predicate on the "first_at" field. It's identical to FirstAtEQ.
+func FirstAt(v time.Time) predicate.Memory {
+	return predicate.Memory(sql.FieldEQ(FieldFirstAt, v))
+}
+
+// LastAt applies equality check predicate on the "last_at" field. It's identical to LastAtEQ.
+func LastAt(v time.Time) predicate.Memory {
+	return predicate.Memory(sql.FieldEQ(FieldLastAt, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Memory {
 	return predicate.Memory(sql.FieldEQ(FieldCreatedAt, v))
@@ -283,6 +333,441 @@ func ImportanceLT(v float64) predicate.Memory {
 // ImportanceLTE applies the LTE predicate on the "importance" field.
 func ImportanceLTE(v float64) predicate.Memory {
 	return predicate.Memory(sql.FieldLTE(FieldImportance, v))
+}
+
+// ActorEQ applies the EQ predicate on the "actor" field.
+func ActorEQ(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldEQ(FieldActor, v))
+}
+
+// ActorNEQ applies the NEQ predicate on the "actor" field.
+func ActorNEQ(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldNEQ(FieldActor, v))
+}
+
+// ActorIn applies the In predicate on the "actor" field.
+func ActorIn(vs ...string) predicate.Memory {
+	return predicate.Memory(sql.FieldIn(FieldActor, vs...))
+}
+
+// ActorNotIn applies the NotIn predicate on the "actor" field.
+func ActorNotIn(vs ...string) predicate.Memory {
+	return predicate.Memory(sql.FieldNotIn(FieldActor, vs...))
+}
+
+// ActorGT applies the GT predicate on the "actor" field.
+func ActorGT(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldGT(FieldActor, v))
+}
+
+// ActorGTE applies the GTE predicate on the "actor" field.
+func ActorGTE(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldGTE(FieldActor, v))
+}
+
+// ActorLT applies the LT predicate on the "actor" field.
+func ActorLT(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldLT(FieldActor, v))
+}
+
+// ActorLTE applies the LTE predicate on the "actor" field.
+func ActorLTE(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldLTE(FieldActor, v))
+}
+
+// ActorContains applies the Contains predicate on the "actor" field.
+func ActorContains(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldContains(FieldActor, v))
+}
+
+// ActorHasPrefix applies the HasPrefix predicate on the "actor" field.
+func ActorHasPrefix(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldHasPrefix(FieldActor, v))
+}
+
+// ActorHasSuffix applies the HasSuffix predicate on the "actor" field.
+func ActorHasSuffix(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldHasSuffix(FieldActor, v))
+}
+
+// ActorEqualFold applies the EqualFold predicate on the "actor" field.
+func ActorEqualFold(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldEqualFold(FieldActor, v))
+}
+
+// ActorContainsFold applies the ContainsFold predicate on the "actor" field.
+func ActorContainsFold(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldContainsFold(FieldActor, v))
+}
+
+// SubjectEQ applies the EQ predicate on the "subject" field.
+func SubjectEQ(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldEQ(FieldSubject, v))
+}
+
+// SubjectNEQ applies the NEQ predicate on the "subject" field.
+func SubjectNEQ(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldNEQ(FieldSubject, v))
+}
+
+// SubjectIn applies the In predicate on the "subject" field.
+func SubjectIn(vs ...string) predicate.Memory {
+	return predicate.Memory(sql.FieldIn(FieldSubject, vs...))
+}
+
+// SubjectNotIn applies the NotIn predicate on the "subject" field.
+func SubjectNotIn(vs ...string) predicate.Memory {
+	return predicate.Memory(sql.FieldNotIn(FieldSubject, vs...))
+}
+
+// SubjectGT applies the GT predicate on the "subject" field.
+func SubjectGT(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldGT(FieldSubject, v))
+}
+
+// SubjectGTE applies the GTE predicate on the "subject" field.
+func SubjectGTE(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldGTE(FieldSubject, v))
+}
+
+// SubjectLT applies the LT predicate on the "subject" field.
+func SubjectLT(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldLT(FieldSubject, v))
+}
+
+// SubjectLTE applies the LTE predicate on the "subject" field.
+func SubjectLTE(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldLTE(FieldSubject, v))
+}
+
+// SubjectContains applies the Contains predicate on the "subject" field.
+func SubjectContains(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldContains(FieldSubject, v))
+}
+
+// SubjectHasPrefix applies the HasPrefix predicate on the "subject" field.
+func SubjectHasPrefix(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldHasPrefix(FieldSubject, v))
+}
+
+// SubjectHasSuffix applies the HasSuffix predicate on the "subject" field.
+func SubjectHasSuffix(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldHasSuffix(FieldSubject, v))
+}
+
+// SubjectEqualFold applies the EqualFold predicate on the "subject" field.
+func SubjectEqualFold(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldEqualFold(FieldSubject, v))
+}
+
+// SubjectContainsFold applies the ContainsFold predicate on the "subject" field.
+func SubjectContainsFold(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldContainsFold(FieldSubject, v))
+}
+
+// DeltaIsNil applies the IsNil predicate on the "delta" field.
+func DeltaIsNil() predicate.Memory {
+	return predicate.Memory(sql.FieldIsNull(FieldDelta))
+}
+
+// DeltaNotNil applies the NotNil predicate on the "delta" field.
+func DeltaNotNil() predicate.Memory {
+	return predicate.Memory(sql.FieldNotNull(FieldDelta))
+}
+
+// IntensityEQ applies the EQ predicate on the "intensity" field.
+func IntensityEQ(v float64) predicate.Memory {
+	return predicate.Memory(sql.FieldEQ(FieldIntensity, v))
+}
+
+// IntensityNEQ applies the NEQ predicate on the "intensity" field.
+func IntensityNEQ(v float64) predicate.Memory {
+	return predicate.Memory(sql.FieldNEQ(FieldIntensity, v))
+}
+
+// IntensityIn applies the In predicate on the "intensity" field.
+func IntensityIn(vs ...float64) predicate.Memory {
+	return predicate.Memory(sql.FieldIn(FieldIntensity, vs...))
+}
+
+// IntensityNotIn applies the NotIn predicate on the "intensity" field.
+func IntensityNotIn(vs ...float64) predicate.Memory {
+	return predicate.Memory(sql.FieldNotIn(FieldIntensity, vs...))
+}
+
+// IntensityGT applies the GT predicate on the "intensity" field.
+func IntensityGT(v float64) predicate.Memory {
+	return predicate.Memory(sql.FieldGT(FieldIntensity, v))
+}
+
+// IntensityGTE applies the GTE predicate on the "intensity" field.
+func IntensityGTE(v float64) predicate.Memory {
+	return predicate.Memory(sql.FieldGTE(FieldIntensity, v))
+}
+
+// IntensityLT applies the LT predicate on the "intensity" field.
+func IntensityLT(v float64) predicate.Memory {
+	return predicate.Memory(sql.FieldLT(FieldIntensity, v))
+}
+
+// IntensityLTE applies the LTE predicate on the "intensity" field.
+func IntensityLTE(v float64) predicate.Memory {
+	return predicate.Memory(sql.FieldLTE(FieldIntensity, v))
+}
+
+// CountEQ applies the EQ predicate on the "count" field.
+func CountEQ(v float64) predicate.Memory {
+	return predicate.Memory(sql.FieldEQ(FieldCount, v))
+}
+
+// CountNEQ applies the NEQ predicate on the "count" field.
+func CountNEQ(v float64) predicate.Memory {
+	return predicate.Memory(sql.FieldNEQ(FieldCount, v))
+}
+
+// CountIn applies the In predicate on the "count" field.
+func CountIn(vs ...float64) predicate.Memory {
+	return predicate.Memory(sql.FieldIn(FieldCount, vs...))
+}
+
+// CountNotIn applies the NotIn predicate on the "count" field.
+func CountNotIn(vs ...float64) predicate.Memory {
+	return predicate.Memory(sql.FieldNotIn(FieldCount, vs...))
+}
+
+// CountGT applies the GT predicate on the "count" field.
+func CountGT(v float64) predicate.Memory {
+	return predicate.Memory(sql.FieldGT(FieldCount, v))
+}
+
+// CountGTE applies the GTE predicate on the "count" field.
+func CountGTE(v float64) predicate.Memory {
+	return predicate.Memory(sql.FieldGTE(FieldCount, v))
+}
+
+// CountLT applies the LT predicate on the "count" field.
+func CountLT(v float64) predicate.Memory {
+	return predicate.Memory(sql.FieldLT(FieldCount, v))
+}
+
+// CountLTE applies the LTE predicate on the "count" field.
+func CountLTE(v float64) predicate.Memory {
+	return predicate.Memory(sql.FieldLTE(FieldCount, v))
+}
+
+// HarmfulEQ applies the EQ predicate on the "harmful" field.
+func HarmfulEQ(v bool) predicate.Memory {
+	return predicate.Memory(sql.FieldEQ(FieldHarmful, v))
+}
+
+// HarmfulNEQ applies the NEQ predicate on the "harmful" field.
+func HarmfulNEQ(v bool) predicate.Memory {
+	return predicate.Memory(sql.FieldNEQ(FieldHarmful, v))
+}
+
+// ForgivenEQ applies the EQ predicate on the "forgiven" field.
+func ForgivenEQ(v float64) predicate.Memory {
+	return predicate.Memory(sql.FieldEQ(FieldForgiven, v))
+}
+
+// ForgivenNEQ applies the NEQ predicate on the "forgiven" field.
+func ForgivenNEQ(v float64) predicate.Memory {
+	return predicate.Memory(sql.FieldNEQ(FieldForgiven, v))
+}
+
+// ForgivenIn applies the In predicate on the "forgiven" field.
+func ForgivenIn(vs ...float64) predicate.Memory {
+	return predicate.Memory(sql.FieldIn(FieldForgiven, vs...))
+}
+
+// ForgivenNotIn applies the NotIn predicate on the "forgiven" field.
+func ForgivenNotIn(vs ...float64) predicate.Memory {
+	return predicate.Memory(sql.FieldNotIn(FieldForgiven, vs...))
+}
+
+// ForgivenGT applies the GT predicate on the "forgiven" field.
+func ForgivenGT(v float64) predicate.Memory {
+	return predicate.Memory(sql.FieldGT(FieldForgiven, v))
+}
+
+// ForgivenGTE applies the GTE predicate on the "forgiven" field.
+func ForgivenGTE(v float64) predicate.Memory {
+	return predicate.Memory(sql.FieldGTE(FieldForgiven, v))
+}
+
+// ForgivenLT applies the LT predicate on the "forgiven" field.
+func ForgivenLT(v float64) predicate.Memory {
+	return predicate.Memory(sql.FieldLT(FieldForgiven, v))
+}
+
+// ForgivenLTE applies the LTE predicate on the "forgiven" field.
+func ForgivenLTE(v float64) predicate.Memory {
+	return predicate.Memory(sql.FieldLTE(FieldForgiven, v))
+}
+
+// BetrayalEQ applies the EQ predicate on the "betrayal" field.
+func BetrayalEQ(v bool) predicate.Memory {
+	return predicate.Memory(sql.FieldEQ(FieldBetrayal, v))
+}
+
+// BetrayalNEQ applies the NEQ predicate on the "betrayal" field.
+func BetrayalNEQ(v bool) predicate.Memory {
+	return predicate.Memory(sql.FieldNEQ(FieldBetrayal, v))
+}
+
+// TextEQ applies the EQ predicate on the "text" field.
+func TextEQ(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldEQ(FieldText, v))
+}
+
+// TextNEQ applies the NEQ predicate on the "text" field.
+func TextNEQ(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldNEQ(FieldText, v))
+}
+
+// TextIn applies the In predicate on the "text" field.
+func TextIn(vs ...string) predicate.Memory {
+	return predicate.Memory(sql.FieldIn(FieldText, vs...))
+}
+
+// TextNotIn applies the NotIn predicate on the "text" field.
+func TextNotIn(vs ...string) predicate.Memory {
+	return predicate.Memory(sql.FieldNotIn(FieldText, vs...))
+}
+
+// TextGT applies the GT predicate on the "text" field.
+func TextGT(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldGT(FieldText, v))
+}
+
+// TextGTE applies the GTE predicate on the "text" field.
+func TextGTE(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldGTE(FieldText, v))
+}
+
+// TextLT applies the LT predicate on the "text" field.
+func TextLT(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldLT(FieldText, v))
+}
+
+// TextLTE applies the LTE predicate on the "text" field.
+func TextLTE(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldLTE(FieldText, v))
+}
+
+// TextContains applies the Contains predicate on the "text" field.
+func TextContains(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldContains(FieldText, v))
+}
+
+// TextHasPrefix applies the HasPrefix predicate on the "text" field.
+func TextHasPrefix(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldHasPrefix(FieldText, v))
+}
+
+// TextHasSuffix applies the HasSuffix predicate on the "text" field.
+func TextHasSuffix(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldHasSuffix(FieldText, v))
+}
+
+// TextEqualFold applies the EqualFold predicate on the "text" field.
+func TextEqualFold(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldEqualFold(FieldText, v))
+}
+
+// TextContainsFold applies the ContainsFold predicate on the "text" field.
+func TextContainsFold(v string) predicate.Memory {
+	return predicate.Memory(sql.FieldContainsFold(FieldText, v))
+}
+
+// FirstAtEQ applies the EQ predicate on the "first_at" field.
+func FirstAtEQ(v time.Time) predicate.Memory {
+	return predicate.Memory(sql.FieldEQ(FieldFirstAt, v))
+}
+
+// FirstAtNEQ applies the NEQ predicate on the "first_at" field.
+func FirstAtNEQ(v time.Time) predicate.Memory {
+	return predicate.Memory(sql.FieldNEQ(FieldFirstAt, v))
+}
+
+// FirstAtIn applies the In predicate on the "first_at" field.
+func FirstAtIn(vs ...time.Time) predicate.Memory {
+	return predicate.Memory(sql.FieldIn(FieldFirstAt, vs...))
+}
+
+// FirstAtNotIn applies the NotIn predicate on the "first_at" field.
+func FirstAtNotIn(vs ...time.Time) predicate.Memory {
+	return predicate.Memory(sql.FieldNotIn(FieldFirstAt, vs...))
+}
+
+// FirstAtGT applies the GT predicate on the "first_at" field.
+func FirstAtGT(v time.Time) predicate.Memory {
+	return predicate.Memory(sql.FieldGT(FieldFirstAt, v))
+}
+
+// FirstAtGTE applies the GTE predicate on the "first_at" field.
+func FirstAtGTE(v time.Time) predicate.Memory {
+	return predicate.Memory(sql.FieldGTE(FieldFirstAt, v))
+}
+
+// FirstAtLT applies the LT predicate on the "first_at" field.
+func FirstAtLT(v time.Time) predicate.Memory {
+	return predicate.Memory(sql.FieldLT(FieldFirstAt, v))
+}
+
+// FirstAtLTE applies the LTE predicate on the "first_at" field.
+func FirstAtLTE(v time.Time) predicate.Memory {
+	return predicate.Memory(sql.FieldLTE(FieldFirstAt, v))
+}
+
+// LastAtEQ applies the EQ predicate on the "last_at" field.
+func LastAtEQ(v time.Time) predicate.Memory {
+	return predicate.Memory(sql.FieldEQ(FieldLastAt, v))
+}
+
+// LastAtNEQ applies the NEQ predicate on the "last_at" field.
+func LastAtNEQ(v time.Time) predicate.Memory {
+	return predicate.Memory(sql.FieldNEQ(FieldLastAt, v))
+}
+
+// LastAtIn applies the In predicate on the "last_at" field.
+func LastAtIn(vs ...time.Time) predicate.Memory {
+	return predicate.Memory(sql.FieldIn(FieldLastAt, vs...))
+}
+
+// LastAtNotIn applies the NotIn predicate on the "last_at" field.
+func LastAtNotIn(vs ...time.Time) predicate.Memory {
+	return predicate.Memory(sql.FieldNotIn(FieldLastAt, vs...))
+}
+
+// LastAtGT applies the GT predicate on the "last_at" field.
+func LastAtGT(v time.Time) predicate.Memory {
+	return predicate.Memory(sql.FieldGT(FieldLastAt, v))
+}
+
+// LastAtGTE applies the GTE predicate on the "last_at" field.
+func LastAtGTE(v time.Time) predicate.Memory {
+	return predicate.Memory(sql.FieldGTE(FieldLastAt, v))
+}
+
+// LastAtLT applies the LT predicate on the "last_at" field.
+func LastAtLT(v time.Time) predicate.Memory {
+	return predicate.Memory(sql.FieldLT(FieldLastAt, v))
+}
+
+// LastAtLTE applies the LTE predicate on the "last_at" field.
+func LastAtLTE(v time.Time) predicate.Memory {
+	return predicate.Memory(sql.FieldLTE(FieldLastAt, v))
+}
+
+// CoversIsNil applies the IsNil predicate on the "covers" field.
+func CoversIsNil() predicate.Memory {
+	return predicate.Memory(sql.FieldIsNull(FieldCovers))
+}
+
+// CoversNotNil applies the NotNil predicate on the "covers" field.
+func CoversNotNil() predicate.Memory {
+	return predicate.Memory(sql.FieldNotNull(FieldCovers))
 }
 
 // HasOwner applies the HasEdge predicate on the "owner" edge.

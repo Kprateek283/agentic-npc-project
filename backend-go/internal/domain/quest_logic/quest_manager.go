@@ -2,6 +2,7 @@ package quest_logic
 
 import (
 	"agentic-npc-backend/internal/db/ent"
+	"agentic-npc-backend/internal/domain/rules"
 	"agentic-npc-backend/internal/dto"
 	"context"
 	"encoding/json"
@@ -17,6 +18,7 @@ type QuestManager struct {
 	Items        map[string]ItemDefinition
 	Quests       map[string]QuestDefinition
 	AdminEnabled bool
+	Rules        *rules.Rules
 }
 
 // NewQuestManager creates a new manager and loads all gamedata

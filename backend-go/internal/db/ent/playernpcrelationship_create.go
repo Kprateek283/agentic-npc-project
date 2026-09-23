@@ -24,34 +24,6 @@ type PlayerNPCRelationshipCreate struct {
 	conflict []sql.ConflictOption
 }
 
-// SetTrustLevel sets the "trust_level" field.
-func (_c *PlayerNPCRelationshipCreate) SetTrustLevel(v float64) *PlayerNPCRelationshipCreate {
-	_c.mutation.SetTrustLevel(v)
-	return _c
-}
-
-// SetNillableTrustLevel sets the "trust_level" field if the given value is not nil.
-func (_c *PlayerNPCRelationshipCreate) SetNillableTrustLevel(v *float64) *PlayerNPCRelationshipCreate {
-	if v != nil {
-		_c.SetTrustLevel(*v)
-	}
-	return _c
-}
-
-// SetGiftCount sets the "gift_count" field.
-func (_c *PlayerNPCRelationshipCreate) SetGiftCount(v int) *PlayerNPCRelationshipCreate {
-	_c.mutation.SetGiftCount(v)
-	return _c
-}
-
-// SetNillableGiftCount sets the "gift_count" field if the given value is not nil.
-func (_c *PlayerNPCRelationshipCreate) SetNillableGiftCount(v *int) *PlayerNPCRelationshipCreate {
-	if v != nil {
-		_c.SetGiftCount(*v)
-	}
-	return _c
-}
-
 // SetPlayerID sets the "player" edge to the Player entity by ID.
 func (_c *PlayerNPCRelationshipCreate) SetPlayerID(id uuid.UUID) *PlayerNPCRelationshipCreate {
 	_c.mutation.SetPlayerID(id)
@@ -81,7 +53,6 @@ func (_c *PlayerNPCRelationshipCreate) Mutation() *PlayerNPCRelationshipMutation
 
 // Save creates the PlayerNPCRelationship in the database.
 func (_c *PlayerNPCRelationshipCreate) Save(ctx context.Context) (*PlayerNPCRelationship, error) {
-	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -107,26 +78,8 @@ func (_c *PlayerNPCRelationshipCreate) ExecX(ctx context.Context) {
 	}
 }
 
-// defaults sets the default values of the builder before save.
-func (_c *PlayerNPCRelationshipCreate) defaults() {
-	if _, ok := _c.mutation.TrustLevel(); !ok {
-		v := playernpcrelationship.DefaultTrustLevel
-		_c.mutation.SetTrustLevel(v)
-	}
-	if _, ok := _c.mutation.GiftCount(); !ok {
-		v := playernpcrelationship.DefaultGiftCount
-		_c.mutation.SetGiftCount(v)
-	}
-}
-
 // check runs all checks and user-defined validators on the builder.
 func (_c *PlayerNPCRelationshipCreate) check() error {
-	if _, ok := _c.mutation.TrustLevel(); !ok {
-		return &ValidationError{Name: "trust_level", err: errors.New(`ent: missing required field "PlayerNPCRelationship.trust_level"`)}
-	}
-	if _, ok := _c.mutation.GiftCount(); !ok {
-		return &ValidationError{Name: "gift_count", err: errors.New(`ent: missing required field "PlayerNPCRelationship.gift_count"`)}
-	}
 	if len(_c.mutation.PlayerIDs()) == 0 {
 		return &ValidationError{Name: "player", err: errors.New(`ent: missing required edge "PlayerNPCRelationship.player"`)}
 	}
@@ -160,14 +113,6 @@ func (_c *PlayerNPCRelationshipCreate) createSpec() (*PlayerNPCRelationship, *sq
 		_spec = sqlgraph.NewCreateSpec(playernpcrelationship.Table, sqlgraph.NewFieldSpec(playernpcrelationship.FieldID, field.TypeInt))
 	)
 	_spec.OnConflict = _c.conflict
-	if value, ok := _c.mutation.TrustLevel(); ok {
-		_spec.SetField(playernpcrelationship.FieldTrustLevel, field.TypeFloat64, value)
-		_node.TrustLevel = value
-	}
-	if value, ok := _c.mutation.GiftCount(); ok {
-		_spec.SetField(playernpcrelationship.FieldGiftCount, field.TypeInt, value)
-		_node.GiftCount = value
-	}
 	if nodes := _c.mutation.PlayerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -209,17 +154,11 @@ func (_c *PlayerNPCRelationshipCreate) createSpec() (*PlayerNPCRelationship, *sq
 // of the `INSERT` statement. For example:
 //
 //	client.PlayerNPCRelationship.Create().
-//		SetTrustLevel(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
 //			sql.ResolveWithNewValues(),
 //		).
-//		// Override some of the fields with custom
-//		// update values.
-//		Update(func(u *ent.PlayerNPCRelationshipUpsert) {
-//			SetTrustLevel(v+v).
-//		}).
 //		Exec(ctx)
 func (_c *PlayerNPCRelationshipCreate) OnConflict(opts ...sql.ConflictOption) *PlayerNPCRelationshipUpsertOne {
 	_c.conflict = opts
@@ -253,42 +192,6 @@ type (
 		*sql.UpdateSet
 	}
 )
-
-// SetTrustLevel sets the "trust_level" field.
-func (u *PlayerNPCRelationshipUpsert) SetTrustLevel(v float64) *PlayerNPCRelationshipUpsert {
-	u.Set(playernpcrelationship.FieldTrustLevel, v)
-	return u
-}
-
-// UpdateTrustLevel sets the "trust_level" field to the value that was provided on create.
-func (u *PlayerNPCRelationshipUpsert) UpdateTrustLevel() *PlayerNPCRelationshipUpsert {
-	u.SetExcluded(playernpcrelationship.FieldTrustLevel)
-	return u
-}
-
-// AddTrustLevel adds v to the "trust_level" field.
-func (u *PlayerNPCRelationshipUpsert) AddTrustLevel(v float64) *PlayerNPCRelationshipUpsert {
-	u.Add(playernpcrelationship.FieldTrustLevel, v)
-	return u
-}
-
-// SetGiftCount sets the "gift_count" field.
-func (u *PlayerNPCRelationshipUpsert) SetGiftCount(v int) *PlayerNPCRelationshipUpsert {
-	u.Set(playernpcrelationship.FieldGiftCount, v)
-	return u
-}
-
-// UpdateGiftCount sets the "gift_count" field to the value that was provided on create.
-func (u *PlayerNPCRelationshipUpsert) UpdateGiftCount() *PlayerNPCRelationshipUpsert {
-	u.SetExcluded(playernpcrelationship.FieldGiftCount)
-	return u
-}
-
-// AddGiftCount adds v to the "gift_count" field.
-func (u *PlayerNPCRelationshipUpsert) AddGiftCount(v int) *PlayerNPCRelationshipUpsert {
-	u.Add(playernpcrelationship.FieldGiftCount, v)
-	return u
-}
 
 // UpdateNewValues updates the mutable fields using the new values that were set on create.
 // Using this option is equivalent to using:
@@ -328,48 +231,6 @@ func (u *PlayerNPCRelationshipUpsertOne) Update(set func(*PlayerNPCRelationshipU
 		set(&PlayerNPCRelationshipUpsert{UpdateSet: update})
 	}))
 	return u
-}
-
-// SetTrustLevel sets the "trust_level" field.
-func (u *PlayerNPCRelationshipUpsertOne) SetTrustLevel(v float64) *PlayerNPCRelationshipUpsertOne {
-	return u.Update(func(s *PlayerNPCRelationshipUpsert) {
-		s.SetTrustLevel(v)
-	})
-}
-
-// AddTrustLevel adds v to the "trust_level" field.
-func (u *PlayerNPCRelationshipUpsertOne) AddTrustLevel(v float64) *PlayerNPCRelationshipUpsertOne {
-	return u.Update(func(s *PlayerNPCRelationshipUpsert) {
-		s.AddTrustLevel(v)
-	})
-}
-
-// UpdateTrustLevel sets the "trust_level" field to the value that was provided on create.
-func (u *PlayerNPCRelationshipUpsertOne) UpdateTrustLevel() *PlayerNPCRelationshipUpsertOne {
-	return u.Update(func(s *PlayerNPCRelationshipUpsert) {
-		s.UpdateTrustLevel()
-	})
-}
-
-// SetGiftCount sets the "gift_count" field.
-func (u *PlayerNPCRelationshipUpsertOne) SetGiftCount(v int) *PlayerNPCRelationshipUpsertOne {
-	return u.Update(func(s *PlayerNPCRelationshipUpsert) {
-		s.SetGiftCount(v)
-	})
-}
-
-// AddGiftCount adds v to the "gift_count" field.
-func (u *PlayerNPCRelationshipUpsertOne) AddGiftCount(v int) *PlayerNPCRelationshipUpsertOne {
-	return u.Update(func(s *PlayerNPCRelationshipUpsert) {
-		s.AddGiftCount(v)
-	})
-}
-
-// UpdateGiftCount sets the "gift_count" field to the value that was provided on create.
-func (u *PlayerNPCRelationshipUpsertOne) UpdateGiftCount() *PlayerNPCRelationshipUpsertOne {
-	return u.Update(func(s *PlayerNPCRelationshipUpsert) {
-		s.UpdateGiftCount()
-	})
 }
 
 // Exec executes the query.
@@ -424,7 +285,6 @@ func (_c *PlayerNPCRelationshipCreateBulk) Save(ctx context.Context) ([]*PlayerN
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
-			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*PlayerNPCRelationshipMutation)
 				if !ok {
@@ -504,11 +364,6 @@ func (_c *PlayerNPCRelationshipCreateBulk) ExecX(ctx context.Context) {
 //			// the was proposed for insertion.
 //			sql.ResolveWithNewValues(),
 //		).
-//		// Override some of the fields with custom
-//		// update values.
-//		Update(func(u *ent.PlayerNPCRelationshipUpsert) {
-//			SetTrustLevel(v+v).
-//		}).
 //		Exec(ctx)
 func (_c *PlayerNPCRelationshipCreateBulk) OnConflict(opts ...sql.ConflictOption) *PlayerNPCRelationshipUpsertBulk {
 	_c.conflict = opts
@@ -574,48 +429,6 @@ func (u *PlayerNPCRelationshipUpsertBulk) Update(set func(*PlayerNPCRelationship
 		set(&PlayerNPCRelationshipUpsert{UpdateSet: update})
 	}))
 	return u
-}
-
-// SetTrustLevel sets the "trust_level" field.
-func (u *PlayerNPCRelationshipUpsertBulk) SetTrustLevel(v float64) *PlayerNPCRelationshipUpsertBulk {
-	return u.Update(func(s *PlayerNPCRelationshipUpsert) {
-		s.SetTrustLevel(v)
-	})
-}
-
-// AddTrustLevel adds v to the "trust_level" field.
-func (u *PlayerNPCRelationshipUpsertBulk) AddTrustLevel(v float64) *PlayerNPCRelationshipUpsertBulk {
-	return u.Update(func(s *PlayerNPCRelationshipUpsert) {
-		s.AddTrustLevel(v)
-	})
-}
-
-// UpdateTrustLevel sets the "trust_level" field to the value that was provided on create.
-func (u *PlayerNPCRelationshipUpsertBulk) UpdateTrustLevel() *PlayerNPCRelationshipUpsertBulk {
-	return u.Update(func(s *PlayerNPCRelationshipUpsert) {
-		s.UpdateTrustLevel()
-	})
-}
-
-// SetGiftCount sets the "gift_count" field.
-func (u *PlayerNPCRelationshipUpsertBulk) SetGiftCount(v int) *PlayerNPCRelationshipUpsertBulk {
-	return u.Update(func(s *PlayerNPCRelationshipUpsert) {
-		s.SetGiftCount(v)
-	})
-}
-
-// AddGiftCount adds v to the "gift_count" field.
-func (u *PlayerNPCRelationshipUpsertBulk) AddGiftCount(v int) *PlayerNPCRelationshipUpsertBulk {
-	return u.Update(func(s *PlayerNPCRelationshipUpsert) {
-		s.AddGiftCount(v)
-	})
-}
-
-// UpdateGiftCount sets the "gift_count" field to the value that was provided on create.
-func (u *PlayerNPCRelationshipUpsertBulk) UpdateGiftCount() *PlayerNPCRelationshipUpsertBulk {
-	return u.Update(func(s *PlayerNPCRelationshipUpsert) {
-		s.UpdateGiftCount()
-	})
 }
 
 // Exec executes the query.

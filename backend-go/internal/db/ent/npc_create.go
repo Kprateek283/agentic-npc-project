@@ -6,7 +6,6 @@ import (
 	"agentic-npc-backend/internal/db/ent/memory"
 	"agentic-npc-backend/internal/db/ent/npc"
 	"agentic-npc-backend/internal/db/ent/playernpcrelationship"
-	"agentic-npc-backend/internal/db/ent/schema"
 	"context"
 	"errors"
 	"fmt"
@@ -61,12 +60,6 @@ func (_c *NPCCreate) SetBackstoryPath(v string) *NPCCreate {
 // SetLorePath sets the "lore_path" field.
 func (_c *NPCCreate) SetLorePath(v string) *NPCCreate {
 	_c.mutation.SetLorePath(v)
-	return _c
-}
-
-// SetEmotions sets the "emotions" field.
-func (_c *NPCCreate) SetEmotions(v *schema.EmotionState) *NPCCreate {
-	_c.mutation.SetEmotions(v)
 	return _c
 }
 
@@ -159,10 +152,6 @@ func (_c *NPCCreate) defaults() {
 		v := npc.DefaultNpcType
 		_c.mutation.SetNpcType(v)
 	}
-	if _, ok := _c.mutation.Emotions(); !ok {
-		v := npc.DefaultEmotions
-		_c.mutation.SetEmotions(v)
-	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := npc.DefaultID()
 		_c.mutation.SetID(v)
@@ -205,9 +194,6 @@ func (_c *NPCCreate) check() error {
 		if err := npc.LorePathValidator(v); err != nil {
 			return &ValidationError{Name: "lore_path", err: fmt.Errorf(`ent: validator failed for field "NPC.lore_path": %w`, err)}
 		}
-	}
-	if _, ok := _c.mutation.Emotions(); !ok {
-		return &ValidationError{Name: "emotions", err: errors.New(`ent: missing required field "NPC.emotions"`)}
 	}
 	return nil
 }
@@ -264,10 +250,6 @@ func (_c *NPCCreate) createSpec() (*NPC, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.LorePath(); ok {
 		_spec.SetField(npc.FieldLorePath, field.TypeString, value)
 		_node.LorePath = value
-	}
-	if value, ok := _c.mutation.Emotions(); ok {
-		_spec.SetField(npc.FieldEmotions, field.TypeJSON, value)
-		_node.Emotions = value
 	}
 	if value, ok := _c.mutation.CurrentGoals(); ok {
 		_spec.SetField(npc.FieldCurrentGoals, field.TypeJSON, value)
@@ -417,18 +399,6 @@ func (u *NPCUpsert) UpdateLorePath() *NPCUpsert {
 	return u
 }
 
-// SetEmotions sets the "emotions" field.
-func (u *NPCUpsert) SetEmotions(v *schema.EmotionState) *NPCUpsert {
-	u.Set(npc.FieldEmotions, v)
-	return u
-}
-
-// UpdateEmotions sets the "emotions" field to the value that was provided on create.
-func (u *NPCUpsert) UpdateEmotions() *NPCUpsert {
-	u.SetExcluded(npc.FieldEmotions)
-	return u
-}
-
 // SetCurrentGoals sets the "current_goals" field.
 func (u *NPCUpsert) SetCurrentGoals(v []string) *NPCUpsert {
 	u.Set(npc.FieldCurrentGoals, v)
@@ -562,20 +532,6 @@ func (u *NPCUpsertOne) SetLorePath(v string) *NPCUpsertOne {
 func (u *NPCUpsertOne) UpdateLorePath() *NPCUpsertOne {
 	return u.Update(func(s *NPCUpsert) {
 		s.UpdateLorePath()
-	})
-}
-
-// SetEmotions sets the "emotions" field.
-func (u *NPCUpsertOne) SetEmotions(v *schema.EmotionState) *NPCUpsertOne {
-	return u.Update(func(s *NPCUpsert) {
-		s.SetEmotions(v)
-	})
-}
-
-// UpdateEmotions sets the "emotions" field to the value that was provided on create.
-func (u *NPCUpsertOne) UpdateEmotions() *NPCUpsertOne {
-	return u.Update(func(s *NPCUpsert) {
-		s.UpdateEmotions()
 	})
 }
 
@@ -882,20 +838,6 @@ func (u *NPCUpsertBulk) SetLorePath(v string) *NPCUpsertBulk {
 func (u *NPCUpsertBulk) UpdateLorePath() *NPCUpsertBulk {
 	return u.Update(func(s *NPCUpsert) {
 		s.UpdateLorePath()
-	})
-}
-
-// SetEmotions sets the "emotions" field.
-func (u *NPCUpsertBulk) SetEmotions(v *schema.EmotionState) *NPCUpsertBulk {
-	return u.Update(func(s *NPCUpsert) {
-		s.SetEmotions(v)
-	})
-}
-
-// UpdateEmotions sets the "emotions" field to the value that was provided on create.
-func (u *NPCUpsertBulk) UpdateEmotions() *NPCUpsertBulk {
-	return u.Update(func(s *NPCUpsert) {
-		s.UpdateEmotions()
 	})
 }
 

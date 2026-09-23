@@ -65,6 +65,18 @@ var (
 		{Name: "event_type", Type: field.TypeString},
 		{Name: "participants", Type: field.TypeJSON},
 		{Name: "importance", Type: field.TypeFloat64, Default: 0.5},
+		{Name: "actor", Type: field.TypeString, Default: ""},
+		{Name: "subject", Type: field.TypeString, Default: ""},
+		{Name: "delta", Type: field.TypeJSON, Nullable: true},
+		{Name: "intensity", Type: field.TypeFloat64, Default: 0},
+		{Name: "count", Type: field.TypeFloat64, Default: 1},
+		{Name: "harmful", Type: field.TypeBool, Default: false},
+		{Name: "forgiven", Type: field.TypeFloat64, Default: 0},
+		{Name: "betrayal", Type: field.TypeBool, Default: false},
+		{Name: "text", Type: field.TypeString, Default: ""},
+		{Name: "first_at", Type: field.TypeTime},
+		{Name: "last_at", Type: field.TypeTime},
+		{Name: "covers", Type: field.TypeJSON, Nullable: true},
 		{Name: "npc_memories", Type: field.TypeUUID},
 	}
 	// MemoriesTable holds the schema information for the "memories" table.
@@ -75,7 +87,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "memories_np_cs_memories",
-				Columns:    []*schema.Column{MemoriesColumns[6]},
+				Columns:    []*schema.Column{MemoriesColumns[18]},
 				RefColumns: []*schema.Column{NpCsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -89,7 +101,6 @@ var (
 		{Name: "personality_path", Type: field.TypeString},
 		{Name: "backstory_path", Type: field.TypeString},
 		{Name: "lore_path", Type: field.TypeString},
-		{Name: "emotions", Type: field.TypeJSON},
 		{Name: "current_goals", Type: field.TypeJSON, Nullable: true},
 	}
 	// NpCsTable holds the schema information for the "np_cs" table.
@@ -114,8 +125,6 @@ var (
 	// PlayerNpcRelationshipsColumns holds the columns for the "player_npc_relationships" table.
 	PlayerNpcRelationshipsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "trust_level", Type: field.TypeFloat64, Default: 0},
-		{Name: "gift_count", Type: field.TypeInt, Default: 0},
 		{Name: "npc_player_relationships", Type: field.TypeUUID},
 		{Name: "player_npc_relationships", Type: field.TypeUUID},
 	}
@@ -127,13 +136,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "player_npc_relationships_np_cs_player_relationships",
-				Columns:    []*schema.Column{PlayerNpcRelationshipsColumns[3]},
+				Columns:    []*schema.Column{PlayerNpcRelationshipsColumns[1]},
 				RefColumns: []*schema.Column{NpCsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "player_npc_relationships_players_npc_relationships",
-				Columns:    []*schema.Column{PlayerNpcRelationshipsColumns[4]},
+				Columns:    []*schema.Column{PlayerNpcRelationshipsColumns[2]},
 				RefColumns: []*schema.Column{PlayersColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
@@ -142,7 +151,7 @@ var (
 			{
 				Name:    "playernpcrelationship_player_npc_relationships_npc_player_relationships",
 				Unique:  true,
-				Columns: []*schema.Column{PlayerNpcRelationshipsColumns[4], PlayerNpcRelationshipsColumns[3]},
+				Columns: []*schema.Column{PlayerNpcRelationshipsColumns[2], PlayerNpcRelationshipsColumns[1]},
 			},
 		},
 	}
