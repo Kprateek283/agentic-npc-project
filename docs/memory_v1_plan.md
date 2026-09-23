@@ -13,7 +13,7 @@ decision there rather than asking.
 - [x] Step 3 — schema and episode plumbing (memory rows are episodes; trust computed; gifts and quest rewards recorded as episodes)
 - [x] Step 4 — rewrite `gatherAIContext`
 - [x] Step 5 — gRPC contract, Python formatting and prompts
-- [ ] Step 6 — `EMOTIONS` frame and browser panel
+- [x] Step 6 — `EMOTIONS` frame and browser panel
 - [ ] Step 7 — demo verification (needs a local machine: Ollama + Docker), then PR
 - [ ] Step 8 — documentation pass: README and `docs/agentic_npc_documentation.md` still describe
       the deleted `EmotionManager` and `event_emotions.json`, and the README's Known limitations
@@ -102,6 +102,7 @@ decision there rather than asking.
   holds both maps; document it in `docs/client_protocol.md`.
 - `client-demo/index.html`: "Throw stone" and "Apologize" buttons, and a panel showing both maps, updated
   from that frame.
+- *Completed 2026-09-23*: Implemented `emotionsFrameContent` pure helper with unit tests covering rounding, map sorting, and empty maps. Updated `HandleGameEvent` in Go to send `EMOTIONS` frame after recording episodes and before rate-limiting. Added "Throw stone" and "Apologize" buttons plus "What [NPC] feels" emotion panel to `client-demo/index.html`. Documented in `docs/client_protocol.md`. Note: the browser panel itself was not exercised in a browser here.
 
 ## Step 7 — demo verification (local machine only)
 

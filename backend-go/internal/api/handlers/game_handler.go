@@ -11,6 +11,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"log"
 	"log/slog"
@@ -31,6 +32,38 @@ func newRequestID() string {
 	var b [6]byte
 	_, _ = rand.Read(b[:])
 	return hex.EncodeToString(b[:])
+}
+
+type emotionsPayload struct {
+	NPC       string             `json:"npc"`
+	TowardYou map[string]float64 `json:"toward_you"`
+	General   map[string]float64 `json:"general"`
+}
+
+func roundEmotionMap(m map[string]float64) map[string]float64 {
+	out := make(map[string]float64, len(m))
+	for k, v := range m {
+		val := math.Round(v*100) / 100
+		if math.Abs(val) < 1e-9 {
+			val = 0
+		}
+		out[k] = val
+	}
+	return out
+}
+
+// emotionsFrameContent builds the JSON payload for an EMOTIONS frame with rounded values.
+func emotionsFrameContent(npc string, toward, general map[string]float64) (string, error) {
+	payload := emotionsPayload{
+		NPC:       npc,
+		TowardYou: roundEmotionMap(toward),
+		General:   roundEmotionMap(general),
+	}
+	b, err := json.Marshal(payload)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
 }
 
 // HandleGameEvent processes all in-game logic for an authenticated player.
@@ -80,6 +113,24 @@ func (h *WebSocketHandler) HandleGameEvent(conn *websocket.Conn, ctx context.Con
 	// 4. Record episode before rate limit check
 	if err := h.recordEpisode(ctx, event, targetNPC, player); err != nil {
 		log.Printf("Error recording episode: %v", err)
+	}
+
+	// Send EMOTIONS frame before rate limit check
+	cfg := memory.DefaultConfig()
+	if h.questManager != nil && h.questManager.Rules != nil {
+		cfg = h.questManager.Rules.Config
+	}
+	if eps, _, err := npcstate.Load(ctx, h.dbClient, targetNPC); err != nil {
+		log.Printf("Error loading NPC state for emotions frame: %v", err)
+	} else {
+		now := time.Now()
+		speakerEmotions := memory.EmotionsToward(player.PlayerID, eps, now, cfg)
+		generalMood := memory.GeneralMood(eps, now, cfg)
+		if content, err := emotionsFrameContent(targetNPC.Name, speakerEmotions, generalMood); err != nil {
+			log.Printf("Error encoding emotions frame: %v", err)
+		} else {
+			h.sendSimpleResponse(conn, "EMOTIONS", content)
+		}
 	}
 
 	// 5. Rate limit check before calling the AI service

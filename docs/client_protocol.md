@@ -38,10 +38,32 @@ Every message the server sends is one JSON object:
 { "action_type": "SPEAK", "content": "..." }
 ```
 
-`action_type` is one of `LOGIN_SUCCESS`, `SPEAK`, `SPEAK_PARTIAL`, `ADMIN_ACK`, `ERROR`,
+`action_type` is one of `LOGIN_SUCCESS`, `SPEAK`, `SPEAK_PARTIAL`, `EMOTIONS`, `ADMIN_ACK`, `ERROR`,
 or an action type carried by a quest fail-response (data-defined in the quest JSON,
 commonly `SPEAK`). `content` is the human-readable payload — NPC dialogue, a welcome line,
-or an error message.
+a JSON string for emotion updates, or an error message.
+
+### Emotion updates (`EMOTIONS`)
+
+After an in-game event is processed and its episode recorded, the server sends an `EMOTIONS`
+frame before checking rate limits and calling the AI service. Its `content` is a serialized JSON object:
+
+```json
+{
+  "npc": "Elara",
+  "toward_you": { "anger": 1.0, "trust": -1.0 },
+  "general": { "anger": 0.25 }
+}
+```
+
+- `npc`: the target NPC's name.
+- `toward_you`: the NPC's computed emotions toward the authenticated player (numbers rounded to two decimal places).
+- `general`: the NPC's diffuse general mood aggregated across all actors (numbers rounded to two decimal places).
+- Empty emotion maps serialize as `{}`.
+
+The `EMOTIONS` frame arrives before any `SPEAK_PARTIAL` or `SPEAK` frames for that event.
+Clients that do not care about emotion updates may **ignore `EMOTIONS` entirely**.
+The server does not send `EMOTIONS` for admin commands or when a quest precondition returns a fail response.
 
 ### Streamed replies (`SPEAK_PARTIAL` → `SPEAK`)
 
@@ -99,6 +121,8 @@ Failure (bad credentials, duplicate registration, …):
 | `PLAYER_INTERACT`            | `target_npc_name`                  | LangGraph agent → `SPEAK` |
 | `PLAYER_INTERACT_QUEST`      | `target_npc_name`                  | LangGraph agent → `SPEAK` |
 | `PLAYER_ATTACKED`            | `target_npc_name`                  | LangGraph agent → `SPEAK` |
+| `PLAYER_THREW_STONE`         | `target_npc_name`                  | LangGraph agent → `SPEAK` (harmful event that escalates when repeated) |
+| `PLAYER_APOLOGIZED`          | `target_npc_name`                  | LangGraph agent → `SPEAK` (forgives that player's harmful episodes, each apology worth half the last) |
 | `PLAYER_LOOKED_AT_NPC`       | `target_npc_name`                  | Non-LLM emotion rule → `SPEAK` `"Greetings."` (`"Get lost."` if the NPC's anger > 0.7) |
 | `ADMIN_SET_TRUST`            | `target_npc_name`, `keyword`       | State mutation → `ADMIN_ACK` (requires ADMIN_ENABLED=true, otherwise returns ERROR) |
 | `ADMIN_SET_QUEST_STAGE`      | `target_npc_name`, `keyword`       | State mutation → `ADMIN_ACK` (requires ADMIN_ENABLED=true, otherwise returns ERROR) |

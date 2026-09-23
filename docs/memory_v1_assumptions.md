@@ -81,5 +81,13 @@ the code will be adjusted to match. Written 2026-09-23; appended to as further c
 22. **Emotion map formatting in prompts and caches:** In `context_formatter.py` and `semantic_cache.py`,
     emotions are formatted sorted alphabetically by key name; values rounding to 0.00 are omitted
     from prompt rendering, and empty maps render as `"nothing in particular"`.
+23. **EMOTIONS frame delivery and formatting:** Sent immediately after the episode is recorded and
+    before rate limiting or LLM streaming. The `content` payload is a JSON string holding `npc`,
+    `toward_you`, and `general` maps with float values rounded to two decimal places. Empty or nil
+    maps serialize as `{}`. Omitted for admin commands and failed quest preconditions.
+24. **Demo client feelings panel:** Positioned as a side panel next to the chat log, titled
+    "What [NPC] feels", displaying "Toward you" and "General mood" sections. Shows "nothing in
+    particular" when emotion maps are empty or prior to receiving an `EMOTIONS` frame.
+
 
 

@@ -252,3 +252,58 @@ func TestDemoSequenceMemoryAndEmotions(t *testing.T) {
 		t.Errorf("step 4: expected P1 memory lines to contain 'after apologising' wording, got: %v", argsP1Sixth.memoryLines)
 	}
 }
+
+func TestEmotionsFrameContent(t *testing.T) {
+	tests := []struct {
+		name    string
+		npc     string
+		toward  map[string]float64
+		general map[string]float64
+		want    string
+	}{
+		{
+			name: "sample emotions matching doc specification",
+			npc:  "Elara",
+			toward: map[string]float64{
+				"anger": 1.0,
+				"trust": -1.0,
+			},
+			general: map[string]float64{
+				"anger": 0.25,
+			},
+			want: `{"npc":"Elara","toward_you":{"anger":1,"trust":-1},"general":{"anger":0.25}}`,
+		},
+		{
+			name:    "empty and nil maps encode as empty json object",
+			npc:     "Elara",
+			toward:  map[string]float64{},
+			general: nil,
+			want:    `{"npc":"Elara","toward_you":{},"general":{}}`,
+		},
+		{
+			name: "two decimal rounding and key sorting",
+			npc:  "Baelor",
+			toward: map[string]float64{
+				"trust": 0.333333,
+				"anger": 0.666666,
+			},
+			general: map[string]float64{
+				"joy":     0.125,
+				"sadness": -0.0001,
+			},
+			want: `{"npc":"Baelor","toward_you":{"anger":0.67,"trust":0.33},"general":{"joy":0.13,"sadness":0}}`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := emotionsFrameContent(tt.npc, tt.toward, tt.general)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if got != tt.want {
+				t.Errorf("emotionsFrameContent() =\n  got:  %s\n  want: %s", got, tt.want)
+			}
+		})
+	}
+}
