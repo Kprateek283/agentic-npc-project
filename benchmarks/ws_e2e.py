@@ -23,6 +23,15 @@ USER = "bench_player"
 PASSWORD = "bench_pass_123"
 
 
+def until_speak(ws):
+    """One event yields an EMOTIONS frame, any SPEAK_PARTIAL frames, then the final SPEAK.
+    Read through to the SPEAK so each sample times the whole turn, not its first frame."""
+    while True:
+        frame = json.loads(ws.recv())
+        if frame.get("action_type") == "SPEAK":
+            return frame
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--n", type=int, default=100)
@@ -44,20 +53,20 @@ def main():
     event = json.dumps({"event_type": "PLAYER_LOOKED_AT_NPC", "target_npc_name": args.npc})
 
     ws.send(event)
-    first = json.loads(ws.recv())
+    first = until_speak(ws)
     if first.get("content") != "Greetings.":
         raise SystemExit(f"Expected the non-LLM branch ('Greetings.'), got: {first}. "
                          f"An LLM in this path would invalidate the measurement.")
 
     for _ in range(WARMUP):
         ws.send(event)
-        ws.recv()
+        until_speak(ws)
 
     samples = []
     for _ in range(args.n):
         t0 = time.perf_counter()
         ws.send(event)
-        ws.recv()
+        until_speak(ws)
         samples.append((time.perf_counter() - t0) * 1000)
     ws.close()
 

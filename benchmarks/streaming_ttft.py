@@ -87,9 +87,11 @@ def main():
     print("warm-up...")
     _measure(stub, _request(*questions[0]))
 
+    # Reps are the outer loop so the same prompt never runs twice in a row: back to back,
+    # Ollama reuses the cached prompt and the repeat's TTFT drops to a few hundred ms.
     ttfts, totals = [], []
-    for npc, q in questions:
-        for _ in range(args.reps):
+    for _ in range(args.reps):
+        for npc, q in questions:
             ttft, total, n = _measure(stub, _request(npc, q))
             if ttft is None:
                 print(f"  {npc}: no tokens streamed (empty answer?) — skipped")

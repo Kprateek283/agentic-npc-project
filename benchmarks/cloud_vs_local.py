@@ -12,6 +12,9 @@ Run it once per provider, against a service started with that provider:
     LLM_PROVIDER=ollama python -u main.py            # then:
     python benchmarks/cloud_vs_local.py --provider ollama --reps 3
 
+    LLM_PROVIDER=agy python -u main.py               # RAG on the agy CLI, agent still local
+    python benchmarks/cloud_vs_local.py --provider agy --reps 3
+
     LLM_PROVIDER=gemini python -u main.py            # then (mind the 20/day cap):
     python benchmarks/cloud_vs_local.py --provider gemini --reps 1 --questions 5 --events 2
 
@@ -68,7 +71,7 @@ def post(url, body, timeout=600):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--provider", required=True, choices=["gemini", "ollama"],
+    ap.add_argument("--provider", required=True, choices=["gemini", "ollama", "agy"],
                     help="label only — start the service with the matching LLM_PROVIDER")
     ap.add_argument("--base", default="http://localhost:8000")
     ap.add_argument("--reps", type=int, default=3)

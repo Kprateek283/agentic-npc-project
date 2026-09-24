@@ -38,8 +38,10 @@ def _ask(stub, npc, question):
         personality_path=f"gamedata/npcs/{npc}/personality.json",
         backstory_path=f"gamedata/npcs/{npc}/backstory.json",
         lore_path=f"gamedata/npcs/{npc}/lore.json",
-        speaker_emotions={"joy": 0.0, "sadness": 0.0, "anger": 0.0, "fear": 0.0, "trust": 0.5},
-        general_mood={"joy": 0.0, "sadness": 0.0, "anger": 0.0, "fear": 0.0, "trust": 0.5},
+        # Neutral since Memory v1: trust is signed and 0.00 is its baseline. Anything else is
+        # not cacheable (semantic_cache.cacheable_context), so round 2 would never hit.
+        speaker_emotions={"joy": 0.0, "sadness": 0.0, "anger": 0.0, "fear": 0.0, "trust": 0.0},
+        general_mood={"joy": 0.0, "sadness": 0.0, "anger": 0.0, "fear": 0.0, "trust": 0.0},
         memory_lines=[], event_type="PLAYER_ASKED_QUESTION",
         question_text=question, source_entity_id="",  # anonymous request so context is cacheable
         current_quest_step=0, completion_rate=0.0,
