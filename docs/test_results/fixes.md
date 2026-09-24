@@ -40,9 +40,9 @@ Key: `[x]` fixed · `[ ]` open, needs a decision · `[-]` not a defect
 
 ## go-05-password-handling.md
 
-- [ ] go-05 #1 usernames can be enumerated — OPEN: `LoginPlayer` distinguishes "player 'x' not found" from "invalid password" and the websocket handler forwards the text verbatim. Collapsing them to one message is a security/UX decision that also changes what the handler shows, and `user_manager_test.go` pins both strings.
-- [ ] go-05 #2 empty passwords are accepted — OPEN: registration with "" succeeds because the column's `NotEmpty` check sees the hash. `user_manager_test.go` pins this as "an empty password is accepted and then required", so adding a minimum-length rule is a deliberate policy change, not a repair.
-- [ ] go-05 #3 bytes past 72 are ignored at login — OPEN: bcrypt's own limit, pinned by "only the first 72 bytes of a password count at login". Pre-hashing or refusing long passwords at login is a credential-policy decision.
+- [x] go-05 #1 usernames can be enumerated — FIXED: `LoginPlayer` returns one `ErrInvalidCredentials` ("invalid username or password") for an unknown name and a wrong password alike, and runs a bcrypt compare against a dummy hash on the unknown-name path so timing doesn't reveal it either. A real database failure is reported separately. New `TestLoginFailuresLookTheSame`.
+- [x] go-05 #2 empty passwords are accepted — FIXED: `RegisterPlayer` refuses an empty password ("password must not be empty") before touching the database.
+- [x] go-05 #3 bytes past 72 are ignored at login — FIXED: `checkPasswordHash` fails any password over 72 bytes, matching registration's refusal, instead of letting bcrypt ignore the tail.
 - [-] go-05 #4 non-atomic exists-then-insert — NOT A DEFECT: the unique index still prevents a duplicate; the author notes only that the error text would differ under a race.
 - [-] go-05 #5 case-sensitive usernames — NOT A DEFECT: an observation, pinned so a change would be deliberate.
 

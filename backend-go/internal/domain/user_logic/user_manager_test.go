@@ -2,6 +2,7 @@ package user_logic
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"testing"
 
@@ -70,9 +71,9 @@ func TestPasswords(t *testing.T) {
 			name: "a wrong password is refused",
 			steps: []step{
 				{"register", "alice", "correct horse", ""},
-				{"login", "alice", "correct horse ", "invalid password"},
-				{"login", "alice", "Correct horse", "invalid password"},
-				{"login", "alice", "", "invalid password"},
+				{"login", "alice", "correct horse ", "invalid username or password"},
+				{"login", "alice", "Correct horse", "invalid username or password"},
+				{"login", "alice", "", "invalid username or password"},
 			},
 			wantPlayers: 1,
 		},
@@ -81,7 +82,7 @@ func TestPasswords(t *testing.T) {
 			steps: []step{
 				{"register", "alice", "first secret", ""},
 				{"register", "alice", "second secret", "already exists"},
-				{"login", "alice", "second secret", "invalid password"},
+				{"login", "alice", "second secret", "invalid username or password"},
 				{"login", "alice", "first secret", ""},
 			},
 			wantPlayers: 1,
@@ -91,14 +92,14 @@ func TestPasswords(t *testing.T) {
 			steps: []step{
 				{"register", "alice", "lower", ""},
 				{"register", "Alice", "upper", ""},
-				{"login", "Alice", "lower", "invalid password"},
+				{"login", "Alice", "lower", "invalid username or password"},
 				{"login", "Alice", "upper", ""},
 			},
 			wantPlayers: 2,
 		},
 		{
 			name:        "logging in as an unknown player fails",
-			steps:       []step{{"login", "nobody", "anything", "not found"}},
+			steps:       []step{{"login", "nobody", "anything", "invalid username or password"}},
 			wantPlayers: 0,
 		},
 		{
@@ -114,20 +115,17 @@ func TestPasswords(t *testing.T) {
 			wantPlayers: 0,
 		},
 		{
-			name: "an empty password is accepted and then required",
-			steps: []step{
-				{"register", "alice", "", ""},
-				{"login", "alice", "", ""},
-				{"login", "alice", "x", "invalid password"},
-			},
-			wantPlayers: 1,
+			name:        "an empty password is refused at registration",
+			steps:       []step{{"register", "alice", "", "password must not be empty"}},
+			wantPlayers: 0,
 		},
 		{
-			name: "only the first 72 bytes of a password count at login",
+			name: "a password past 72 bytes fails at login instead of being truncated",
 			steps: []step{
 				{"register", "alice", strings.Repeat("x", 72), ""},
-				{"login", "alice", strings.Repeat("x", 72) + "anything", ""},
-				{"login", "alice", strings.Repeat("x", 71), "invalid password"},
+				{"login", "alice", strings.Repeat("x", 72), ""},
+				{"login", "alice", strings.Repeat("x", 72) + "anything", "invalid username or password"},
+				{"login", "alice", strings.Repeat("x", 71), "invalid username or password"},
 			},
 			wantPlayers: 1,
 		},
@@ -142,14 +140,14 @@ func TestPasswords(t *testing.T) {
 			seed: map[string]string{"veteran": legacyCost4},
 			steps: []step{
 				{"login", "veteran", legacyPassword, ""},
-				{"login", "veteran", "lantern-oath-2", "invalid password"},
+				{"login", "veteran", "lantern-oath-2", "invalid username or password"},
 			},
 			wantPlayers: 1,
 		},
 		{
 			name:        "a row holding a plain-text password cannot log in with it",
 			seed:        map[string]string{"legacy": "lantern-oath-1"},
-			steps:       []step{{"login", "legacy", "lantern-oath-1", "invalid password"}},
+			steps:       []step{{"login", "legacy", "lantern-oath-1", "invalid username or password"}},
 			wantPlayers: 1,
 		},
 	}
@@ -190,6 +188,21 @@ func TestPasswords(t *testing.T) {
 				t.Errorf("players = %d, want %d", got, tc.wantPlayers)
 			}
 		})
+	}
+}
+
+func TestLoginFailuresLookTheSame(t *testing.T) {
+	ctx, db := openDB(t)
+	if _, err := RegisterPlayer(ctx, db, "alice", "correct horse"); err != nil {
+		t.Fatal(err)
+	}
+	_, unknown := LoginPlayer(ctx, db, "nobody", "correct horse")
+	_, wrong := LoginPlayer(ctx, db, "alice", "wrong horse")
+	if !errors.Is(unknown, ErrInvalidCredentials) || !errors.Is(wrong, ErrInvalidCredentials) {
+		t.Fatalf("unknown = %v, wrong = %v; want both ErrInvalidCredentials", unknown, wrong)
+	}
+	if unknown.Error() != wrong.Error() {
+		t.Fatalf("errors differ: %q vs %q", unknown, wrong)
 	}
 }
 
