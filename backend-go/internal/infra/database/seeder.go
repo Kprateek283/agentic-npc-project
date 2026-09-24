@@ -60,7 +60,7 @@ func SeedNPCs(client *ent.Client, gamedataPath string) error {
 		return nil
 	}
 
-	log.Printf("Found %d NPC configurations. Synchronizing with database...", len(personalityFiles))
+	log.Printf("Found %d NPC configurations. Adding any missing to the database (existing rows are never updated)...", len(personalityFiles))
 	ctx := context.Background()
 
 	creators := make([]*ent.NPCCreate, 0, len(personalityFiles))
@@ -144,7 +144,7 @@ func SeedQuests(client *ent.Client, gamedataPath string) error {
 		return nil
 	}
 
-	log.Printf("Found %d quest definitions. Synchronizing with database...", len(questFiles))
+	log.Printf("Found %d quest definitions. Adding any missing to the database (existing rows are never updated)...", len(questFiles))
 	ctx := context.Background()
 
 	creators := make([]*ent.QuestCreate, 0, len(questFiles))

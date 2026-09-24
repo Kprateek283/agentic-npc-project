@@ -7,7 +7,7 @@ Key: `[x]` fixed · `[ ]` open, needs a decision · `[-]` not a defect
 
 ## go-01-episode-recording.md
 
-- [ ] go-01 #1 dead gift config — OPEN: needs a decision on whether `events.json` `PLAYER_GAVE_GIFT` (joy 0.15, intensity 0.2) should be removed or wired up. The quest layer writes the gift episode itself from `items.json` `base_trust_value`, so honouring the events.json values would change the trust and joy a gift produces, which the quest tests pin down.
+- [x] go-01 #1 dead gift config — FIXED: removed from `events.json` (user's decision); gifts take trust from `items.json`. The unreachable gift subject/description branches in `recordEpisode` are gone too. `TestLoad_RealEventsFile` now fails if a gift rule reappears.
 - [-] go-01 #2 masked over-revocation — NOT A DEFECT: an observation about how far the handler tests reach, not wrong behaviour; `memory.RevokeForgiveness` is correct today and `memory_test.go` is the right place to guard it.
 - [x] go-01 #3 gofmt not clean — FIXED: ran gofmt on the two unformatted files. `internal/db/ent/schema/npc.go` had a stray blank line after the import block (the file is hand-written generator input, not generated output); `tools/tools.go` was also unformatted, missing its trailing newline. `gofmt -l .` is now empty.
 - [-] go-01 #4 brief vs code on gifts — NOT A DEFECT: the brief and the code agree that gifts are not recorded in `recordEpisode`, and the full-path test confirms one row per gift. Nothing to change.
@@ -15,20 +15,20 @@ Key: `[x]` fixed · `[ ]` open, needs a decision · `[-]` not a defect
 ## go-02-memory-line-ranking.md
 
 - [x] go-02 #1 unattributed quest reward / admin trust lines — FIXED: both writers now start the description with the actor ("p1 completed a quest for me: trust changed by 0.40", "p1 had trust with Elara set to 1.00 by an admin"), so `formatMemoryLine` renders a bystander's reward as "Someone ..." and the speaker's as "You ...". The reward text also now shows the clamped value it stores (the go-03 #2 bug at its sibling site). New `TestTrustRowDescriptionsStartWithTheActor` drives the real writers; verified red with the old ones. Rows written before this change keep their old text.
-- [ ] go-02 #2 "counts and text" — OPEN: `memory_v1_assumptions.md` item 8 says the speaker's lines carry text, but `formatMemoryLine` never reads the stored `text`. Wiring it in changes what every prompt sees and gives conversations a non-zero weight; that is a design decision about the prompt, not a defect to repair quietly.
-- [ ] go-02 #3 raw event identifiers in lines — OPEN: the plan wants "You threw stones at me 5 times", the code sends "You triggered PLAYER_THREW_STONE on Elara (5 times)". Needs a decision on whether to add an event-name renderer; the doc itself notes this is not a ranking bug.
-- [ ] go-02 #4 "You's gift" in the no-space branch — OPEN: the branch is unreachable today (no description written takes it), and the right rendering for a possessive ("Your gift"? "Someone's gift"?) is a wording decision rather than a repair of observed behaviour.
+- [-] go-02 #2 "counts and text" — DECIDED: not wired. Conversations carry no delta, so a line for them means giving them ranking weight; not worth it for v1. Assumption 8 amended to match the code (decision 23).
+- [x] go-02 #3 raw event identifiers in lines — FIXED: each event in `events.json` has a `memory` phrase and descriptions are written as "<actor> <phrase>", so lines read "You threw a stone at me (5 times)"; quest items append ": <item>", gifts read "<actor> gave me <Item Name>". Unknown phrases fall back to the old raw form. Likely helps the demo's "NPC names the stones" check, which failed 3/3 on the raw form — not re-run.
+- [x] go-02 #4 "You's gift" in the no-space branch — FIXED: the no-space branch in `formatMemoryLine` was unreachable, so it is deleted rather than given a wording.
 - [-] go-02 #5 decayed repeat count — NOT A DEFECT: an observation that the shown count is the decayed count rounded, which is what the design asks for; recorded so nobody reads it as a literal tally.
 
 ## go-03-trust-computed-value.md
 
-- [ ] go-03 #1 `target_npc_name` and `emotion` ignored in preconditions — OPEN: needs a decision on whether `RELATIONSHIP_TRUST` should check trust toward the named NPC rather than the NPC being spoken to. Adding the field changes precondition semantics for every quest and reaches across the quest schema, parser and evaluator; today's data never differs, so nothing is observably wrong yet.
+- [-] go-03 #1 `target_npc_name` and `emotion` ignored in preconditions — DECIDED: left as is: preconditions check trust toward the NPC being spoken to, which every quest in gamedata means. Implement `target_npc_name`/`emotion` when a quest needs a cross-NPC or non-trust condition (decision 23).
 - [x] go-03 #2 unclamped admin trust description — FIXED: `HandleAdminCommand` clamped the trust delta to [-1, 1] but built the row's description from the raw value, so setting trust to 1.5 stored 1.00 and described it as "Admin set trust with Elara to 1.50". The description now uses the same clamped `v` the delta uses. The redundant clamp itself was left alone: it is what makes the stored value correct.
-- [ ] go-03 #3 a "set" trust fades — OPEN: the admin row is an ordinary `QUEST_REWARD` episode with intensity 0.3, so an admin-set trust decays over about a day. It lands exactly when set, which is what the brief asks, and `trust_test.go` pins the fading. Whether an admin set should be permanent is a design decision.
-- [ ] go-03 #4 negative gifts are not harmful — OPEN: trash items are written with `harmful=false`, so they get diminishing rather than escalating returns and can never be a betrayal. Needs a decision on whether a negative `base_trust_value` should imply harm.
-- [ ] go-03 #5 `created_at` from the column default — OPEN: no memory writer sets `created_at`; every row takes the wall clock rather than the caller's `now`, so episode order can disagree with `first_at`. Making it caller-supplied touches all seven write sites across `quest_logic` and `game_handler`, and no trust value depends on it today.
+- [-] go-03 #3 a "set" trust fades — DECIDED: fading over about a day is intended (user's decision); `trust_test.go` already pins it.
+- [x] go-03 #4 negative gifts are not harmful — FIXED: a gift with negative `base_trust_value` is stored as harmful, so repeats escalate and an apology can forgive it. A junk gift after an apology is still not a betrayal (that path lives only in `recordEpisode`). New `TestGiftRowsRecordHarmAndTheItemName`, verified red with harmful=false.
+- [-] go-03 #5 `created_at` from the column default — DECIDED: left as is. `npcstate.Load` orders rows by `created_at` (newest first), which breaks ties between equally weighted memory lines; in production every writer stamps the wall clock as it writes, so that order matches `first_at`. They diverge only in tests that pass fixed times (decision 23).
 - [-] go-03 #6 clock-dependent existing tests — NOT A DEFECT: an observation about how `quest_pipeline_test.go` seeds and reads at `time.Now()`. It concerns test construction, not product behaviour, and tests are not mine to change.
-- [ ] go-03 #7 `unlocks_quest_id` never acted on — OPEN: the reward is parsed but nothing starts the unlocked quest. Wiring it up is a feature in the quest engine, well beyond the file this was found in.
+- [-] go-03 #7 `unlocks_quest_id` never acted on — DECIDED: deferred (user's decision): parsed, not acted on; quest-engine work for later.
 
 ## go-04-grpc-client-mapping.md
 
@@ -59,7 +59,7 @@ Key: `[x]` fixed · `[ ]` open, needs a decision · `[-]` not a defect
 - [x] go-07 #2 one bad file blocks all seeding — FIXED: an NPC file with a missing or empty `name` is skipped with a warning, like malformed JSON already was, so one bad file no longer fails the bulk insert for every NPC.
 - [x] go-07 #3 the quest name default never applies — FIXED: the seeder only calls `SetName` when the file has a name, so a nameless quest seeds as "Untitled Quest", the default the schema already declares.
 - [x] go-07 #4 a wrong gamedata path seeds nothing silently — FIXED: both seeders start with `requireDir`: a missing gamedata directory (or a file in its place) is an error naming the path, and seed errors already stop startup. A directory that exists but is empty is still allowed.
-- [ ] go-07 #5 seeding never updates — OPEN: both seeders use `ON CONFLICT DO NOTHING`, so gamedata edits never reach an existing database despite the "Synchronizing with database" log. `seeder_test.go` pins the leave-it-alone behaviour, so update-on-conflict is a deliberate change.
+- [-] go-07 #5 seeding never updates — DECIDED: seeding never updates existing rows (user's decision). The misleading "Synchronizing with database" log now says existing rows are never updated.
 - [-] go-07 #6 `main_quest_1.json` is never seeded — NOT A DEFECT: only `definitions/sq_*.json` is read and nothing in the Go code refers to that file; recorded as an observation about unused data.
 - [-] go-07 #7 duplicate personality names collapse — NOT A DEFECT: an observation about glob order with no wrong behaviour reported in today's data.
 
@@ -100,7 +100,7 @@ Key: `[x]` fixed · `[ ]` open, needs a decision · `[-]` not a defect
 
 ## python-06-rest-surface.md
 
-- [ ] python-06 #1 REST cannot say who is speaking — OPEN: `DynamicContext` has no `speaker` field and pydantic drops unknown keys, so every REST request is anonymous and cacheable, and REST callers with near-zero feelings share answers. Pinned by "a speaker sent over REST is dropped". Consistent with the module docstring (REST serves evals, benchmarks and demos), so whether to add the field or reject the key is a decision about what REST is for.
+- [x] python-06 #1 REST cannot say who is speaking — FIXED: REST stays anonymous; the request models now forbid unknown keys, so a `speaker` (or any stale key) gets 422 instead of being silently dropped. This exposed `benchmarks/cloud_vs_local.py` sending pre-Memory-v1 keys (`emotions`, `memories`) that were dropped, so its runs used a neutral context; its payload is fixed.
 - [x] python-06 #2 every exception is reported as a provider failure — FIXED: `_dispatch` reports programming-error types (KeyError, IndexError, TypeError, AttributeError, NameError, AssertionError) as 500 "Internal error: <Type>"; everything else stays 502 "AI provider call failed: <Type>". Neither leaks the message or a traceback.
 - [-] python-06 #3 event type validated before the NPC — NOT A DEFECT: an observation about ordering, pinned; an unknown NPC with an unknown event type gets 422 rather than 404.
 - [-] python-06 #4 the 422 detail lists all known event types — NOT A DEFECT: recorded by the author as helpful and harmless.

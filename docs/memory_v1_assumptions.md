@@ -34,7 +34,9 @@ the code will be adjusted to match. Written 2026-09-23; appended to as further c
    are recorded before the rate-limit check; only the LLM call is skipped when a player is over
    the limit. (Review finding: today quests advance but emotions and memories do not.)
 8. **Prompt contents:** emotions toward the speaker and the general mood as two separate labeled
-   lines; the speaker's own episodes ranked by current weight (top 5, with counts and text); and
+   lines; the speaker's own episodes ranked by current weight (top 5, with counts; a line is the
+   event's `memory` phrase from `events.json`, e.g. "You threw a stone at me (5 times)", and does
+   not carry a conversation's question text — see decision 23); and
    other players' episodes above the notability threshold (top 3), so a bystander hears that
    *someone* has been throwing stones.
 9. **New events reach the LLM:** `PLAYER_THREW_STONE` and `PLAYER_APOLOGIZED` are added to the
@@ -88,6 +90,22 @@ the code will be adjusted to match. Written 2026-09-23; appended to as further c
 24. **Demo client feelings panel:** Positioned as a side panel next to the chat log, titled
     "What [NPC] feels", displaying "Toward you" and "General mood" sections. Shows "nothing in
     particular" when emotion maps are empty or prior to receiving an `EMOTIONS` frame.
-
-
-
+23. **Decisions after the test suite (2026-09-25).** Findings from `docs/test_results/` that needed a
+    design call; the ledger in `docs/test_results/fixes.md` has one line each.
+    - Memory lines are written as prose from a per-event `memory` phrase in `events.json`, not the raw
+      event name, and never carry a conversation's question text. Conversations have no emotional
+      delta, so giving them a line would mean giving them weight in the ranking; not worth it for v1.
+    - `events.json` no longer defines `PLAYER_GAVE_GIFT`: gifts take their trust from `items.json`.
+      A gift with a negative `base_trust_value` is stored as harmful, so repeats escalate and an
+      apology can forgive it. A junk gift after an apology is not treated as a betrayal (that path
+      lives only in `recordEpisode`).
+    - An admin-set trust fades like any quest reward (about a day), by design.
+    - Quest preconditions check trust toward the NPC being spoken to; `target_npc_name` and
+      `emotion` are parsed but ignored until a quest needs a cross-NPC or non-trust condition.
+    - `created_at` comes from the database clock, not the caller's `now`. `npcstate.Load` orders by it
+      (newest first), which breaks ties between equally weighted lines; in production every writer
+      stamps the wall clock as it writes, so that order matches `first_at`. Only tests with fixed
+      times can see them differ.
+    - `unlocks_quest_id` is parsed but not acted on; wiring it up is quest-engine work for later.
+    - Seeding only adds missing rows and never updates existing ones.
+    - REST stays anonymous: it has no speaker field, and unknown keys are refused with 422.
