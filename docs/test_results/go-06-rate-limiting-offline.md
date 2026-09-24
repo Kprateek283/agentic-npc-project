@@ -74,9 +74,10 @@ No break survived.
    Covering it offline needs a seam in the handler (for example, the rate-limit decision
    extracted into a function that takes `allowed, err`). Not done here; flagged for whoever
    takes the handler.
-2. **A sub-second window silently becomes one second.** go-redis's `formatSec` rounds anything
-   under a second up to 1s with only a log line. The window comes from configuration, so a value
-   like `500ms` would be enforced as 1s. Pinned by "a sub-second window is rounded up".
+2. **Observation, not a bug:** go-redis's `formatSec` rounds a window under one second up to 1s
+   with only a log line. Configuration cannot produce one today (`LLM_RATE_WINDOW_SECONDS` is
+   parsed as whole seconds), so this only matters to a future caller passing a raw duration.
+   Pinned by "a sub-second window is rounded up".
 3. **The optional real-Redis test sleeps.** `TestAllowAgainstRedis` uses `time.Sleep` (100 ms and
    2.1 s) against the brief's "never add a sleep" rule. It only runs with `REDIS_ADDR`, so CI
    is unaffected; the new file covers the same window behaviour without sleeping.
