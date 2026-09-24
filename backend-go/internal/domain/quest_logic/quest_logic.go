@@ -245,7 +245,7 @@ func (qm *QuestManager) applyRewards(ctx context.Context, db *ent.Client, p *ent
 			SetIntensity(0.3).
 			SetFirstAt(now).
 			SetLastAt(now).
-			SetDescription(fmt.Sprintf("Quest reward: trust changed by %.2f", trustChange)).
+			SetDescription(fmt.Sprintf("%s completed a quest for me: trust changed by %.2f", p.PlayerID, v)).
 			SetParticipants([]string{p.PlayerID, rewardNpc.ID.String()}).
 			Save(ctx)
 		if err != nil {

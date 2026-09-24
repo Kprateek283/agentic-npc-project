@@ -236,13 +236,13 @@ func TestMemoryLines(t *testing.T) {
 			want: []string{"Someone triggered PLAYER_THREW_STONE on Elara (5 times)"},
 		},
 		{
-			// Characterises current behaviour; see finding 1. The quest layer's description does
-			// not begin with the actor, so a bystander's reward reads exactly like the speaker's own.
-			name: "a bystander's quest reward line carries no actor and passes through unrewritten",
+			// The quest layer writes rewards as "<player> completed a quest for me: ...", so a
+			// bystander's reward is attributed to someone else, never to the speaker.
+			name: "a bystander's quest reward is attributed to someone else",
 			seed: []ep{
-				{actor: "P2", desc: "Quest reward: trust changed by 0.50", delta: trust(0.5)},
+				{actor: "P2", desc: "P2 completed a quest for me: trust changed by 0.50", delta: trust(0.5)},
 			},
-			want: []string{"Quest reward: trust changed by 0.50"},
+			want: []string{"Someone completed a quest for me: trust changed by 0.50"},
 		},
 	}
 

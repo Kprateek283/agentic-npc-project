@@ -536,3 +536,48 @@ func adminRowTime(t *testing.T, e *trustEnv, player string) time.Time {
 	t.Fatalf("no admin-set row for %s", player)
 	return time.Time{}
 }
+
+// Memory descriptions must begin with the actor, so the prompt formatter can rewrite them to
+// "You ..." for the speaker and "Someone ..." for a bystander. Both show the clamped value the
+// row actually holds.
+func TestTrustRowDescriptionsStartWithTheActor(t *testing.T) {
+	description := func(t *testing.T, e *trustEnv) string {
+		t.Helper()
+		_, rows, err := npcstate.Load(e.ctx, e.db, e.npcs["Elara"])
+		if err != nil {
+			t.Fatalf("npcstate.Load: %v", err)
+		}
+		for _, r := range rows {
+			if r.EventType == "QUEST_REWARD" {
+				return r.Description
+			}
+		}
+		t.Fatal("no QUEST_REWARD row")
+		return ""
+	}
+
+	t.Run("a quest reward", func(t *testing.T) {
+		e := newTrustEnv(t)
+		herbs := seedQuest(t, e.ctx, e.db, "sq_e1_missing_herbs", "A Simple Errand", "quests/definitions/sq_e1_missing_herbs.json")
+		seedPlayerQuestState(t, e.ctx, e.db, e.players["p1"], herbs, "sq_e1_missing_herbs", 2)
+		submit := dto.EventMessage{EventType: "PLAYER_SUBMITTED_QUEST_ITEM", SourceEntityId: "p1", TargetNpcName: "Elara", Keyword: "Sunpetal"}
+		if _, err := e.qm.checkQuestCompletionAt(e.ctx, e.db, e.players["p1"], e.npcs["Elara"], submit, t0); err != nil {
+			t.Fatalf("submit herbs: %v", err)
+		}
+		if got, want := description(t, e), "p1 completed a quest for me: trust changed by 0.40"; got != want {
+			t.Errorf("description = %q, want %q", got, want)
+		}
+	})
+
+	t.Run("an admin set, clamped to 1", func(t *testing.T) {
+		e := newTrustEnv(t)
+		e.qm.AdminEnabled = true
+		ev := dto.EventMessage{EventType: "ADMIN_SET_TRUST", SourceEntityId: "p1", Keyword: "Elara,1.5"}
+		if err := e.qm.HandleAdminCommand(e.ctx, e.db, ev); err != nil {
+			t.Fatalf("ADMIN_SET_TRUST: %v", err)
+		}
+		if got, want := description(t, e), "p1 had trust with Elara set to 1.00 by an admin"; got != want {
+			t.Errorf("description = %q, want %q", got, want)
+		}
+	})
+}
