@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"sort"
+	"strings"
 	"testing"
 
 	"agentic-npc-backend/internal/db/ent"
@@ -223,13 +224,13 @@ func TestSeedNPCsFromFiles(t *testing.T) {
 			want: map[string]string{"A": "Unknown", "B": "Unknown", "C": "Unknown", "D": "Unknown", "E": "Unknown"},
 		},
 		{
-			name: "one personality file with no name fails the whole seed and nothing is written",
+			name: "a personality file with no name is skipped and the rest are seeded",
 			files: map[string]string{
 				"good/personality.json":     `{"name": "Good", "occupation": "Baker"}`,
 				"nameless/personality.json": `{"occupation": "Ghost"}`,
+				"blank/personality.json":    `{"name": "", "occupation": "Ghost"}`,
 			},
-			wantErr: true,
-			want:    map[string]string{},
+			want: map[string]string{"Good": "Baker"},
 		},
 		{
 			name: "two files claiming the same name seed one NPC",
@@ -257,13 +258,24 @@ func TestSeedNPCsFromFiles(t *testing.T) {
 		})
 	}
 
-	t.Run("a directory that does not exist seeds nothing and reports no error", func(t *testing.T) {
+	t.Run("a directory that does not exist is an error, so a mistyped GAMEDATA_DIR stops startup", func(t *testing.T) {
 		ctx, db := openDB(t)
-		if err := SeedNPCs(db, filepath.Join(t.TempDir(), "no-such-dir")); err != nil {
-			t.Fatalf("SeedNPCs: %v", err)
+		missing := filepath.Join(t.TempDir(), "no-such-dir")
+		err := SeedNPCs(db, missing)
+		if err == nil || !strings.Contains(err.Error(), missing) {
+			t.Fatalf("SeedNPCs err = %v, want one naming %q", err, missing)
 		}
 		if got := npcTypes(t, ctx, db); len(got) != 0 {
 			t.Errorf("NPCs = %v, want none", got)
+		}
+	})
+
+	t.Run("a file where the directory should be is an error", func(t *testing.T) {
+		_, db := openDB(t)
+		file := filepath.Join(t.TempDir(), "npcs")
+		writeFile(t, file, "")
+		if err := SeedNPCs(db, file); err == nil || !strings.Contains(err.Error(), "not a directory") {
+			t.Fatalf("SeedNPCs err = %v, want a not-a-directory error", err)
 		}
 	})
 }
@@ -301,13 +313,12 @@ func TestSeedQuestsFromFiles(t *testing.T) {
 			want: map[string]string{"sq_inner": "Inner"},
 		},
 		{
-			name: "one quest with no name fails the whole seed and nothing is written",
+			name: "a quest with no name seeds under the schema default",
 			files: map[string]string{
 				"definitions/sq_a.json": `{"quest_id": "sq_a", "name": "Alpha"}`,
 				"definitions/sq_b.json": `{"quest_id": "sq_b"}`,
 			},
-			wantErr: true,
-			want:    map[string]string{},
+			want: map[string]string{"sq_a": "Alpha", "sq_b": "Untitled Quest"},
 		},
 	}
 	for _, tc := range cases {
@@ -326,4 +337,11 @@ func TestSeedQuestsFromFiles(t *testing.T) {
 			}
 		})
 	}
+	t.Run("a directory that does not exist is an error", func(t *testing.T) {
+		_, db := openDB(t)
+		missing := filepath.Join(t.TempDir(), "no-such-dir")
+		if err := SeedQuests(db, missing); err == nil || !strings.Contains(err.Error(), missing) {
+			t.Fatalf("SeedQuests err = %v, want one naming %q", err, missing)
+		}
+	})
 }

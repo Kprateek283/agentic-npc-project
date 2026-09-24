@@ -45,6 +45,9 @@ func occupationToString(occ interface{}) string {
 // SeedNPCs scans the gamedata directory and creates NPC records if they do not already exist.
 func SeedNPCs(client *ent.Client, gamedataPath string) error {
 	log.Println("Checking database seeding for NPCs...")
+	if err := requireDir(gamedataPath); err != nil {
+		return err
+	}
 
 	searchPath := filepath.Join(gamedataPath, "*", "personality.json")
 	personalityFiles, err := filepath.Glob(searchPath)
@@ -72,6 +75,12 @@ func SeedNPCs(client *ent.Client, gamedataPath string) error {
 		var p tempPersonality
 		if err := json.Unmarshal(data, &p); err != nil {
 			log.Printf("Warning: failed to parse JSON from %s, skipping NPC: %v", pPath, err)
+			continue
+		}
+
+		// Skipped like malformed JSON: one bad file must not fail the bulk insert for all.
+		if p.Name == "" {
+			log.Printf("Warning: NPC name missing in %s, skipping.", pPath)
 			continue
 		}
 
@@ -120,6 +129,9 @@ type tempQuest struct {
 // if they do not already exist.
 func SeedQuests(client *ent.Client, gamedataPath string) error {
 	log.Println("Checking database seeding for Quests...")
+	if err := requireDir(gamedataPath); err != nil {
+		return err
+	}
 
 	searchPath := filepath.Join(gamedataPath, "definitions", "sq_*.json") // Path to quest files
 	questFiles, err := filepath.Glob(searchPath)
@@ -157,9 +169,11 @@ func SeedQuests(client *ent.Client, gamedataPath string) error {
 
 		creator := client.Quest.
 			Create().
-			SetID(q.QuestID). // Use the quest_id from JSON as the primary key
-			SetName(q.Name).
+			SetID(q.QuestID).        // Use the quest_id from JSON as the primary key
 			SetStaticDataPath(qPath) // Store the path to the full definition
+		if q.Name != "" {
+			creator.SetName(q.Name) // otherwise the schema's "Untitled Quest" default applies
+		}
 
 		creators = append(creators, creator)
 	}
@@ -181,5 +195,19 @@ func SeedQuests(client *ent.Client, gamedataPath string) error {
 	}
 
 	log.Println("Quest database seeding complete.")
+	return nil
+}
+
+// requireDir fails when the gamedata directory itself is missing, so a mistyped
+// GAMEDATA_DIR stops startup instead of starting a server with nothing seeded. A directory
+// that exists but holds no files is still allowed.
+func requireDir(path string) error {
+	info, err := os.Stat(path)
+	if err != nil {
+		return fmt.Errorf("gamedata directory %q: %w", path, err)
+	}
+	if !info.IsDir() {
+		return fmt.Errorf("gamedata directory %q is not a directory", path)
+	}
 	return nil
 }
