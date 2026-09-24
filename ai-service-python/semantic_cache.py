@@ -20,8 +20,8 @@ Cached answers are only reused when the live context is also baseline (near-neut
 """
 
 import math
-import os
 import time
+from env import env_bool, env_float, env_int
 
 
 def _cosine(a, b) -> float:
@@ -55,15 +55,15 @@ class SemanticCache:
     GIL-atomic list ops, which is enough for the gRPC thread pool at this scale."""
 
     def __init__(self, threshold=None, ttl_s=None, max_entries=None):
-        self.enabled = os.getenv("SEMANTIC_CACHE_ENABLED", "true").lower() == "true"
+        self.enabled = env_bool("SEMANTIC_CACHE_ENABLED", True)
         # 0.90 tuned on nomic-embed-text against the eval questions: it sits above measured
         # same-topic/different-intent pairs (<=0.81, e.g. "where does silverleaf grow?" vs
         # "what is silverleaf used for?") so the cache never serves a wrong answer, while
         # catching genuine near-duplicates (>=0.90). Weak paraphrases (~0.81-0.83) miss and
         # pay for an LLM call — the safe trade, since a false hit is a wrong answer.
-        self.threshold = threshold if threshold is not None else float(os.getenv("SEMANTIC_CACHE_THRESHOLD", "0.90"))
-        self.ttl_s = ttl_s if ttl_s is not None else int(os.getenv("SEMANTIC_CACHE_TTL", "3600"))
-        self.max_entries = max_entries if max_entries is not None else int(os.getenv("SEMANTIC_CACHE_MAX_PER_NPC", "128"))
+        self.threshold = threshold if threshold is not None else env_float("SEMANTIC_CACHE_THRESHOLD", 0.90)
+        self.ttl_s = ttl_s if ttl_s is not None else env_int("SEMANTIC_CACHE_TTL", 3600)
+        self.max_entries = max_entries if max_entries is not None else env_int("SEMANTIC_CACHE_MAX_PER_NPC", 128)
         self._entries = []  # list of {"emb": [float], "answer": str, "ts": float}
 
     def _live(self):

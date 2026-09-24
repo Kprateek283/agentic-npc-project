@@ -1,42 +1,42 @@
 import logging
-import os
 
 from dotenv import load_dotenv
 from langchain_ollama import OllamaEmbeddings
+from env import env_int, env_str
 
 logger = logging.getLogger(__name__)
 
 load_dotenv()
 
 # --- Provider selection (env-driven; see .env.example) ---
-LLM_PROVIDER = os.getenv("LLM_PROVIDER", "gemini").lower()
+LLM_PROVIDER = env_str("LLM_PROVIDER", "gemini").lower()
 # Pinned to a concrete model (not the moving `gemini-flash-latest` alias) so a committed
 # benchmark number always names the model that produced it. Note: gemini-2.5-flash, which
 # this project used to hardcode, now 404s for newly-created Google Cloud projects.
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
-OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
+GEMINI_MODEL = env_str("GEMINI_MODEL", "gemini-3.5-flash")
+OLLAMA_HOST = env_str("OLLAMA_HOST", "http://localhost:11434")
 # llama3.1:8b, not llama3:8b: the LangGraph agent needs native tool-calling, which
 # llama3:8b does not have (`ollama show llama3:8b` reports capability "completion" only).
-OLLAMA_MODEL_HEAVY = os.getenv("OLLAMA_MODEL_HEAVY", "llama3.1:8b")
-OLLAMA_MODEL_LIGHT = os.getenv("OLLAMA_MODEL_LIGHT", OLLAMA_MODEL_HEAVY)
-EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "nomic-embed-text")
+OLLAMA_MODEL_HEAVY = env_str("OLLAMA_MODEL_HEAVY", "llama3.1:8b")
+OLLAMA_MODEL_LIGHT = env_str("OLLAMA_MODEL_LIGHT", OLLAMA_MODEL_HEAVY)
+EMBEDDING_MODEL = env_str("EMBEDDING_MODEL", "nomic-embed-text")
 
 # Configuration for local agy experiment provider (see docs/agy_provider_experiment.md).
-AGY_BIN = os.getenv("AGY_BIN", "agy")
-AGY_TIMEOUT_S = int(os.getenv("AGY_TIMEOUT_S", "120"))
-AGY_MODEL = os.getenv("AGY_MODEL")
+AGY_BIN = env_str("AGY_BIN", "agy")
+AGY_TIMEOUT_S = env_int("AGY_TIMEOUT_S", 120)
+AGY_MODEL = env_str("AGY_MODEL")
 
 # The library default is 6 retries. On a free-tier key that is actively harmful: the first
 # 429 triggers a retry storm that burns the rest of the daily quota (it cost a whole eval
 # sample once). Retrying a per-day quota error cannot succeed anyway. Read at module level
 # because the eval judge may be Gemini even when the answering provider is Ollama.
-GEMINI_MAX_RETRIES = int(os.getenv("GEMINI_MAX_RETRIES", "1"))
+GEMINI_MAX_RETRIES = env_int("GEMINI_MAX_RETRIES", 1)
 
 # --- Chat models: llm_light (fast RAG) and llm_heavy (LangGraph agent) ---
 if LLM_PROVIDER == "gemini":
     from langchain_google_genai import ChatGoogleGenerativeAI
 
-    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+    GEMINI_API_KEY = env_str("GEMINI_API_KEY")
     if not GEMINI_API_KEY:
         raise ValueError("GEMINI_API_KEY is required when LLM_PROVIDER=gemini")
 
@@ -75,12 +75,12 @@ else:
 embeddings = OllamaEmbeddings(model=EMBEDDING_MODEL, base_url=OLLAMA_HOST)
 
 # --- Vector store: faiss (default, in-process) | qdrant (scale-out) ---
-VECTOR_STORE = os.getenv("VECTOR_STORE", "faiss").lower()
-QDRANT_URL = os.getenv("QDRANT_URL", "http://localhost:6333")
-RETRIEVER_K = int(os.getenv("RETRIEVER_K", "3"))
+VECTOR_STORE = env_str("VECTOR_STORE", "faiss").lower()
+QDRANT_URL = env_str("QDRANT_URL", "http://localhost:6333")
+RETRIEVER_K = env_int("RETRIEVER_K", 3)
 
 # Path to shared gamedata directory (defaults to ../gamedata).
-GAMEDATA_DIR = os.getenv("GAMEDATA_DIR", "../gamedata")
+GAMEDATA_DIR = env_str("GAMEDATA_DIR", "../gamedata")
 
 if VECTOR_STORE not in ("faiss", "qdrant"):
     raise ValueError(f"Unsupported VECTOR_STORE={VECTOR_STORE!r} (expected 'faiss' or 'qdrant')")

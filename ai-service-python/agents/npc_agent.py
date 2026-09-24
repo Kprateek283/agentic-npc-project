@@ -1,6 +1,5 @@
 import contextlib
 import logging
-import os
 import time
 
 from langchain_core.messages import HumanMessage
@@ -8,6 +7,7 @@ from langgraph.errors import GraphRecursionError
 
 # --- Local Imports ---
 from config import embeddings, llm_light
+from env import env_int
 from semantic_cache import SemanticCache, cacheable_context
 from tools.lore_retriever_tool import create_lore_tool_from_file
 from tools.quest_status_tool import quest_status
@@ -18,7 +18,7 @@ from .graph_builder import build_langgraph_agent
 
 # Hard cap on agent<->tool loops, so a confused model cannot spin forever or burn quota.
 # One loop costs two graph super-steps (agent, then tools), plus the final agent turn.
-AGENT_MAX_ITERATIONS = int(os.getenv("AGENT_MAX_ITERATIONS", "5"))
+AGENT_MAX_ITERATIONS = env_int("AGENT_MAX_ITERATIONS", 5)
 _RECURSION_LIMIT = 2 * AGENT_MAX_ITERATIONS + 1
 
 logger = logging.getLogger(__name__)

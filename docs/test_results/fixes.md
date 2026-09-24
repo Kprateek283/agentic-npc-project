@@ -67,7 +67,7 @@ Key: `[x]` fixed · `[ ]` open, needs a decision · `[-]` not a defect
 
 - [x] python-01 #1 the Python suite is red — FIXED: the teardown now resets `LLM_PROVIDER` to `ollama` (the value conftest.py sets) instead of deleting it, so the final reload no longer falls back to gemini. A clean clone with no `.env` goes from 207 passed / 1 failed to 208 passed.
 - [x] python-01 #2 an empty answer is cached and replayed — FIXED: `SemanticCache.put` ignores empty or whitespace-only answers, so a failed generation is never replayed. One guard covers both callers in `npc_agent.py`.
-- [ ] python-01 #3 only the word "true" enables the cache — OPEN: `SEMANTIC_CACHE_ENABLED` is compared with "true", so "1" and "yes" silently disable it. Pinned. Whether to accept the usual truthy spellings is a config-convention decision that should apply to every flag, not just this one.
+- [x] python-01 #3 only the word "true" enables the cache — FIXED: flags go through `env.env_bool`, which accepts 1/true/yes/on in any case; `SEMANTIC_CACHE_ENABLED=1` now enables the cache.
 - [-] python-01 #4 FIFO rather than LRU eviction — NOT A DEFECT: consistent with the code's own "evict oldest" comment and pinned so a change would be deliberate.
 - [-] python-01 #5 an entry is served at exactly `ttl` — NOT A DEFECT: an off-by-one-second boundary note on a `>=` cutoff, recorded as an observation.
 
@@ -82,8 +82,8 @@ Key: `[x]` fixed · `[ ]` open, needs a decision · `[-]` not a defect
 
 - [x] python-03 #1 the existing reload test is the red one — FIXED: same fix as python-01 #1.
 - [-] python-03 #2 import-time side effects — NOT A DEFECT: `from config import llm_light` binds a name at import, so a reload updates `config.llm_light` and not the consumer's copy. The author says outright this is not a bug in production (config loads once); it is a note about how tests must patch the consuming module.
-- [ ] python-03 #3 surrounding whitespace is not stripped — OPEN: `LLM_PROVIDER=" ollama"` is lower-cased but not stripped, so it is rejected as unsupported, and `test_config.py` lists `" ollama"` among the unknown-provider cases. Whether config values should be stripped is the same convention decision as python-01 #3 (truthy spellings) and should be settled once for every variable, not here.
-- [ ] python-03 #4 a bad number crashes with Python's own message — OPEN: `AGY_TIMEOUT_S=2m` fails at import with "invalid literal for int() with base 10: '2m'", which never names the variable. `test_config.py` pins that message (`match=r"invalid literal for int"`), and naming the variable means wrapping every `int(os.getenv(...))` in the module, so it is a decision about config error reporting rather than a repair.
+- [x] python-03 #3 surrounding whitespace is not stripped — FIXED: every variable is read through `env.env_str`, which strips surrounding whitespace, so `LLM_PROVIDER=" ollama"` selects ollama.
+- [x] python-03 #4 a bad number crashes with Python's own message — FIXED: numbers go through `env.env_int`/`env_float`, which fail with "AGY_TIMEOUT_S must be an integer, got '2m'".
 - [-] python-03 #5 the default provider needs a key — NOT A DEFECT: the author records it as intended and pinned; it is the reason `conftest.py` forces `ollama`.
 
 ## python-04-prompt-templates.md

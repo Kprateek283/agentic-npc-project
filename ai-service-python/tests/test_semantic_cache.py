@@ -144,14 +144,27 @@ def test_explicit_arguments_beat_the_environment(clock, monkeypatch):
     assert (c.threshold, c.ttl_s, c.max_entries) == (0.5, 10, 1)
 
 
-# Only the word "true" (any case) enables the cache, so "1" and "yes" disable it too.
-@pytest.mark.parametrize("value", ["false", "FALSE", "no", "0", "1", "yes"])
+@pytest.mark.parametrize("value", ["false", "FALSE", "no", "0", "off"])
 def test_disabled_cache_stores_nothing_and_never_hits(clock, monkeypatch, value):
     monkeypatch.setenv("SEMANTIC_CACHE_ENABLED", value)
     c = SemanticCache(threshold=0.9, ttl_s=100, max_entries=10)
     c.put([1.0, 0.0], "stored")
     assert c.get([1.0, 0.0]) is None
     assert c._entries == []
+
+
+@pytest.mark.parametrize("value", ["true", "TRUE", "1", "yes", "on", " true "])
+def test_the_usual_truthy_spellings_enable_the_cache(clock, monkeypatch, value):
+    monkeypatch.setenv("SEMANTIC_CACHE_ENABLED", value)
+    c = SemanticCache(threshold=0.9, ttl_s=100, max_entries=10)
+    c.put([1.0, 0.0], "stored")
+    assert c.get([1.0, 0.0]) == "stored"
+
+
+def test_a_bad_cache_number_names_its_variable(monkeypatch):
+    monkeypatch.setenv("SEMANTIC_CACHE_THRESHOLD", "high")
+    with pytest.raises(ValueError, match=r"^SEMANTIC_CACHE_THRESHOLD must be a number, got 'high'$"):
+        SemanticCache()
 
 
 @pytest.mark.parametrize(

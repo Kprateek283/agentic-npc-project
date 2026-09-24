@@ -129,10 +129,16 @@ def test_agy_reports_its_model_when_one_is_set(load):
     assert (cfg.CHAT_MODEL_LIGHT, cfg.CHAT_MODEL_HEAVY) == ("agy (gemini-3.5-flash)", "qwen3:14b")
 
 
-@pytest.mark.parametrize("provider", ["openai", "anthropic", "gemini2", " ollama"])
+@pytest.mark.parametrize("provider", ["openai", "anthropic", "gemini2"])
 def test_an_unknown_provider_fails_at_import(load, provider):
     with pytest.raises(ValueError, match=r"Unsupported LLM_PROVIDER=.*expected 'gemini', 'ollama', or 'agy'"):
         load(LLM_PROVIDER=provider)
+
+
+def test_surrounding_whitespace_in_a_value_is_ignored(load):
+    cfg = load(LLM_PROVIDER=" Ollama\n", OLLAMA_MODEL_HEAVY=" llama3.1:8b ")
+    assert cfg.LLM_PROVIDER == "ollama"
+    assert cfg.OLLAMA_MODEL_HEAVY == "llama3.1:8b"
 
 
 @pytest.mark.parametrize(
@@ -155,7 +161,7 @@ def test_embedding_model_can_be_overridden(load):
 
 
 def test_a_non_numeric_agy_timeout_fails_at_import(load):
-    with pytest.raises(ValueError, match=r"invalid literal for int"):
+    with pytest.raises(ValueError, match=r"^AGY_TIMEOUT_S must be an integer, got '2m'$"):
         load(LLM_PROVIDER="agy", AGY_TIMEOUT_S="2m")
 
 
