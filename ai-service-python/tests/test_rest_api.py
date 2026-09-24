@@ -171,9 +171,17 @@ def test_a_legacy_personality_path_key_still_finds_the_agent(agents, client):
     assert response.status_code == 200
 
 
-def test_a_speaker_sent_over_rest_is_dropped(agents, client):
-    # Pinned, not endorsed (see the results file): REST has no speaker field, so every REST
-    # request is anonymous, whatever the caller sends.
+@pytest.mark.parametrize(
+    "body",
+    [
+        pytest.param({"npc": "elara", "question": "Hi", "context": {"speaker": "player1"}}, id="a speaker"),
+        pytest.param({"npc": "elara", "question": "Hi", "context": {"emotions": {"joy": 0.5}}}, id="a stale context key"),
+        pytest.param({"npc": "elara", "question": "Hi", "speaker": "player1"}, id="an unknown top-level key"),
+    ],
+)
+def test_unknown_keys_are_refused_rather_than_silently_dropped(agents, client, body):
+    # REST is anonymous by design; a caller who sends a speaker, or a key the model no longer
+    # has, must find out instead of getting a neutral answer.
     elara = agents("elara", FakeAgent("Elara", "Herbalist"))
-    client.post("/v1/chat", json={"npc": "elara", "question": "Hi", "context": {"speaker": "player1"}})
-    assert elara.rag_calls[0][0]["speaker"] == ""
+    assert client.post("/v1/chat", json=body).status_code == 422
+    assert elara.rag_calls == []

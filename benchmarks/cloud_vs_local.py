@@ -48,8 +48,8 @@ QUEST_EVENTS = [
     ("kaelen", "PLAYER_INTERACT_QUEST", "asks about the bandit threat"),
 ]
 
-CONTEXT = {"emotions": {"joy": 0.5, "sadness": 0.1, "anger": 0.1, "fear": 0.1, "trust": 0.5},
-           "memories": ["The player greeted them earlier."], "quest_step": 2, "completion_rate": 0.66}
+CONTEXT = {"speaker_emotions": {"joy": 0.5, "sadness": 0.1, "anger": 0.1, "fear": 0.1, "trust": 0.5},
+           "memory_lines": ["You greeted me earlier."], "quest_step": 2, "completion_rate": 0.66}
 
 
 def post(url, body, timeout=600):

@@ -13,13 +13,20 @@ import config
 from agent_manager import live_agents
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from router import KNOWN_EVENTS, UnknownAgentError, default_context, route_event
 
 app = FastAPI(title="Agentic NPC AI Service", version="1.0.0")
 
 
-class DynamicContext(BaseModel):
+class _Strict(BaseModel):
+    # REST is anonymous by design (evals, benchmarks, demos), so it has no speaker field.
+    # Unknown keys are rejected with 422 rather than silently dropped, so a caller sending
+    # "speaker" or a stale key finds out instead of getting a neutral answer.
+    model_config = ConfigDict(extra="forbid")
+
+
+class DynamicContext(_Strict):
     speaker_emotions: dict[str, float] = Field(default_factory=dict)
     general_mood: dict[str, float] = Field(default_factory=dict)
     memory_lines: list[str] = Field(default_factory=list)
@@ -27,13 +34,13 @@ class DynamicContext(BaseModel):
     completion_rate: float = 0.0
 
 
-class ChatRequest(BaseModel):
+class ChatRequest(_Strict):
     npc: str = Field(description="Agent key: personality path or NPC directory name (e.g. 'elara')")
     question: str
     context: DynamicContext = Field(default_factory=DynamicContext)
 
 
-class EventRequest(BaseModel):
+class EventRequest(_Strict):
     npc: str = Field(description="Agent key: personality path or NPC directory name (e.g. 'elara')")
     event_type: str
     text: str = Field(default="", description="Item id / keyword / free text for the event")
