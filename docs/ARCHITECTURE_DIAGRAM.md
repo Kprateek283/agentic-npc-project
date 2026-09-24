@@ -32,8 +32,8 @@
 │  ┌──────────────▼───────────────────────────────────────────────┐  │
 │  │                   DOMAIN LAYER                                │  │
 │  │  ┌────────────────┐  ┌─────────────────┐                     │  │
-│  │  │ Quest Manager  │  │ Emotion Manager │                     │  │
-│  │  │  (Game Rules)  │  │ (State Updates) │                     │  │
+│  │  │ Quest Manager  │  │ Memory / Rules  │                     │  │
+│  │  │  (Game Rules)  │  │ (State & Epis.) │                     │  │
 │  │  └────────────────┘  └─────────────────┘                     │  │
 │  └──────────────┬───────────────────────────────────────────────┘  │
 │                 │                                                    │
@@ -144,26 +144,24 @@
 │     │  (Cache Hit: 70% chance, ~5ms)                             │
 │     │  (Cache Miss: Query PostgreSQL, ~20ms)                     │
 │     │                                                             │
-│     ├─ Update NPC Emotions                                       │
-│     │  • Emotion Manager: Apply event deltas                     │
-│     │  • Save to PostgreSQL                                      │
+│     ├─ Record Episode & Broadcast Feelings                       │
+│     │  • Insert episode into Memory table (actor, delta, etc.)   │
+│     │  • Send EMOTIONS frame over WebSocket                      │
 │     │                                                             │
-│     ├─ Create Memory Record                                      │
-│     │  "PlayerX asked question to Elara"                         │
-│     │  • Insert into Memory table                                │
+│     ├─ Compute Dynamic Emotions & Trust                          │
+│     │  • Load episodes via npcstate                              │
+│     │  • Compute speaker_emotions, general_mood, and trust       │
 │     │                                                             │
-│     ├─ Fetch Recent Memories (LIMIT 5)                           │
-│     │  • Query NPC's memories, ORDER BY created_at DESC          │
-│     │                                                             │
-│     ├─ Get Player-NPC Relationship                               │
-│     │  • Fetch trust_level from PlayerNPCRelationship            │
+│     ├─ Rank Memory Lines                                         │
+│     │  • Rank speaker & notable bystander episodes by weight     │
 │     │                                                             │
 │     └─ Prepare gRPC Request                                      │
 │        ┌────────────────────────────────────────────────┐        │
 │        │ EventRequest Proto:                            │        │
 │        │  • personality_path: "gamedata/npcs/elara/..." │        │
-│        │  • current_emotions: { joy: 0.7, anger: 0.2 } │        │
-│        │  • recent_memories: [Memory1, Memory2, ...]    │        │
+│        │  • speaker_emotions: { joy: 0.7, anger: 0.2 } │        │
+│        │  • general_mood: { joy: 0.2 }                  │        │
+│        │  • memory_lines: ["You asked...", ...]         │        │
 │        │  • event_type: "PLAYER_ASKED_QUESTION"         │        │
 │        │  • question_text: "Who is the mayor?"          │        │
 │        └────────────────┬───────────────────────────────┘        │
@@ -244,7 +242,7 @@
                     └──────────┘
 
 Total Latency: ~300-500ms
-  • Go handler: 50ms (DB + memory creation)
+  • Go handler: 50ms (DB + episode processing)
   • gRPC call: 5ms (network)
   • Python RAG: 200-300ms (embedding + LLM)
   • gRPC response: 5ms
