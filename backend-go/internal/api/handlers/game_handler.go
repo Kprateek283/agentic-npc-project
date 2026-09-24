@@ -171,6 +171,8 @@ func (h *WebSocketHandler) recordEpisode(ctx context.Context, event EventMessage
 
 // recordEpisodeAt is recordEpisode with the clock passed in, so tests can use fixed times.
 func (h *WebSocketHandler) recordEpisodeAt(ctx context.Context, event EventMessage, npc *ent.NPC, player *ent.Player, now time.Time) error {
+	// Gifts and quest rewards are written by the quest layer, from items.json and the quest
+	// definition, not from events.json.
 	if event.EventType == "PLAYER_GAVE_GIFT" || event.EventType == "QUEST_REWARD" {
 		return nil
 	}
@@ -192,13 +194,16 @@ func (h *WebSocketHandler) recordEpisodeAt(ctx context.Context, event EventMessa
 	}
 
 	subject := ""
-	if event.EventType == "PLAYER_GAVE_GIFT" || event.EventType == "PLAYER_SUBMITTED_QUEST_ITEM" {
+	if event.EventType == "PLAYER_SUBMITTED_QUEST_ITEM" {
 		subject = event.Keyword
 	}
 
 	memoryDesc := fmt.Sprintf("%s triggered %s on %s", player.PlayerID, event.EventType, npc.Name)
-	if event.EventType == "PLAYER_GAVE_GIFT" {
-		memoryDesc = fmt.Sprintf("%s gave %s to %s", player.PlayerID, event.Keyword, npc.Name)
+	if rule.Memory != "" {
+		memoryDesc = player.PlayerID + " " + rule.Memory
+	}
+	if subject != "" {
+		memoryDesc += ": " + subject
 	}
 
 	if rule.Apology {
@@ -360,12 +365,6 @@ func formatMemoryLine(desc string, actor string, speakerID string, count float64
 				line = "You " + line[len(actor)+1:]
 			} else {
 				line = "Someone " + line[len(actor)+1:]
-			}
-		} else if strings.HasPrefix(line, actor) {
-			if actor == speakerID {
-				line = "You" + line[len(actor):]
-			} else {
-				line = "Someone" + line[len(actor):]
 			}
 		}
 	}

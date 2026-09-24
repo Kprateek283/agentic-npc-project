@@ -233,7 +233,7 @@ func TestMemoryLines(t *testing.T) {
 					e.record(t, "P3", "PLAYER_THREW_STONE", 0)
 				}
 			},
-			want: []string{"Someone triggered PLAYER_THREW_STONE on Elara (5 times)"},
+			want: []string{"Someone threw a stone at me (5 times)"},
 		},
 		{
 			// The quest layer writes rewards as "<player> completed a quest for me: ...", so a

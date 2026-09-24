@@ -17,6 +17,9 @@ type EventRule struct {
 	Harmful      bool
 	Apology      bool
 	Conversation bool
+	// Memory is how the NPC remembers the event, written after the actor's id, e.g.
+	// "threw a stone at me". Empty falls back to naming the raw event type.
+	Memory string
 }
 
 // Rules contains memory calculation settings and event definitions.
@@ -46,6 +49,7 @@ type rawEventRule struct {
 	Harmful      bool               `json:"harmful"`
 	Apology      bool               `json:"apology"`
 	Conversation bool               `json:"conversation"`
+	Memory       string             `json:"memory"`
 }
 
 // Load parses and validates game event rules and memory configuration from the specified JSON file.
@@ -164,6 +168,7 @@ func Load(path string) (*Rules, error) {
 			Harmful:      er.Harmful,
 			Apology:      er.Apology,
 			Conversation: er.Conversation,
+			Memory:       er.Memory,
 		}
 	}
 

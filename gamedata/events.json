@@ -22,19 +22,15 @@
     ]
   },
   "PLAYER_INTERACT": {
+    "memory": "stopped to talk with me",
     "delta": {
       "joy": 0.02,
       "trust": 0.01
     },
     "intensity": 0.05
   },
-  "PLAYER_GAVE_GIFT": {
-    "delta": {
-      "joy": 0.15
-    },
-    "intensity": 0.2
-  },
   "PLAYER_ATTACKED": {
+    "memory": "attacked me",
     "delta": {
       "joy": -1.0,
       "anger": 0.6,
@@ -45,6 +41,7 @@
     "harmful": true
   },
   "PLAYER_THREW_STONE": {
+    "memory": "threw a stone at me",
     "delta": {
       "anger": 0.1,
       "trust": -0.1
@@ -53,15 +50,18 @@
     "harmful": true
   },
   "PLAYER_APOLOGIZED": {
+    "memory": "apologised to me",
     "intensity": 0.1,
     "apology": true
   },
   "PLAYER_ASKED_QUESTION": {
+    "memory": "asked me a question",
     "delta": {},
     "intensity": 0.02,
     "conversation": true
   },
   "PLAYER_INTERACT_QUEST": {
+    "memory": "asked me about a quest",
     "delta": {
       "joy": 0.02,
       "trust": 0.02
@@ -69,6 +69,7 @@
     "intensity": 0.1
   },
   "PLAYER_SUBMITTED_QUEST_ITEM": {
+    "memory": "handed me a quest item",
     "delta": {
       "joy": 0.05,
       "trust": 0.05

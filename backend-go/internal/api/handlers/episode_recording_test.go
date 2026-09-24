@@ -138,7 +138,7 @@ func TestRecordEpisode(t *testing.T) {
 				if !r.FirstAt.Equal(t0) || !r.LastAt.Equal(t0) {
 					t.Errorf("times: first=%v last=%v, want both %v", r.FirstAt, r.LastAt, t0)
 				}
-				if r.Description != "P1 triggered PLAYER_INTERACT on Elara" {
+				if r.Description != "P1 stopped to talk with me" {
 					t.Errorf("description: got %q", r.Description)
 				}
 				if !reflect.DeepEqual(r.Participants, []string{"P1", e.npc.ID.String()}) {
@@ -220,6 +220,9 @@ func TestRecordEpisode(t *testing.T) {
 				}
 				if !near(rows[0].Count, 2.0) || rows[1].Count != 1 {
 					t.Errorf("counts: herb=%v axe=%v, want 2 and 1", rows[0].Count, rows[1].Count)
+				}
+				if rows[1].Description != "P1 handed me a quest item: axe" {
+					t.Errorf("description: got %q", rows[1].Description)
 				}
 			},
 		},

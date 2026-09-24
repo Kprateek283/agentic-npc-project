@@ -134,7 +134,7 @@ func TestDemoSequenceMemoryAndEmotions(t *testing.T) {
 	var hasSomeoneStoneLine bool
 	var hasYouStoneLine bool
 	for _, line := range argsP2.memoryLines {
-		if strings.Contains(line, "PLAYER_THREW_STONE") {
+		if strings.Contains(line, "threw a stone") {
 			if strings.HasPrefix(line, "Someone") {
 				hasSomeoneStoneLine = true
 			}

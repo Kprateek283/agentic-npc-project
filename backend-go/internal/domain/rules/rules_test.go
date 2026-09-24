@@ -27,6 +27,13 @@ func TestLoad_RealEventsFile(t *testing.T) {
 	if stoneRule.Delta["anger"] != 0.1 || stoneRule.Delta["trust"] != -0.1 {
 		t.Errorf("unexpected deltas for PLAYER_THREW_STONE: %v", stoneRule.Delta)
 	}
+	if stoneRule.Memory != "threw a stone at me" {
+		t.Errorf("PLAYER_THREW_STONE memory = %q, want %q", stoneRule.Memory, "threw a stone at me")
+	}
+	// Gifts are written by the quest layer from items.json; events.json must not define one.
+	if _, ok := r.Rule("PLAYER_GAVE_GIFT"); ok {
+		t.Errorf("PLAYER_GAVE_GIFT has a rule in events.json, but nothing reads it")
+	}
 
 	apologyRule, ok := r.Rule("PLAYER_APOLOGIZED")
 	if !ok {
