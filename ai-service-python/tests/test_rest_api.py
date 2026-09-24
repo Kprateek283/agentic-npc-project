@@ -131,6 +131,15 @@ def test_a_provider_failure_is_502_with_only_the_error_type(agents, client, path
     assert "Traceback" not in response.text and "secret" not in response.text and "/home/" not in response.text
 
 
+@pytest.mark.parametrize("error", [KeyError(SECRET), TypeError(SECRET), AttributeError(SECRET)])
+def test_a_bug_on_our_side_is_500_not_a_provider_failure(agents, client, error):
+    agents("elara", FakeAgent("Elara", "Herbalist", error=error))
+    response = client.post("/v1/chat", json={"npc": "elara", "question": "Who guards the gate?"})
+    assert response.status_code == 500
+    assert response.json() == {"detail": f"Internal error: {type(error).__name__}"}
+    assert "Traceback" not in response.text and "secret" not in response.text and "/home/" not in response.text
+
+
 def test_chat_answers_through_the_rag_path_with_a_neutral_anonymous_context(agents, client):
     elara = agents("elara", FakeAgent("Elara", "Herbalist"))
     response = client.post("/v1/chat", json={"npc": "elara", "question": "Who guards the gate?"})

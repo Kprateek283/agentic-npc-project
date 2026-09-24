@@ -101,7 +101,7 @@ Key: `[x]` fixed · `[ ]` open, needs a decision · `[-]` not a defect
 ## python-06-rest-surface.md
 
 - [ ] python-06 #1 REST cannot say who is speaking — OPEN: `DynamicContext` has no `speaker` field and pydantic drops unknown keys, so every REST request is anonymous and cacheable, and REST callers with near-zero feelings share answers. Pinned by "a speaker sent over REST is dropped". Consistent with the module docstring (REST serves evals, benchmarks and demos), so whether to add the field or reject the key is a decision about what REST is for.
-- [ ] python-06 #2 every exception is reported as a provider failure — OPEN: `_dispatch` turns any non-`UnknownAgentError` exception into 502 "AI provider call failed: <Type>", so a programming error such as python-04 #1's `KeyError` looks like an upstream outage. The catch-all is deliberate (its comment: "a stack trace must never reach a game client") and `test_rest_api.py` pins the exact body, so separating client errors from provider errors is an API contract change.
+- [x] python-06 #2 every exception is reported as a provider failure — FIXED: `_dispatch` reports programming-error types (KeyError, IndexError, TypeError, AttributeError, NameError, AssertionError) as 500 "Internal error: <Type>"; everything else stays 502 "AI provider call failed: <Type>". Neither leaks the message or a traceback.
 - [-] python-06 #3 event type validated before the NPC — NOT A DEFECT: an observation about ordering, pinned; an unknown NPC with an unknown event type gets 422 rather than 404.
 - [-] python-06 #4 the 422 detail lists all known event types — NOT A DEFECT: recorded by the author as helpful and harmless.
 

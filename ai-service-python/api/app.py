@@ -52,12 +52,22 @@ class NpcSummary(BaseModel):
     occupation: str
 
 
+# ponytail: a fixed list of programming-error types, not a provider-error taxonomy. A client
+# library that raises one of these while parsing a reply is reported as 500 too.
+_BUGS = (KeyError, IndexError, TypeError, AttributeError, NameError, AssertionError)
+
+
 def _dispatch(npc: str, event_type: str, text: str, context: DynamicContext) -> ActionResponse:
     ctx = default_context() | context.model_dump()
     try:
         action_type, content = route_event(npc, event_type, text, ctx)
     except UnknownAgentError:
         raise HTTPException(status_code=404, detail=f"No agent loaded for key '{npc}'")
+    except _BUGS as exc:
+        # A bug on our side, not an outage upstream: report it as one so it is not mistaken
+        # for a provider failure. Same rule as below — only the type reaches the caller.
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Internal error: {type(exc).__name__}") from exc
     except Exception as exc:
         # Provider/LLM failure: log it in full for operators, return only the type to the
         # caller — a stack trace must never reach a game client.
