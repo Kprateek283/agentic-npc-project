@@ -217,7 +217,7 @@ func (qm *QuestManager) HandleAdminCommand(ctx context.Context, db *ent.Client, 
 			SetIntensity(0.3).
 			SetFirstAt(now).
 			SetLastAt(now).
-			SetDescription(fmt.Sprintf("Admin set trust with %s to %.2f", npcName, trustValue)).
+			SetDescription(fmt.Sprintf("Admin set trust with %s to %.2f", npcName, v)).
 			SetParticipants([]string{p.PlayerID, n.ID.String()}).
 			Save(ctx)
 		if err != nil {
