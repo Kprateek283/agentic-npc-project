@@ -30,9 +30,12 @@ func TestLoad_RealEventsFile(t *testing.T) {
 	if stoneRule.Memory != "threw a stone at me" {
 		t.Errorf("PLAYER_THREW_STONE memory = %q, want %q", stoneRule.Memory, "threw a stone at me")
 	}
-	// Gifts are written by the quest layer from items.json; events.json must not define one.
-	if _, ok := r.Rule("PLAYER_GAVE_GIFT"); ok {
-		t.Errorf("PLAYER_GAVE_GIFT has a rule in events.json, but nothing reads it")
+	// Gifts and quest rewards are written by the quest layer (items.json, quest definitions);
+	// events.json must not define them, since nothing would read the rule.
+	for _, ev := range []string{"PLAYER_GAVE_GIFT", "QUEST_REWARD"} {
+		if _, ok := r.Rule(ev); ok {
+			t.Errorf("%s has a rule in events.json, but nothing reads it", ev)
+		}
 	}
 
 	apologyRule, ok := r.Rule("PLAYER_APOLOGIZED")

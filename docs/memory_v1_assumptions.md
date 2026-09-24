@@ -95,7 +95,8 @@ the code will be adjusted to match. Written 2026-09-23; appended to as further c
     - Memory lines are written as prose from a per-event `memory` phrase in `events.json`, not the raw
       event name, and never carry a conversation's question text. Conversations have no emotional
       delta, so giving them a line would mean giving them weight in the ranking; not worth it for v1.
-    - `events.json` no longer defines `PLAYER_GAVE_GIFT`: gifts take their trust from `items.json`.
+    - `events.json` no longer defines `PLAYER_GAVE_GIFT` or `QUEST_REWARD`: the quest layer writes both,
+      gifts from `items.json` and rewards from the quest definition, so nothing read those rules.
       A gift with a negative `base_trust_value` is stored as harmful, so repeats escalate and an
       apology can forgive it. A junk gift after an apology is not treated as a betrayal (that path
       lives only in `recordEpisode`).

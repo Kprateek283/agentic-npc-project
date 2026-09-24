@@ -75,9 +75,5 @@
       "trust": 0.05
     },
     "intensity": 0.1
-  },
-  "QUEST_REWARD": {
-    "delta": {},
-    "intensity": 0.3
   }
 }
