@@ -54,9 +54,8 @@ func New() (*App, error) {
 	// 5. Seed Database (NPCs)
 	err = database.SeedNPCs(dbClient, filepath.Join(cfg.GamedataDir, "npcs"))
 	if err != nil {
-		err := dbClient.Close()
-		if err != nil {
-			return nil, err
+		if closeErr := dbClient.Close(); closeErr != nil {
+			return nil, closeErr
 		}
 		redisClient.Close()
 		return nil, fmt.Errorf("failed to seed NPCs: %w", err)
@@ -66,9 +65,8 @@ func New() (*App, error) {
 	// 5b. Seed Database (Quests)
 	err = database.SeedQuests(dbClient, filepath.Join(cfg.GamedataDir, "quests"))
 	if err != nil {
-		err := dbClient.Close()
-		if err != nil {
-			return nil, err
+		if closeErr := dbClient.Close(); closeErr != nil {
+			return nil, closeErr
 		}
 		redisClient.Close()
 		return nil, fmt.Errorf("failed to seed quests: %w", err)
