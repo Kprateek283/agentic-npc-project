@@ -172,6 +172,11 @@ func (h *WebSocketHandler) HandleGameEvent(conn *websocket.Conn, ctx context.Con
 
 // recordEpisode writes the event into the memory table using the rules from h.questManager.Rules.
 func (h *WebSocketHandler) recordEpisode(ctx context.Context, event EventMessage, npc *ent.NPC, player *ent.Player) error {
+	return h.recordEpisodeAt(ctx, event, npc, player, time.Now())
+}
+
+// recordEpisodeAt is recordEpisode with the clock passed in, so tests can use fixed times.
+func (h *WebSocketHandler) recordEpisodeAt(ctx context.Context, event EventMessage, npc *ent.NPC, player *ent.Player, now time.Time) error {
 	if event.EventType == "PLAYER_GAVE_GIFT" || event.EventType == "QUEST_REWARD" {
 		return nil
 	}
@@ -197,7 +202,6 @@ func (h *WebSocketHandler) recordEpisode(ctx context.Context, event EventMessage
 		subject = event.Keyword
 	}
 
-	now := time.Now()
 	memoryDesc := fmt.Sprintf("%s triggered %s on %s", player.PlayerID, event.EventType, npc.Name)
 	if event.EventType == "PLAYER_GAVE_GIFT" {
 		memoryDesc = fmt.Sprintf("%s gave %s to %s", player.PlayerID, event.Keyword, npc.Name)
