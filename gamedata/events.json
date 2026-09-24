@@ -1,0 +1,82 @@
+{
+  "_config": {
+    "spillover": 0.25,
+    "escalation_exp": 1.5,
+    "diminish_exp": 0.5,
+    "min_half_life_hours": 1,
+    "max_half_life_factor": 8760,
+    "merge_threshold": 0.1,
+    "notability_threshold": 0.3,
+    "forgive_step": 0.8,
+    "forgive_cap": 0.7,
+    "betrayal_trust": -0.2,
+    "forgive_weights": {
+      "anger": 1.0,
+      "joy": 1.0,
+      "sadness": 0.7,
+      "trust": 0.5,
+      "fear": 0.2
+    },
+    "signed_emotions": [
+      "trust"
+    ]
+  },
+  "PLAYER_INTERACT": {
+    "delta": {
+      "joy": 0.02,
+      "trust": 0.01
+    },
+    "intensity": 0.05
+  },
+  "PLAYER_GAVE_GIFT": {
+    "delta": {
+      "joy": 0.15
+    },
+    "intensity": 0.2
+  },
+  "PLAYER_ATTACKED": {
+    "delta": {
+      "joy": -1.0,
+      "anger": 0.6,
+      "fear": 0.4,
+      "trust": -0.5
+    },
+    "intensity": 0.9,
+    "harmful": true
+  },
+  "PLAYER_THREW_STONE": {
+    "delta": {
+      "anger": 0.1,
+      "trust": -0.1
+    },
+    "intensity": 0.2,
+    "harmful": true
+  },
+  "PLAYER_APOLOGIZED": {
+    "intensity": 0.1,
+    "apology": true
+  },
+  "PLAYER_ASKED_QUESTION": {
+    "delta": {},
+    "intensity": 0.02,
+    "conversation": true
+  },
+  "PLAYER_INTERACT_QUEST": {
+    "delta": {
+      "joy": 0.02,
+      "trust": 0.02
+    },
+    "intensity": 0.1
+  },
+  "PLAYER_SUBMITTED_QUEST_ITEM": {
+    "delta": {
+      "joy": 0.05,
+      "trust": 0.05
+    },
+    "intensity": 0.1
+  },
+  "QUEST_REWARD": {
+    "delta": {},
+    "intensity": 0.3
+  }
+}

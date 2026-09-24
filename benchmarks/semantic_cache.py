@@ -38,8 +38,9 @@ def _ask(stub, npc, question):
         personality_path=f"gamedata/npcs/{npc}/personality.json",
         backstory_path=f"gamedata/npcs/{npc}/backstory.json",
         lore_path=f"gamedata/npcs/{npc}/lore.json",
-        current_emotions=ai_pb2.EmotionStateMessage(joy=0.0, sadness=0.0, anger=0.0, fear=0.0, trust=0.5),
-        recent_memories=[], event_type="PLAYER_ASKED_QUESTION",
+        speaker_emotions={"joy": 0.0, "sadness": 0.0, "anger": 0.0, "fear": 0.0, "trust": 0.5},
+        general_mood={"joy": 0.0, "sadness": 0.0, "anger": 0.0, "fear": 0.0, "trust": 0.5},
+        memory_lines=[], event_type="PLAYER_ASKED_QUESTION",
         question_text=question, source_entity_id="",  # anonymous request so context is cacheable
         current_quest_step=0, completion_rate=0.0,
     )

@@ -3,8 +3,6 @@
 package npc
 
 import (
-	"agentic-npc-backend/internal/db/ent/schema"
-
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
@@ -25,8 +23,6 @@ const (
 	FieldBackstoryPath = "backstory_path"
 	// FieldLorePath holds the string denoting the lore_path field in the database.
 	FieldLorePath = "lore_path"
-	// FieldEmotions holds the string denoting the emotions field in the database.
-	FieldEmotions = "emotions"
 	// FieldCurrentGoals holds the string denoting the current_goals field in the database.
 	FieldCurrentGoals = "current_goals"
 	// EdgeMemories holds the string denoting the memories edge name in mutations.
@@ -59,7 +55,6 @@ var Columns = []string{
 	FieldPersonalityPath,
 	FieldBackstoryPath,
 	FieldLorePath,
-	FieldEmotions,
 	FieldCurrentGoals,
 }
 
@@ -84,8 +79,6 @@ var (
 	BackstoryPathValidator func(string) error
 	// LorePathValidator is a validator for the "lore_path" field. It is called by the builders before save.
 	LorePathValidator func(string) error
-	// DefaultEmotions holds the default value on creation for the "emotions" field.
-	DefaultEmotions *schema.EmotionState
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )

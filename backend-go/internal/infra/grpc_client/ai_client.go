@@ -2,8 +2,6 @@
 package grpc_client
 
 import (
-	"agentic-npc-backend/internal/db/ent"
-	"agentic-npc-backend/internal/db/ent/schema"
 	"context"
 	"io"
 	"log"
@@ -69,38 +67,32 @@ func buildEventRequest(
 	personalityPath string,
 	backstoryPath string,
 	lorePath string,
-	emotions *schema.EmotionState,
-	memories []*ent.Memory,
+	speakerEmotions map[string]float64,
+	generalMood map[string]float64,
+	memoryLines []string,
 	eventType string,
 	questionText string,
 	sourceEntityId string,
 	currentQuestStep int,
 	completionRate float32,
 ) *pb.EventRequest {
-	grpcEmotions := &pb.EmotionStateMessage{
-		Joy:     emotions.Joy,
-		Sadness: emotions.Sadness,
-		Anger:   emotions.Anger,
-		Fear:    emotions.Fear,
-		Trust:   emotions.Trust,
+	protoSpeakerEmotions := make(map[string]float32, len(speakerEmotions))
+	for k, v := range speakerEmotions {
+		protoSpeakerEmotions[k] = float32(v)
 	}
 
-	var grpcMemories []*pb.MemoryMessage
-	for _, mem := range memories {
-		grpcMemories = append(grpcMemories, &pb.MemoryMessage{
-			Description:  mem.Description,
-			Importance:   mem.Importance,
-			EventType:    mem.EventType,
-			Participants: mem.Participants,
-		})
+	protoGeneralMood := make(map[string]float32, len(generalMood))
+	for k, v := range generalMood {
+		protoGeneralMood[k] = float32(v)
 	}
 
 	return &pb.EventRequest{
 		PersonalityPath:  personalityPath,
 		BackstoryPath:    backstoryPath,
 		LorePath:         lorePath,
-		CurrentEmotions:  grpcEmotions,
-		RecentMemories:   grpcMemories,
+		SpeakerEmotions:  protoSpeakerEmotions,
+		GeneralMood:      protoGeneralMood,
+		MemoryLines:      memoryLines,
 		EventType:        eventType,
 		QuestionText:     questionText,
 		SourceEntityId:   sourceEntityId,
@@ -116,15 +108,16 @@ func (c *AIClient) CallAIThink(
 	personalityPath string,
 	backstoryPath string,
 	lorePath string,
-	emotions *schema.EmotionState,
-	memories []*ent.Memory,
+	speakerEmotions map[string]float64,
+	generalMood map[string]float64,
+	memoryLines []string,
 	eventType string,
 	questionText string,
 	sourceEntityId string,
 	currentQuestStep int,
 	completionRate float32,
 ) (*pb.ActionResponse, error) {
-	req := buildEventRequest(personalityPath, backstoryPath, lorePath, emotions, memories,
+	req := buildEventRequest(personalityPath, backstoryPath, lorePath, speakerEmotions, generalMood, memoryLines,
 		eventType, questionText, sourceEntityId, currentQuestStep, completionRate)
 
 	res, err := c.callThink(ctx, req)
@@ -144,8 +137,9 @@ func (c *AIClient) CallAIThinkStream(
 	personalityPath string,
 	backstoryPath string,
 	lorePath string,
-	emotions *schema.EmotionState,
-	memories []*ent.Memory,
+	speakerEmotions map[string]float64,
+	generalMood map[string]float64,
+	memoryLines []string,
 	eventType string,
 	questionText string,
 	sourceEntityId string,
@@ -153,7 +147,7 @@ func (c *AIClient) CallAIThinkStream(
 	completionRate float32,
 	onToken func(string),
 ) (string, error) {
-	req := buildEventRequest(personalityPath, backstoryPath, lorePath, emotions, memories,
+	req := buildEventRequest(personalityPath, backstoryPath, lorePath, speakerEmotions, generalMood, memoryLines,
 		eventType, questionText, sourceEntityId, currentQuestStep, completionRate)
 
 	ctx, cancel := context.WithTimeout(ctx, c.timeout)

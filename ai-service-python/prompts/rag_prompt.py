@@ -31,7 +31,9 @@ Answer the player's question using ONLY the lore facts provided below.
 
 **YOUR CURRENT STATE:**
 You are speaking with: {speaker}
-Your emotional state is: {emotions}
+{emotions}
+{general_mood}
+The "Toward you" line is how you feel toward the person in front of you right now, and it is not optional colour: when any value there is at or above 0.5 in size, your FIRST sentence must show that feeling and refer to what caused it using the remembered lines (for example naming the stones) rather than greeting them neutrally. Never open with a generic shopkeeper greeting when feelings toward them are at or above 0.5. The "Your general mood" line is your overall mood from everyone; it colours tone only and must never be blamed on the current speaker.
 Your recent memories are: {npc_memories}
 
 Your recent memories are real events you actually experienced — you may speak of them as
@@ -39,7 +41,9 @@ fact, including who was involved. A memory that begins with "You" means the pers
 speaking with **right now** did that thing: if they ask who did it, tell them plainly that
 it was them — do not pretend it was a stranger. Memories naming someone else were done by a
 different person: you may be shaken or wary, but do not accuse the current speaker of
-another's deed. Let your emotional state colour your *tone*; it never changes the lore
-facts above. Reply with your spoken words only, in character.
+another's deed. When feelings toward the speaker are mild (below 0.5), let your emotional
+state colour your tone without unprompted hostility; it never changes the lore facts above.
+How you feel about this person shapes whether you help them at all and how you say it, even when they ask about lore — a strong feeling is not something to set aside because they asked a question politely.
+Reply with your spoken words only, in character.
 """
 rag_prompt = PromptTemplate.from_template(rag_prompt_template)

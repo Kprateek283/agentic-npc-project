@@ -11,6 +11,7 @@ class LangGraphAgentState(AgentState):
     """
 
     emotions: str
+    general_mood: str
     npc_memories: str
     current_quest_step: int
     completion_rate: float

@@ -4,8 +4,8 @@ import (
 	"agentic-npc-backend/internal/api/handlers"
 	"agentic-npc-backend/internal/config"
 	"agentic-npc-backend/internal/db/ent"
-	"agentic-npc-backend/internal/domain/npc_logic"
 	"agentic-npc-backend/internal/domain/quest_logic"
+	"agentic-npc-backend/internal/domain/rules"
 	"agentic-npc-backend/internal/infra/database"
 	"agentic-npc-backend/internal/infra/grpc_client"
 	"agentic-npc-backend/internal/infra/httpsapi"
@@ -20,13 +20,12 @@ import (
 
 // App holds all the core components of the application.
 type App struct {
-	Config         *config.Config
-	DBClient       *ent.Client
-	RedisClient    *redis.Client
-	AIClient       *grpc_client.AIClient
-	QuestManager   *quest_logic.QuestManager
-	EmotionManager *npc_logic.EmotionManager
-	Server         *gin.Engine
+	Config       *config.Config
+	DBClient     *ent.Client
+	RedisClient  *redis.Client
+	AIClient     *grpc_client.AIClient
+	QuestManager *quest_logic.QuestManager
+	Server       *gin.Engine
 }
 
 // New creates and initializes a new application instance.
@@ -87,21 +86,21 @@ func New() (*App, error) {
 		return nil, fmt.Errorf("failed to create quest manager: %w", err)
 	}
 	questManager.AdminEnabled = cfg.AdminEnabled
-	log.Println("Dungeon Master (QuestManager) initialized successfully")
 
-	// 7. Initialize EmotionManager
-	emotionManager, err := npc_logic.NewEmotionManager(cfg.GamedataDir)
+	// 6b. Load Rules
+	rulesData, err := rules.Load(filepath.Join(cfg.GamedataDir, "events.json"))
 	if err != nil {
 		err := dbClient.Close()
 		if err != nil {
 			return nil, err
 		}
 		redisClient.Close()
-		return nil, fmt.Errorf("failed to create emotion manager: %w", err)
+		return nil, fmt.Errorf("failed to load rules: %w", err)
 	}
-	log.Println("EmotionManager initialized successfully")
+	questManager.Rules = rulesData
+	log.Println("Dungeon Master (QuestManager) initialized successfully")
 
-	// 8. Initialize gRPC AI Client
+	// 7. Initialize gRPC AI Client
 	aiClient, err := grpc_client.NewAIClient(cfg.AIServiceAddr, cfg.AICallTimeout)
 	if err != nil {
 		err := dbClient.Close()
@@ -113,24 +112,23 @@ func New() (*App, error) {
 	}
 	log.Println("Successfully connected to AI gRPC server")
 
-	// 9. Create Handlers
+	// 8. Create Handlers
 	healthHandler := handlers.HealthHandler
-	wsHandler := handlers.NewWebSocketHandler(dbClient, aiClient, questManager, redisClient, emotionManager, cfg.AllowedOrigins, cfg.LLMRateLimit, cfg.LLMRateWindow)
+	wsHandler := handlers.NewWebSocketHandler(dbClient, aiClient, questManager, redisClient, cfg.AllowedOrigins, cfg.LLMRateLimit, cfg.LLMRateWindow)
 	log.Println("API Handlers initialized")
 
-	// 10. Initialize HTTP Server
+	// 9. Initialize HTTP Server
 	server := httpsapi.NewServer(healthHandler, wsHandler)
 	log.Println("HTTP server initialized")
 
-	// 11. Return the fully assembled application
+	// 10. Return the fully assembled application
 	return &App{
-		Config:         cfg,
-		DBClient:       dbClient,
-		RedisClient:    redisClient,
-		AIClient:       aiClient,
-		QuestManager:   questManager,
-		EmotionManager: emotionManager,
-		Server:         server,
+		Config:       cfg,
+		DBClient:     dbClient,
+		RedisClient:  redisClient,
+		AIClient:     aiClient,
+		QuestManager: questManager,
+		Server:       server,
 	}, nil
 }
 

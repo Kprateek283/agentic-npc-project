@@ -41,6 +41,8 @@ def test_question_routes_to_rag(stub):
     "PLAYER_INTERACT_QUEST",
     "PLAYER_GAVE_GIFT",
     "PLAYER_ATTACKED",
+    "PLAYER_THREW_STONE",
+    "PLAYER_APOLOGIZED",
 ])
 def test_interaction_events_route_to_quest(stub, event_type):
     action, content = route_event("elara", event_type, "apple", default_context())
@@ -57,7 +59,7 @@ def test_unknown_event_falls_through_to_greeting(stub):
 
 def test_unknown_event_high_anger_says_get_lost(stub):
     ctx = default_context()
-    ctx["emotions"]["anger"] = 0.8
+    ctx["speaker_emotions"]["anger"] = 0.8
     _, content = route_event("elara", "PLAYER_SANG", "", ctx)
     assert content == "Get lost."
 

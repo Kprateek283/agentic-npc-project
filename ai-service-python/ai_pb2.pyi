@@ -2,43 +2,32 @@ from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from collections.abc import Iterable as _Iterable, Mapping as _Mapping
-from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
+from typing import ClassVar as _ClassVar, Optional as _Optional
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
-class MemoryMessage(_message.Message):
-    __slots__ = ("description", "importance", "event_type", "participants")
-    DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
-    IMPORTANCE_FIELD_NUMBER: _ClassVar[int]
-    EVENT_TYPE_FIELD_NUMBER: _ClassVar[int]
-    PARTICIPANTS_FIELD_NUMBER: _ClassVar[int]
-    description: str
-    importance: float
-    event_type: str
-    participants: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(self, description: _Optional[str] = ..., importance: _Optional[float] = ..., event_type: _Optional[str] = ..., participants: _Optional[_Iterable[str]] = ...) -> None: ...
-
-class EmotionStateMessage(_message.Message):
-    __slots__ = ("joy", "sadness", "anger", "fear", "trust")
-    JOY_FIELD_NUMBER: _ClassVar[int]
-    SADNESS_FIELD_NUMBER: _ClassVar[int]
-    ANGER_FIELD_NUMBER: _ClassVar[int]
-    FEAR_FIELD_NUMBER: _ClassVar[int]
-    TRUST_FIELD_NUMBER: _ClassVar[int]
-    joy: float
-    sadness: float
-    anger: float
-    fear: float
-    trust: float
-    def __init__(self, joy: _Optional[float] = ..., sadness: _Optional[float] = ..., anger: _Optional[float] = ..., fear: _Optional[float] = ..., trust: _Optional[float] = ...) -> None: ...
-
 class EventRequest(_message.Message):
-    __slots__ = ("personality_path", "backstory_path", "lore_path", "current_emotions", "recent_memories", "event_type", "question_text", "source_entity_id", "current_quest_step", "completion_rate")
+    __slots__ = ("personality_path", "backstory_path", "lore_path", "speaker_emotions", "general_mood", "memory_lines", "event_type", "question_text", "source_entity_id", "current_quest_step", "completion_rate")
+    class SpeakerEmotionsEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: float
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[float] = ...) -> None: ...
+    class GeneralMoodEntry(_message.Message):
+        __slots__ = ("key", "value")
+        KEY_FIELD_NUMBER: _ClassVar[int]
+        VALUE_FIELD_NUMBER: _ClassVar[int]
+        key: str
+        value: float
+        def __init__(self, key: _Optional[str] = ..., value: _Optional[float] = ...) -> None: ...
     PERSONALITY_PATH_FIELD_NUMBER: _ClassVar[int]
     BACKSTORY_PATH_FIELD_NUMBER: _ClassVar[int]
     LORE_PATH_FIELD_NUMBER: _ClassVar[int]
-    CURRENT_EMOTIONS_FIELD_NUMBER: _ClassVar[int]
-    RECENT_MEMORIES_FIELD_NUMBER: _ClassVar[int]
+    SPEAKER_EMOTIONS_FIELD_NUMBER: _ClassVar[int]
+    GENERAL_MOOD_FIELD_NUMBER: _ClassVar[int]
+    MEMORY_LINES_FIELD_NUMBER: _ClassVar[int]
     EVENT_TYPE_FIELD_NUMBER: _ClassVar[int]
     QUESTION_TEXT_FIELD_NUMBER: _ClassVar[int]
     SOURCE_ENTITY_ID_FIELD_NUMBER: _ClassVar[int]
@@ -47,14 +36,15 @@ class EventRequest(_message.Message):
     personality_path: str
     backstory_path: str
     lore_path: str
-    current_emotions: EmotionStateMessage
-    recent_memories: _containers.RepeatedCompositeFieldContainer[MemoryMessage]
+    speaker_emotions: _containers.ScalarMap[str, float]
+    general_mood: _containers.ScalarMap[str, float]
+    memory_lines: _containers.RepeatedScalarFieldContainer[str]
     event_type: str
     question_text: str
     source_entity_id: str
     current_quest_step: int
     completion_rate: float
-    def __init__(self, personality_path: _Optional[str] = ..., backstory_path: _Optional[str] = ..., lore_path: _Optional[str] = ..., current_emotions: _Optional[_Union[EmotionStateMessage, _Mapping]] = ..., recent_memories: _Optional[_Iterable[_Union[MemoryMessage, _Mapping]]] = ..., event_type: _Optional[str] = ..., question_text: _Optional[str] = ..., source_entity_id: _Optional[str] = ..., current_quest_step: _Optional[int] = ..., completion_rate: _Optional[float] = ...) -> None: ...
+    def __init__(self, personality_path: _Optional[str] = ..., backstory_path: _Optional[str] = ..., lore_path: _Optional[str] = ..., speaker_emotions: _Optional[_Mapping[str, float]] = ..., general_mood: _Optional[_Mapping[str, float]] = ..., memory_lines: _Optional[_Iterable[str]] = ..., event_type: _Optional[str] = ..., question_text: _Optional[str] = ..., source_entity_id: _Optional[str] = ..., current_quest_step: _Optional[int] = ..., completion_rate: _Optional[float] = ...) -> None: ...
 
 class ActionResponse(_message.Message):
     __slots__ = ("action_type", "content")
@@ -63,3 +53,13 @@ class ActionResponse(_message.Message):
     action_type: str
     content: str
     def __init__(self, action_type: _Optional[str] = ..., content: _Optional[str] = ...) -> None: ...
+
+class TokenChunk(_message.Message):
+    __slots__ = ("text", "done", "action_type")
+    TEXT_FIELD_NUMBER: _ClassVar[int]
+    DONE_FIELD_NUMBER: _ClassVar[int]
+    ACTION_TYPE_FIELD_NUMBER: _ClassVar[int]
+    text: str
+    done: bool
+    action_type: str
+    def __init__(self, text: _Optional[str] = ..., done: bool = ..., action_type: _Optional[str] = ...) -> None: ...

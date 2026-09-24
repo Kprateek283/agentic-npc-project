@@ -28,6 +28,7 @@ def build_rag_chain(static_system_prompt: str, lore_retriever):
             "context": itemgetter("question") | lore_retriever | _format_docs,
             "question": itemgetter("question"),
             "emotions": itemgetter("emotions"),
+            "general_mood": itemgetter("general_mood"),
             "npc_memories": itemgetter("npc_memories"),
             "speaker": itemgetter("speaker"),
         }

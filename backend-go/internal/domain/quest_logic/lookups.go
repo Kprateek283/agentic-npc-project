@@ -42,7 +42,7 @@ func (qm *QuestManager) GetOrCreateRelationship(ctx context.Context, db *ent.Cli
 
 	if ent.IsNotFound(err) {
 		// Create it if it doesn't exist
-		rel, err = db.PlayerNPCRelationship.Create().SetPlayer(p).SetNpc(n).SetTrustLevel(0.0).SetGiftCount(0).Save(ctx)
+		rel, err = db.PlayerNPCRelationship.Create().SetPlayer(p).SetNpc(n).Save(ctx)
 	}
 	if err != nil {
 		return nil, err

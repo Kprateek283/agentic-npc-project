@@ -12,7 +12,6 @@ import (
 	"agentic-npc-backend/internal/db/ent/playerqueststate"
 	"agentic-npc-backend/internal/db/ent/predicate"
 	"agentic-npc-backend/internal/db/ent/quest"
-	"agentic-npc-backend/internal/db/ent/schema"
 	"context"
 	"errors"
 	"fmt"
@@ -1215,6 +1214,22 @@ type MemoryMutation struct {
 	appendparticipants []string
 	importance         *float64
 	addimportance      *float64
+	actor              *string
+	subject            *string
+	delta              *map[string]float64
+	intensity          *float64
+	addintensity       *float64
+	count              *float64
+	addcount           *float64
+	harmful            *bool
+	forgiven           *float64
+	addforgiven        *float64
+	betrayal           *bool
+	text               *string
+	first_at           *time.Time
+	last_at            *time.Time
+	covers             *[]int
+	appendcovers       []int
 	clearedFields      map[string]struct{}
 	owner              *uuid.UUID
 	clearedowner       bool
@@ -1542,6 +1557,540 @@ func (m *MemoryMutation) ResetImportance() {
 	m.addimportance = nil
 }
 
+// SetActor sets the "actor" field.
+func (m *MemoryMutation) SetActor(s string) {
+	m.actor = &s
+}
+
+// Actor returns the value of the "actor" field in the mutation.
+func (m *MemoryMutation) Actor() (r string, exists bool) {
+	v := m.actor
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldActor returns the old "actor" field's value of the Memory entity.
+// If the Memory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MemoryMutation) OldActor(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldActor is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldActor requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldActor: %w", err)
+	}
+	return oldValue.Actor, nil
+}
+
+// ResetActor resets all changes to the "actor" field.
+func (m *MemoryMutation) ResetActor() {
+	m.actor = nil
+}
+
+// SetSubject sets the "subject" field.
+func (m *MemoryMutation) SetSubject(s string) {
+	m.subject = &s
+}
+
+// Subject returns the value of the "subject" field in the mutation.
+func (m *MemoryMutation) Subject() (r string, exists bool) {
+	v := m.subject
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSubject returns the old "subject" field's value of the Memory entity.
+// If the Memory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MemoryMutation) OldSubject(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSubject is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSubject requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSubject: %w", err)
+	}
+	return oldValue.Subject, nil
+}
+
+// ResetSubject resets all changes to the "subject" field.
+func (m *MemoryMutation) ResetSubject() {
+	m.subject = nil
+}
+
+// SetDelta sets the "delta" field.
+func (m *MemoryMutation) SetDelta(value map[string]float64) {
+	m.delta = &value
+}
+
+// Delta returns the value of the "delta" field in the mutation.
+func (m *MemoryMutation) Delta() (r map[string]float64, exists bool) {
+	v := m.delta
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDelta returns the old "delta" field's value of the Memory entity.
+// If the Memory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MemoryMutation) OldDelta(ctx context.Context) (v map[string]float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDelta is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDelta requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDelta: %w", err)
+	}
+	return oldValue.Delta, nil
+}
+
+// ClearDelta clears the value of the "delta" field.
+func (m *MemoryMutation) ClearDelta() {
+	m.delta = nil
+	m.clearedFields[memory.FieldDelta] = struct{}{}
+}
+
+// DeltaCleared returns if the "delta" field was cleared in this mutation.
+func (m *MemoryMutation) DeltaCleared() bool {
+	_, ok := m.clearedFields[memory.FieldDelta]
+	return ok
+}
+
+// ResetDelta resets all changes to the "delta" field.
+func (m *MemoryMutation) ResetDelta() {
+	m.delta = nil
+	delete(m.clearedFields, memory.FieldDelta)
+}
+
+// SetIntensity sets the "intensity" field.
+func (m *MemoryMutation) SetIntensity(f float64) {
+	m.intensity = &f
+	m.addintensity = nil
+}
+
+// Intensity returns the value of the "intensity" field in the mutation.
+func (m *MemoryMutation) Intensity() (r float64, exists bool) {
+	v := m.intensity
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIntensity returns the old "intensity" field's value of the Memory entity.
+// If the Memory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MemoryMutation) OldIntensity(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIntensity is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIntensity requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIntensity: %w", err)
+	}
+	return oldValue.Intensity, nil
+}
+
+// AddIntensity adds f to the "intensity" field.
+func (m *MemoryMutation) AddIntensity(f float64) {
+	if m.addintensity != nil {
+		*m.addintensity += f
+	} else {
+		m.addintensity = &f
+	}
+}
+
+// AddedIntensity returns the value that was added to the "intensity" field in this mutation.
+func (m *MemoryMutation) AddedIntensity() (r float64, exists bool) {
+	v := m.addintensity
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetIntensity resets all changes to the "intensity" field.
+func (m *MemoryMutation) ResetIntensity() {
+	m.intensity = nil
+	m.addintensity = nil
+}
+
+// SetCount sets the "count" field.
+func (m *MemoryMutation) SetCount(f float64) {
+	m.count = &f
+	m.addcount = nil
+}
+
+// Count returns the value of the "count" field in the mutation.
+func (m *MemoryMutation) Count() (r float64, exists bool) {
+	v := m.count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCount returns the old "count" field's value of the Memory entity.
+// If the Memory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MemoryMutation) OldCount(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCount: %w", err)
+	}
+	return oldValue.Count, nil
+}
+
+// AddCount adds f to the "count" field.
+func (m *MemoryMutation) AddCount(f float64) {
+	if m.addcount != nil {
+		*m.addcount += f
+	} else {
+		m.addcount = &f
+	}
+}
+
+// AddedCount returns the value that was added to the "count" field in this mutation.
+func (m *MemoryMutation) AddedCount() (r float64, exists bool) {
+	v := m.addcount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCount resets all changes to the "count" field.
+func (m *MemoryMutation) ResetCount() {
+	m.count = nil
+	m.addcount = nil
+}
+
+// SetHarmful sets the "harmful" field.
+func (m *MemoryMutation) SetHarmful(b bool) {
+	m.harmful = &b
+}
+
+// Harmful returns the value of the "harmful" field in the mutation.
+func (m *MemoryMutation) Harmful() (r bool, exists bool) {
+	v := m.harmful
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHarmful returns the old "harmful" field's value of the Memory entity.
+// If the Memory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MemoryMutation) OldHarmful(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHarmful is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHarmful requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHarmful: %w", err)
+	}
+	return oldValue.Harmful, nil
+}
+
+// ResetHarmful resets all changes to the "harmful" field.
+func (m *MemoryMutation) ResetHarmful() {
+	m.harmful = nil
+}
+
+// SetForgiven sets the "forgiven" field.
+func (m *MemoryMutation) SetForgiven(f float64) {
+	m.forgiven = &f
+	m.addforgiven = nil
+}
+
+// Forgiven returns the value of the "forgiven" field in the mutation.
+func (m *MemoryMutation) Forgiven() (r float64, exists bool) {
+	v := m.forgiven
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldForgiven returns the old "forgiven" field's value of the Memory entity.
+// If the Memory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MemoryMutation) OldForgiven(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldForgiven is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldForgiven requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldForgiven: %w", err)
+	}
+	return oldValue.Forgiven, nil
+}
+
+// AddForgiven adds f to the "forgiven" field.
+func (m *MemoryMutation) AddForgiven(f float64) {
+	if m.addforgiven != nil {
+		*m.addforgiven += f
+	} else {
+		m.addforgiven = &f
+	}
+}
+
+// AddedForgiven returns the value that was added to the "forgiven" field in this mutation.
+func (m *MemoryMutation) AddedForgiven() (r float64, exists bool) {
+	v := m.addforgiven
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetForgiven resets all changes to the "forgiven" field.
+func (m *MemoryMutation) ResetForgiven() {
+	m.forgiven = nil
+	m.addforgiven = nil
+}
+
+// SetBetrayal sets the "betrayal" field.
+func (m *MemoryMutation) SetBetrayal(b bool) {
+	m.betrayal = &b
+}
+
+// Betrayal returns the value of the "betrayal" field in the mutation.
+func (m *MemoryMutation) Betrayal() (r bool, exists bool) {
+	v := m.betrayal
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBetrayal returns the old "betrayal" field's value of the Memory entity.
+// If the Memory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MemoryMutation) OldBetrayal(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBetrayal is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBetrayal requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBetrayal: %w", err)
+	}
+	return oldValue.Betrayal, nil
+}
+
+// ResetBetrayal resets all changes to the "betrayal" field.
+func (m *MemoryMutation) ResetBetrayal() {
+	m.betrayal = nil
+}
+
+// SetText sets the "text" field.
+func (m *MemoryMutation) SetText(s string) {
+	m.text = &s
+}
+
+// Text returns the value of the "text" field in the mutation.
+func (m *MemoryMutation) Text() (r string, exists bool) {
+	v := m.text
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldText returns the old "text" field's value of the Memory entity.
+// If the Memory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MemoryMutation) OldText(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldText: %w", err)
+	}
+	return oldValue.Text, nil
+}
+
+// ResetText resets all changes to the "text" field.
+func (m *MemoryMutation) ResetText() {
+	m.text = nil
+}
+
+// SetFirstAt sets the "first_at" field.
+func (m *MemoryMutation) SetFirstAt(t time.Time) {
+	m.first_at = &t
+}
+
+// FirstAt returns the value of the "first_at" field in the mutation.
+func (m *MemoryMutation) FirstAt() (r time.Time, exists bool) {
+	v := m.first_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFirstAt returns the old "first_at" field's value of the Memory entity.
+// If the Memory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MemoryMutation) OldFirstAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFirstAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFirstAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFirstAt: %w", err)
+	}
+	return oldValue.FirstAt, nil
+}
+
+// ResetFirstAt resets all changes to the "first_at" field.
+func (m *MemoryMutation) ResetFirstAt() {
+	m.first_at = nil
+}
+
+// SetLastAt sets the "last_at" field.
+func (m *MemoryMutation) SetLastAt(t time.Time) {
+	m.last_at = &t
+}
+
+// LastAt returns the value of the "last_at" field in the mutation.
+func (m *MemoryMutation) LastAt() (r time.Time, exists bool) {
+	v := m.last_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLastAt returns the old "last_at" field's value of the Memory entity.
+// If the Memory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MemoryMutation) OldLastAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLastAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLastAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLastAt: %w", err)
+	}
+	return oldValue.LastAt, nil
+}
+
+// ResetLastAt resets all changes to the "last_at" field.
+func (m *MemoryMutation) ResetLastAt() {
+	m.last_at = nil
+}
+
+// SetCovers sets the "covers" field.
+func (m *MemoryMutation) SetCovers(i []int) {
+	m.covers = &i
+	m.appendcovers = nil
+}
+
+// Covers returns the value of the "covers" field in the mutation.
+func (m *MemoryMutation) Covers() (r []int, exists bool) {
+	v := m.covers
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCovers returns the old "covers" field's value of the Memory entity.
+// If the Memory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *MemoryMutation) OldCovers(ctx context.Context) (v []int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCovers is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCovers requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCovers: %w", err)
+	}
+	return oldValue.Covers, nil
+}
+
+// AppendCovers adds i to the "covers" field.
+func (m *MemoryMutation) AppendCovers(i []int) {
+	m.appendcovers = append(m.appendcovers, i...)
+}
+
+// AppendedCovers returns the list of values that were appended to the "covers" field in this mutation.
+func (m *MemoryMutation) AppendedCovers() ([]int, bool) {
+	if len(m.appendcovers) == 0 {
+		return nil, false
+	}
+	return m.appendcovers, true
+}
+
+// ClearCovers clears the value of the "covers" field.
+func (m *MemoryMutation) ClearCovers() {
+	m.covers = nil
+	m.appendcovers = nil
+	m.clearedFields[memory.FieldCovers] = struct{}{}
+}
+
+// CoversCleared returns if the "covers" field was cleared in this mutation.
+func (m *MemoryMutation) CoversCleared() bool {
+	_, ok := m.clearedFields[memory.FieldCovers]
+	return ok
+}
+
+// ResetCovers resets all changes to the "covers" field.
+func (m *MemoryMutation) ResetCovers() {
+	m.covers = nil
+	m.appendcovers = nil
+	delete(m.clearedFields, memory.FieldCovers)
+}
+
 // SetOwnerID sets the "owner" edge to the NPC entity by id.
 func (m *MemoryMutation) SetOwnerID(id uuid.UUID) {
 	m.owner = &id
@@ -1615,7 +2164,7 @@ func (m *MemoryMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *MemoryMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 17)
 	if m.created_at != nil {
 		fields = append(fields, memory.FieldCreatedAt)
 	}
@@ -1630,6 +2179,42 @@ func (m *MemoryMutation) Fields() []string {
 	}
 	if m.importance != nil {
 		fields = append(fields, memory.FieldImportance)
+	}
+	if m.actor != nil {
+		fields = append(fields, memory.FieldActor)
+	}
+	if m.subject != nil {
+		fields = append(fields, memory.FieldSubject)
+	}
+	if m.delta != nil {
+		fields = append(fields, memory.FieldDelta)
+	}
+	if m.intensity != nil {
+		fields = append(fields, memory.FieldIntensity)
+	}
+	if m.count != nil {
+		fields = append(fields, memory.FieldCount)
+	}
+	if m.harmful != nil {
+		fields = append(fields, memory.FieldHarmful)
+	}
+	if m.forgiven != nil {
+		fields = append(fields, memory.FieldForgiven)
+	}
+	if m.betrayal != nil {
+		fields = append(fields, memory.FieldBetrayal)
+	}
+	if m.text != nil {
+		fields = append(fields, memory.FieldText)
+	}
+	if m.first_at != nil {
+		fields = append(fields, memory.FieldFirstAt)
+	}
+	if m.last_at != nil {
+		fields = append(fields, memory.FieldLastAt)
+	}
+	if m.covers != nil {
+		fields = append(fields, memory.FieldCovers)
 	}
 	return fields
 }
@@ -1649,6 +2234,30 @@ func (m *MemoryMutation) Field(name string) (ent.Value, bool) {
 		return m.Participants()
 	case memory.FieldImportance:
 		return m.Importance()
+	case memory.FieldActor:
+		return m.Actor()
+	case memory.FieldSubject:
+		return m.Subject()
+	case memory.FieldDelta:
+		return m.Delta()
+	case memory.FieldIntensity:
+		return m.Intensity()
+	case memory.FieldCount:
+		return m.Count()
+	case memory.FieldHarmful:
+		return m.Harmful()
+	case memory.FieldForgiven:
+		return m.Forgiven()
+	case memory.FieldBetrayal:
+		return m.Betrayal()
+	case memory.FieldText:
+		return m.Text()
+	case memory.FieldFirstAt:
+		return m.FirstAt()
+	case memory.FieldLastAt:
+		return m.LastAt()
+	case memory.FieldCovers:
+		return m.Covers()
 	}
 	return nil, false
 }
@@ -1668,6 +2277,30 @@ func (m *MemoryMutation) OldField(ctx context.Context, name string) (ent.Value, 
 		return m.OldParticipants(ctx)
 	case memory.FieldImportance:
 		return m.OldImportance(ctx)
+	case memory.FieldActor:
+		return m.OldActor(ctx)
+	case memory.FieldSubject:
+		return m.OldSubject(ctx)
+	case memory.FieldDelta:
+		return m.OldDelta(ctx)
+	case memory.FieldIntensity:
+		return m.OldIntensity(ctx)
+	case memory.FieldCount:
+		return m.OldCount(ctx)
+	case memory.FieldHarmful:
+		return m.OldHarmful(ctx)
+	case memory.FieldForgiven:
+		return m.OldForgiven(ctx)
+	case memory.FieldBetrayal:
+		return m.OldBetrayal(ctx)
+	case memory.FieldText:
+		return m.OldText(ctx)
+	case memory.FieldFirstAt:
+		return m.OldFirstAt(ctx)
+	case memory.FieldLastAt:
+		return m.OldLastAt(ctx)
+	case memory.FieldCovers:
+		return m.OldCovers(ctx)
 	}
 	return nil, fmt.Errorf("unknown Memory field %s", name)
 }
@@ -1712,6 +2345,90 @@ func (m *MemoryMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetImportance(v)
 		return nil
+	case memory.FieldActor:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetActor(v)
+		return nil
+	case memory.FieldSubject:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSubject(v)
+		return nil
+	case memory.FieldDelta:
+		v, ok := value.(map[string]float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDelta(v)
+		return nil
+	case memory.FieldIntensity:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIntensity(v)
+		return nil
+	case memory.FieldCount:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCount(v)
+		return nil
+	case memory.FieldHarmful:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHarmful(v)
+		return nil
+	case memory.FieldForgiven:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetForgiven(v)
+		return nil
+	case memory.FieldBetrayal:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBetrayal(v)
+		return nil
+	case memory.FieldText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetText(v)
+		return nil
+	case memory.FieldFirstAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFirstAt(v)
+		return nil
+	case memory.FieldLastAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLastAt(v)
+		return nil
+	case memory.FieldCovers:
+		v, ok := value.([]int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCovers(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Memory field %s", name)
 }
@@ -1723,6 +2440,15 @@ func (m *MemoryMutation) AddedFields() []string {
 	if m.addimportance != nil {
 		fields = append(fields, memory.FieldImportance)
 	}
+	if m.addintensity != nil {
+		fields = append(fields, memory.FieldIntensity)
+	}
+	if m.addcount != nil {
+		fields = append(fields, memory.FieldCount)
+	}
+	if m.addforgiven != nil {
+		fields = append(fields, memory.FieldForgiven)
+	}
 	return fields
 }
 
@@ -1733,6 +2459,12 @@ func (m *MemoryMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
 	case memory.FieldImportance:
 		return m.AddedImportance()
+	case memory.FieldIntensity:
+		return m.AddedIntensity()
+	case memory.FieldCount:
+		return m.AddedCount()
+	case memory.FieldForgiven:
+		return m.AddedForgiven()
 	}
 	return nil, false
 }
@@ -1749,6 +2481,27 @@ func (m *MemoryMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddImportance(v)
 		return nil
+	case memory.FieldIntensity:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddIntensity(v)
+		return nil
+	case memory.FieldCount:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCount(v)
+		return nil
+	case memory.FieldForgiven:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddForgiven(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Memory numeric field %s", name)
 }
@@ -1756,7 +2509,14 @@ func (m *MemoryMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *MemoryMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(memory.FieldDelta) {
+		fields = append(fields, memory.FieldDelta)
+	}
+	if m.FieldCleared(memory.FieldCovers) {
+		fields = append(fields, memory.FieldCovers)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -1769,6 +2529,14 @@ func (m *MemoryMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *MemoryMutation) ClearField(name string) error {
+	switch name {
+	case memory.FieldDelta:
+		m.ClearDelta()
+		return nil
+	case memory.FieldCovers:
+		m.ClearCovers()
+		return nil
+	}
 	return fmt.Errorf("unknown Memory nullable field %s", name)
 }
 
@@ -1790,6 +2558,42 @@ func (m *MemoryMutation) ResetField(name string) error {
 		return nil
 	case memory.FieldImportance:
 		m.ResetImportance()
+		return nil
+	case memory.FieldActor:
+		m.ResetActor()
+		return nil
+	case memory.FieldSubject:
+		m.ResetSubject()
+		return nil
+	case memory.FieldDelta:
+		m.ResetDelta()
+		return nil
+	case memory.FieldIntensity:
+		m.ResetIntensity()
+		return nil
+	case memory.FieldCount:
+		m.ResetCount()
+		return nil
+	case memory.FieldHarmful:
+		m.ResetHarmful()
+		return nil
+	case memory.FieldForgiven:
+		m.ResetForgiven()
+		return nil
+	case memory.FieldBetrayal:
+		m.ResetBetrayal()
+		return nil
+	case memory.FieldText:
+		m.ResetText()
+		return nil
+	case memory.FieldFirstAt:
+		m.ResetFirstAt()
+		return nil
+	case memory.FieldLastAt:
+		m.ResetLastAt()
+		return nil
+	case memory.FieldCovers:
+		m.ResetCovers()
 		return nil
 	}
 	return fmt.Errorf("unknown Memory field %s", name)
@@ -1880,7 +2684,6 @@ type NPCMutation struct {
 	personality_path            *string
 	backstory_path              *string
 	lore_path                   *string
-	emotions                    **schema.EmotionState
 	current_goals               *[]string
 	appendcurrent_goals         []string
 	clearedFields               map[string]struct{}
@@ -2179,42 +2982,6 @@ func (m *NPCMutation) ResetLorePath() {
 	m.lore_path = nil
 }
 
-// SetEmotions sets the "emotions" field.
-func (m *NPCMutation) SetEmotions(ss *schema.EmotionState) {
-	m.emotions = &ss
-}
-
-// Emotions returns the value of the "emotions" field in the mutation.
-func (m *NPCMutation) Emotions() (r *schema.EmotionState, exists bool) {
-	v := m.emotions
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldEmotions returns the old "emotions" field's value of the NPC entity.
-// If the NPC object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *NPCMutation) OldEmotions(ctx context.Context) (v *schema.EmotionState, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldEmotions is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldEmotions requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldEmotions: %w", err)
-	}
-	return oldValue.Emotions, nil
-}
-
-// ResetEmotions resets all changes to the "emotions" field.
-func (m *NPCMutation) ResetEmotions() {
-	m.emotions = nil
-}
-
 // SetCurrentGoals sets the "current_goals" field.
 func (m *NPCMutation) SetCurrentGoals(s []string) {
 	m.current_goals = &s
@@ -2422,7 +3189,7 @@ func (m *NPCMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *NPCMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 6)
 	if m.name != nil {
 		fields = append(fields, npc.FieldName)
 	}
@@ -2437,9 +3204,6 @@ func (m *NPCMutation) Fields() []string {
 	}
 	if m.lore_path != nil {
 		fields = append(fields, npc.FieldLorePath)
-	}
-	if m.emotions != nil {
-		fields = append(fields, npc.FieldEmotions)
 	}
 	if m.current_goals != nil {
 		fields = append(fields, npc.FieldCurrentGoals)
@@ -2462,8 +3226,6 @@ func (m *NPCMutation) Field(name string) (ent.Value, bool) {
 		return m.BackstoryPath()
 	case npc.FieldLorePath:
 		return m.LorePath()
-	case npc.FieldEmotions:
-		return m.Emotions()
 	case npc.FieldCurrentGoals:
 		return m.CurrentGoals()
 	}
@@ -2485,8 +3247,6 @@ func (m *NPCMutation) OldField(ctx context.Context, name string) (ent.Value, err
 		return m.OldBackstoryPath(ctx)
 	case npc.FieldLorePath:
 		return m.OldLorePath(ctx)
-	case npc.FieldEmotions:
-		return m.OldEmotions(ctx)
 	case npc.FieldCurrentGoals:
 		return m.OldCurrentGoals(ctx)
 	}
@@ -2532,13 +3292,6 @@ func (m *NPCMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetLorePath(v)
-		return nil
-	case npc.FieldEmotions:
-		v, ok := value.(*schema.EmotionState)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetEmotions(v)
 		return nil
 	case npc.FieldCurrentGoals:
 		v, ok := value.([]string)
@@ -2619,9 +3372,6 @@ func (m *NPCMutation) ResetField(name string) error {
 		return nil
 	case npc.FieldLorePath:
 		m.ResetLorePath()
-		return nil
-	case npc.FieldEmotions:
-		m.ResetEmotions()
 		return nil
 	case npc.FieldCurrentGoals:
 		m.ResetCurrentGoals()
@@ -3442,21 +4192,17 @@ func (m *PlayerMutation) ResetEdge(name string) error {
 // PlayerNPCRelationshipMutation represents an operation that mutates the PlayerNPCRelationship nodes in the graph.
 type PlayerNPCRelationshipMutation struct {
 	config
-	op             Op
-	typ            string
-	id             *int
-	trust_level    *float64
-	addtrust_level *float64
-	gift_count     *int
-	addgift_count  *int
-	clearedFields  map[string]struct{}
-	player         *uuid.UUID
-	clearedplayer  bool
-	npc            *uuid.UUID
-	clearednpc     bool
-	done           bool
-	oldValue       func(context.Context) (*PlayerNPCRelationship, error)
-	predicates     []predicate.PlayerNPCRelationship
+	op            Op
+	typ           string
+	id            *int
+	clearedFields map[string]struct{}
+	player        *uuid.UUID
+	clearedplayer bool
+	npc           *uuid.UUID
+	clearednpc    bool
+	done          bool
+	oldValue      func(context.Context) (*PlayerNPCRelationship, error)
+	predicates    []predicate.PlayerNPCRelationship
 }
 
 var _ ent.Mutation = (*PlayerNPCRelationshipMutation)(nil)
@@ -3555,118 +4301,6 @@ func (m *PlayerNPCRelationshipMutation) IDs(ctx context.Context) ([]int, error) 
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
-}
-
-// SetTrustLevel sets the "trust_level" field.
-func (m *PlayerNPCRelationshipMutation) SetTrustLevel(f float64) {
-	m.trust_level = &f
-	m.addtrust_level = nil
-}
-
-// TrustLevel returns the value of the "trust_level" field in the mutation.
-func (m *PlayerNPCRelationshipMutation) TrustLevel() (r float64, exists bool) {
-	v := m.trust_level
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldTrustLevel returns the old "trust_level" field's value of the PlayerNPCRelationship entity.
-// If the PlayerNPCRelationship object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PlayerNPCRelationshipMutation) OldTrustLevel(ctx context.Context) (v float64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTrustLevel is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTrustLevel requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTrustLevel: %w", err)
-	}
-	return oldValue.TrustLevel, nil
-}
-
-// AddTrustLevel adds f to the "trust_level" field.
-func (m *PlayerNPCRelationshipMutation) AddTrustLevel(f float64) {
-	if m.addtrust_level != nil {
-		*m.addtrust_level += f
-	} else {
-		m.addtrust_level = &f
-	}
-}
-
-// AddedTrustLevel returns the value that was added to the "trust_level" field in this mutation.
-func (m *PlayerNPCRelationshipMutation) AddedTrustLevel() (r float64, exists bool) {
-	v := m.addtrust_level
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetTrustLevel resets all changes to the "trust_level" field.
-func (m *PlayerNPCRelationshipMutation) ResetTrustLevel() {
-	m.trust_level = nil
-	m.addtrust_level = nil
-}
-
-// SetGiftCount sets the "gift_count" field.
-func (m *PlayerNPCRelationshipMutation) SetGiftCount(i int) {
-	m.gift_count = &i
-	m.addgift_count = nil
-}
-
-// GiftCount returns the value of the "gift_count" field in the mutation.
-func (m *PlayerNPCRelationshipMutation) GiftCount() (r int, exists bool) {
-	v := m.gift_count
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldGiftCount returns the old "gift_count" field's value of the PlayerNPCRelationship entity.
-// If the PlayerNPCRelationship object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PlayerNPCRelationshipMutation) OldGiftCount(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldGiftCount is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldGiftCount requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldGiftCount: %w", err)
-	}
-	return oldValue.GiftCount, nil
-}
-
-// AddGiftCount adds i to the "gift_count" field.
-func (m *PlayerNPCRelationshipMutation) AddGiftCount(i int) {
-	if m.addgift_count != nil {
-		*m.addgift_count += i
-	} else {
-		m.addgift_count = &i
-	}
-}
-
-// AddedGiftCount returns the value that was added to the "gift_count" field in this mutation.
-func (m *PlayerNPCRelationshipMutation) AddedGiftCount() (r int, exists bool) {
-	v := m.addgift_count
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetGiftCount resets all changes to the "gift_count" field.
-func (m *PlayerNPCRelationshipMutation) ResetGiftCount() {
-	m.gift_count = nil
-	m.addgift_count = nil
 }
 
 // SetPlayerID sets the "player" edge to the Player entity by id.
@@ -3781,13 +4415,7 @@ func (m *PlayerNPCRelationshipMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PlayerNPCRelationshipMutation) Fields() []string {
-	fields := make([]string, 0, 2)
-	if m.trust_level != nil {
-		fields = append(fields, playernpcrelationship.FieldTrustLevel)
-	}
-	if m.gift_count != nil {
-		fields = append(fields, playernpcrelationship.FieldGiftCount)
-	}
+	fields := make([]string, 0, 0)
 	return fields
 }
 
@@ -3795,12 +4423,6 @@ func (m *PlayerNPCRelationshipMutation) Fields() []string {
 // return value indicates that this field was not set, or was not defined in the
 // schema.
 func (m *PlayerNPCRelationshipMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case playernpcrelationship.FieldTrustLevel:
-		return m.TrustLevel()
-	case playernpcrelationship.FieldGiftCount:
-		return m.GiftCount()
-	}
 	return nil, false
 }
 
@@ -3808,12 +4430,6 @@ func (m *PlayerNPCRelationshipMutation) Field(name string) (ent.Value, bool) {
 // returned if the mutation operation is not UpdateOne, or the query to the
 // database failed.
 func (m *PlayerNPCRelationshipMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case playernpcrelationship.FieldTrustLevel:
-		return m.OldTrustLevel(ctx)
-	case playernpcrelationship.FieldGiftCount:
-		return m.OldGiftCount(ctx)
-	}
 	return nil, fmt.Errorf("unknown PlayerNPCRelationship field %s", name)
 }
 
@@ -3822,20 +4438,6 @@ func (m *PlayerNPCRelationshipMutation) OldField(ctx context.Context, name strin
 // type.
 func (m *PlayerNPCRelationshipMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case playernpcrelationship.FieldTrustLevel:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetTrustLevel(v)
-		return nil
-	case playernpcrelationship.FieldGiftCount:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetGiftCount(v)
-		return nil
 	}
 	return fmt.Errorf("unknown PlayerNPCRelationship field %s", name)
 }
@@ -3843,26 +4445,13 @@ func (m *PlayerNPCRelationshipMutation) SetField(name string, value ent.Value) e
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *PlayerNPCRelationshipMutation) AddedFields() []string {
-	var fields []string
-	if m.addtrust_level != nil {
-		fields = append(fields, playernpcrelationship.FieldTrustLevel)
-	}
-	if m.addgift_count != nil {
-		fields = append(fields, playernpcrelationship.FieldGiftCount)
-	}
-	return fields
+	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *PlayerNPCRelationshipMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case playernpcrelationship.FieldTrustLevel:
-		return m.AddedTrustLevel()
-	case playernpcrelationship.FieldGiftCount:
-		return m.AddedGiftCount()
-	}
 	return nil, false
 }
 
@@ -3870,22 +4459,6 @@ func (m *PlayerNPCRelationshipMutation) AddedField(name string) (ent.Value, bool
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
 func (m *PlayerNPCRelationshipMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	case playernpcrelationship.FieldTrustLevel:
-		v, ok := value.(float64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddTrustLevel(v)
-		return nil
-	case playernpcrelationship.FieldGiftCount:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddGiftCount(v)
-		return nil
-	}
 	return fmt.Errorf("unknown PlayerNPCRelationship numeric field %s", name)
 }
 
@@ -3911,14 +4484,6 @@ func (m *PlayerNPCRelationshipMutation) ClearField(name string) error {
 // ResetField resets all changes in the mutation for the field with the given name.
 // It returns an error if the field is not defined in the schema.
 func (m *PlayerNPCRelationshipMutation) ResetField(name string) error {
-	switch name {
-	case playernpcrelationship.FieldTrustLevel:
-		m.ResetTrustLevel()
-		return nil
-	case playernpcrelationship.FieldGiftCount:
-		m.ResetGiftCount()
-		return nil
-	}
 	return fmt.Errorf("unknown PlayerNPCRelationship field %s", name)
 }
 

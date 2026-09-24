@@ -6,11 +6,12 @@ here once so the two transports cannot drift apart.
 
 dynamic_context shape (all keys required; transports supply defaults):
     {
-        "emotions": {"joy": float, "sadness": float, "anger": float,
-                     "fear": float, "trust": float},
-        "memories": [str, ...],        # memory descriptions, newest first
+        "speaker_emotions": {str: float, ...},
+        "general_mood": {str: float, ...},
+        "memory_lines": [str, ...],
         "quest_step": int,
         "completion_rate": float,
+        "speaker": str,
     }
 """
 
@@ -27,10 +28,10 @@ AGENT_EVENTS = frozenset({
     "PLAYER_INTERACT_QUEST",
     "PLAYER_GAVE_GIFT",
     "PLAYER_ATTACKED",
+    "PLAYER_THREW_STONE",
+    "PLAYER_APOLOGIZED",
 })
 KNOWN_EVENTS = RAG_EVENTS | AGENT_EVENTS
-
-NEUTRAL_EMOTIONS = {"joy": 0.0, "sadness": 0.0, "anger": 0.0, "fear": 0.0, "trust": 0.0}
 
 
 class UnknownAgentError(LookupError):
@@ -40,8 +41,9 @@ class UnknownAgentError(LookupError):
 def default_context() -> dict:
     """A neutral dynamic context, for callers that don't supply game state."""
     return {
-        "emotions": dict(NEUTRAL_EMOTIONS),
-        "memories": [],
+        "speaker_emotions": {},
+        "general_mood": {},
+        "memory_lines": [],
         "quest_step": 0,
         "completion_rate": 0.0,
         "speaker": "",
@@ -69,7 +71,7 @@ def route_event(agent_key: str, event_type: str, text: str, dynamic_context: dic
         return "SPEAK", agent.run_quest_agent(dynamic_context, event_description)
 
     logger.debug("route emotion-rules event=%s", event_type)
-    if dynamic_context["emotions"]["anger"] > 0.7:
+    if dynamic_context.get("speaker_emotions", {}).get("anger", 0) > 0.7:
         return "SPEAK", "Get lost."
     return "SPEAK", "Greetings."
 

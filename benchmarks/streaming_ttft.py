@@ -45,8 +45,9 @@ def _request(npc: str, question: str) -> ai_pb2.EventRequest:
         personality_path=f"gamedata/npcs/{npc}/personality.json",
         backstory_path=f"gamedata/npcs/{npc}/backstory.json",
         lore_path=f"gamedata/npcs/{npc}/lore.json",
-        current_emotions=ai_pb2.EmotionStateMessage(joy=0.5, sadness=0.1, anger=0.1, fear=0.1, trust=0.5),
-        recent_memories=[],
+        speaker_emotions={"joy": 0.5, "sadness": 0.1, "anger": 0.1, "fear": 0.1, "trust": 0.5},
+        general_mood={"joy": 0.5, "sadness": 0.1, "anger": 0.1, "fear": 0.1, "trust": 0.5},
+        memory_lines=[],
         event_type="PLAYER_ASKED_QUESTION",  # RAG path -> real token streaming
         question_text=question,
         source_entity_id="bench_player",

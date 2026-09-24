@@ -99,4 +99,3 @@ func Load() (*Config, error) {
 		LLMRateWindow:  llmRateWindow,
 	}, nil
 }
-

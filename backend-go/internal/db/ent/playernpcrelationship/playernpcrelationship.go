@@ -12,10 +12,6 @@ const (
 	Label = "player_npc_relationship"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldTrustLevel holds the string denoting the trust_level field in the database.
-	FieldTrustLevel = "trust_level"
-	// FieldGiftCount holds the string denoting the gift_count field in the database.
-	FieldGiftCount = "gift_count"
 	// EdgePlayer holds the string denoting the player edge name in mutations.
 	EdgePlayer = "player"
 	// EdgeNpc holds the string denoting the npc edge name in mutations.
@@ -41,8 +37,6 @@ const (
 // Columns holds all SQL columns for playernpcrelationship fields.
 var Columns = []string{
 	FieldID,
-	FieldTrustLevel,
-	FieldGiftCount,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "player_npc_relationships"
@@ -67,29 +61,12 @@ func ValidColumn(column string) bool {
 	return false
 }
 
-var (
-	// DefaultTrustLevel holds the default value on creation for the "trust_level" field.
-	DefaultTrustLevel float64
-	// DefaultGiftCount holds the default value on creation for the "gift_count" field.
-	DefaultGiftCount int
-)
-
 // OrderOption defines the ordering options for the PlayerNPCRelationship queries.
 type OrderOption func(*sql.Selector)
 
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
-}
-
-// ByTrustLevel orders the results by the trust_level field.
-func ByTrustLevel(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldTrustLevel, opts...).ToFunc()
-}
-
-// ByGiftCount orders the results by the gift_count field.
-func ByGiftCount(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldGiftCount, opts...).ToFunc()
 }
 
 // ByPlayerField orders the results by player field.

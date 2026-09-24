@@ -15,8 +15,12 @@
   #status { font-size:12px; color:var(--muted); margin-left:auto; }
   #status.on { color:var(--npc); }
   #status.err { color:var(--err); }
-  main { display:grid; grid-template-columns:280px 1fr; gap:0; height:calc(100vh - 53px); }
+  main { display:grid; grid-template-columns:280px 1fr 260px; gap:0; height:calc(100vh - 53px); }
   .side { border-right:1px solid var(--line); padding:16px; overflow-y:auto; }
+  .side.right { border-right:none; border-left:1px solid var(--line); }
+  .emotion-group { margin-bottom:12px; }
+  .emotion-row { display:flex; justify-content:space-between; font-size:13px; padding:2px 0; }
+  .emotion-empty { color:var(--muted); font-style:italic; font-size:12px; }
   .chat { display:flex; flex-direction:column; min-width:0; }
   #log { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:10px; }
   fieldset { border:1px solid var(--line); border-radius:8px; margin:0 0 16px; padding:12px; }
@@ -83,6 +87,8 @@
         <button id="interact" class="sec" disabled>Interact</button>
         <button id="look" class="sec" disabled>Look at</button>
         <button id="attack" class="sec" disabled>Attack</button>
+        <button id="stone" class="sec" disabled>Throw stone</button>
+        <button id="apologize" class="sec" disabled>Apologize</button>
       </div>
     </fieldset>
   </div>
@@ -93,6 +99,19 @@
       <button id="ask" disabled>Ask</button>
     </div>
   </div>
+  <div class="side right">
+    <fieldset>
+      <legend id="emotions-title">What Elara feels</legend>
+      <div class="emotion-group">
+        <label>Toward you</label>
+        <div id="emotions-toward"><span class="emotion-empty">nothing in particular</span></div>
+      </div>
+      <div class="emotion-group">
+        <label>General mood</label>
+        <div id="emotions-general"><span class="emotion-empty">nothing in particular</span></div>
+      </div>
+    </fieldset>
+  </div>
 </main>
 <script>
 (() => {
@@ -100,7 +119,7 @@
   const log = $("log"), status = $("status");
   let ws = null, authed = false;
 
-  const gameButtons = ["ask","gift","submit","interact","look","attack","question"];
+  const gameButtons = ["ask","gift","submit","interact","look","attack","stone","apologize","question"];
   const setGameEnabled = on => gameButtons.forEach(id => $(id).disabled = !on);
 
   function setStatus(text, cls) { status.textContent = text; status.className = cls || ""; }
@@ -113,6 +132,41 @@
     log.appendChild(el);
     log.scrollTop = log.scrollHeight;
     return el;
+  }
+
+  function renderEmotionMap(containerId, map) {
+    const el = $(containerId);
+    if (!el) return;
+    el.innerHTML = "";
+    if (!map || typeof map !== "object" || Object.keys(map).length === 0) {
+      const empty = document.createElement("span");
+      empty.className = "emotion-empty";
+      empty.textContent = "nothing in particular";
+      el.appendChild(empty);
+      return;
+    }
+    const keys = Object.keys(map).sort();
+    let count = 0;
+    for (const k of keys) {
+      const val = map[k];
+      if (val === undefined || val === null) continue;
+      count++;
+      const row = document.createElement("div");
+      row.className = "emotion-row";
+      const nameSpan = document.createElement("span");
+      nameSpan.textContent = k;
+      const valSpan = document.createElement("span");
+      valSpan.textContent = typeof val === "number" ? val.toFixed(2) : String(val);
+      row.appendChild(nameSpan);
+      row.appendChild(valSpan);
+      el.appendChild(row);
+    }
+    if (count === 0) {
+      const empty = document.createElement("span");
+      empty.className = "emotion-empty";
+      empty.textContent = "nothing in particular";
+      el.appendChild(empty);
+    }
   }
 
   // Active streaming bubble for SPEAK_PARTIAL frames (C3), or null between messages.
@@ -139,6 +193,19 @@
       }
       if (action_type === "ERROR") { streamEl = null; add("err", null, content); return; }
       if (action_type === "ADMIN_ACK") { add("sys", null, content); return; }
+      if (action_type === "EMOTIONS") {
+        try {
+          const data = typeof content === "string" ? JSON.parse(content) : content;
+          if (data && data.npc) {
+            $("emotions-title").textContent = "What " + data.npc + " feels";
+          }
+          renderEmotionMap("emotions-toward", data ? data.toward_you : null);
+          renderEmotionMap("emotions-general", data ? data.general : null);
+        } catch {
+          // ignore parse errors gracefully
+        }
+        return;
+      }
       if (action_type === "SPEAK_PARTIAL") {           // C3: append delta to a live bubble
         if (!streamEl) streamEl = add("npc", $("npc").value + " · streaming…", "");
         streamEl.lastChild.textContent += content;
@@ -160,6 +227,12 @@
   $("register").onclick = () => auth("REGISTER_PLAYER");
   $("login").onclick = () => auth("LOGIN_PLAYER");
 
+  $("npc").addEventListener("change", () => {
+    $("emotions-title").textContent = "What " + $("npc").value + " feels";
+    renderEmotionMap("emotions-toward", null);
+    renderEmotionMap("emotions-general", null);
+  });
+
   function gameEvent(event_type, extra) {
     if (!authed) { add("err", null, "Log in first."); return; }
     send(Object.assign({ event_type, target_npc_name: $("npc").value }, extra));
@@ -176,11 +249,13 @@
   $("question").addEventListener("keydown", e => { if (e.key === "Enter") ask(); });
 
   const kw = () => ({ keyword: $("keyword").value.trim() });
-  $("gift").onclick     = () => { add("you", "You → " + $("npc").value, "🎁 gift: " + $("keyword").value); gameEvent("PLAYER_GAVE_GIFT", kw()); };
-  $("submit").onclick   = () => { add("you", "You → " + $("npc").value, "📦 submit: " + $("keyword").value); gameEvent("PLAYER_SUBMITTED_QUEST_ITEM", kw()); };
-  $("interact").onclick = () => { add("you", "You → " + $("npc").value, "🤝 interact"); gameEvent("PLAYER_INTERACT", {}); };
-  $("look").onclick     = () => { add("you", "You → " + $("npc").value, "👁 look at"); gameEvent("PLAYER_LOOKED_AT_NPC", {}); };
-  $("attack").onclick   = () => { add("you", "You → " + $("npc").value, "⚔ attack"); gameEvent("PLAYER_ATTACKED", {}); };
+  $("gift").onclick      = () => { add("you", "You → " + $("npc").value, "🎁 gift: " + $("keyword").value); gameEvent("PLAYER_GAVE_GIFT", kw()); };
+  $("submit").onclick    = () => { add("you", "You → " + $("npc").value, "📦 submit: " + $("keyword").value); gameEvent("PLAYER_SUBMITTED_QUEST_ITEM", kw()); };
+  $("interact").onclick  = () => { add("you", "You → " + $("npc").value, "🤝 interact"); gameEvent("PLAYER_INTERACT", {}); };
+  $("look").onclick      = () => { add("you", "You → " + $("npc").value, "👁 look at"); gameEvent("PLAYER_LOOKED_AT_NPC", {}); };
+  $("attack").onclick    = () => { add("you", "You → " + $("npc").value, "⚔ attack"); gameEvent("PLAYER_ATTACKED", {}); };
+  $("stone").onclick     = () => { add("you", "You → " + $("npc").value, "🪨 throw stone"); gameEvent("PLAYER_THREW_STONE", {}); };
+  $("apologize").onclick = () => { add("you", "You → " + $("npc").value, "🙏 apologize"); gameEvent("PLAYER_APOLOGIZED", {}); };
 
   add("sys", null, "Enter a username/password, then Register (or Log in). After LOGIN_SUCCESS, ask a question or use the NPC action buttons.");
 })();

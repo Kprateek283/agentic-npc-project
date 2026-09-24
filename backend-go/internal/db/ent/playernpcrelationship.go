@@ -16,13 +16,9 @@ import (
 
 // PlayerNPCRelationship is the model entity for the PlayerNPCRelationship schema.
 type PlayerNPCRelationship struct {
-	config `json:"-"`
+	config
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// The trust level between 0.0 and 1.0
-	TrustLevel float64 `json:"trust_level,omitempty"`
-	// The number of gifts this player has given this NPC, for diminishing returns.
-	GiftCount int `json:"gift_count,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PlayerNPCRelationshipQuery when eager-loading is set.
 	Edges                    PlayerNPCRelationshipEdges `json:"edges"`
@@ -69,9 +65,7 @@ func (*PlayerNPCRelationship) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case playernpcrelationship.FieldTrustLevel:
-			values[i] = new(sql.NullFloat64)
-		case playernpcrelationship.FieldID, playernpcrelationship.FieldGiftCount:
+		case playernpcrelationship.FieldID:
 			values[i] = new(sql.NullInt64)
 		case playernpcrelationship.ForeignKeys[0]: // npc_player_relationships
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
@@ -98,18 +92,6 @@ func (_m *PlayerNPCRelationship) assignValues(columns []string, values []any) er
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			_m.ID = int(value.Int64)
-		case playernpcrelationship.FieldTrustLevel:
-			if value, ok := values[i].(*sql.NullFloat64); !ok {
-				return fmt.Errorf("unexpected type %T for field trust_level", values[i])
-			} else if value.Valid {
-				_m.TrustLevel = value.Float64
-			}
-		case playernpcrelationship.FieldGiftCount:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field gift_count", values[i])
-			} else if value.Valid {
-				_m.GiftCount = int(value.Int64)
-			}
 		case playernpcrelationship.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field npc_player_relationships", values[i])
@@ -169,12 +151,7 @@ func (_m *PlayerNPCRelationship) Unwrap() *PlayerNPCRelationship {
 func (_m *PlayerNPCRelationship) String() string {
 	var builder strings.Builder
 	builder.WriteString("PlayerNPCRelationship(")
-	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
-	builder.WriteString("trust_level=")
-	builder.WriteString(fmt.Sprintf("%v", _m.TrustLevel))
-	builder.WriteString(", ")
-	builder.WriteString("gift_count=")
-	builder.WriteString(fmt.Sprintf("%v", _m.GiftCount))
+	builder.WriteString(fmt.Sprintf("id=%v", _m.ID))
 	builder.WriteByte(')')
 	return builder.String()
 }

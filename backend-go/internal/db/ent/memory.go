@@ -30,6 +30,30 @@ type Memory struct {
 	Participants []string `json:"participants,omitempty"`
 	// Importance holds the value of the "importance" field.
 	Importance float64 `json:"importance,omitempty"`
+	// Actor holds the value of the "actor" field.
+	Actor string `json:"actor,omitempty"`
+	// Subject holds the value of the "subject" field.
+	Subject string `json:"subject,omitempty"`
+	// Delta holds the value of the "delta" field.
+	Delta map[string]float64 `json:"delta,omitempty"`
+	// Intensity holds the value of the "intensity" field.
+	Intensity float64 `json:"intensity,omitempty"`
+	// Count holds the value of the "count" field.
+	Count float64 `json:"count,omitempty"`
+	// Harmful holds the value of the "harmful" field.
+	Harmful bool `json:"harmful,omitempty"`
+	// Forgiven holds the value of the "forgiven" field.
+	Forgiven float64 `json:"forgiven,omitempty"`
+	// Betrayal holds the value of the "betrayal" field.
+	Betrayal bool `json:"betrayal,omitempty"`
+	// Text holds the value of the "text" field.
+	Text string `json:"text,omitempty"`
+	// FirstAt holds the value of the "first_at" field.
+	FirstAt time.Time `json:"first_at,omitempty"`
+	// LastAt holds the value of the "last_at" field.
+	LastAt time.Time `json:"last_at,omitempty"`
+	// Covers holds the value of the "covers" field.
+	Covers []int `json:"covers,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the MemoryQuery when eager-loading is set.
 	Edges        MemoryEdges `json:"edges"`
@@ -62,15 +86,17 @@ func (*Memory) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case memory.FieldParticipants:
+		case memory.FieldParticipants, memory.FieldDelta, memory.FieldCovers:
 			values[i] = new([]byte)
-		case memory.FieldImportance:
+		case memory.FieldHarmful, memory.FieldBetrayal:
+			values[i] = new(sql.NullBool)
+		case memory.FieldImportance, memory.FieldIntensity, memory.FieldCount, memory.FieldForgiven:
 			values[i] = new(sql.NullFloat64)
 		case memory.FieldID:
 			values[i] = new(sql.NullInt64)
-		case memory.FieldDescription, memory.FieldEventType:
+		case memory.FieldDescription, memory.FieldEventType, memory.FieldActor, memory.FieldSubject, memory.FieldText:
 			values[i] = new(sql.NullString)
-		case memory.FieldCreatedAt:
+		case memory.FieldCreatedAt, memory.FieldFirstAt, memory.FieldLastAt:
 			values[i] = new(sql.NullTime)
 		case memory.ForeignKeys[0]: // npc_memories
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
@@ -126,6 +152,82 @@ func (_m *Memory) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field importance", values[i])
 			} else if value.Valid {
 				_m.Importance = value.Float64
+			}
+		case memory.FieldActor:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field actor", values[i])
+			} else if value.Valid {
+				_m.Actor = value.String
+			}
+		case memory.FieldSubject:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field subject", values[i])
+			} else if value.Valid {
+				_m.Subject = value.String
+			}
+		case memory.FieldDelta:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field delta", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.Delta); err != nil {
+					return fmt.Errorf("unmarshal field delta: %w", err)
+				}
+			}
+		case memory.FieldIntensity:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field intensity", values[i])
+			} else if value.Valid {
+				_m.Intensity = value.Float64
+			}
+		case memory.FieldCount:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field count", values[i])
+			} else if value.Valid {
+				_m.Count = value.Float64
+			}
+		case memory.FieldHarmful:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field harmful", values[i])
+			} else if value.Valid {
+				_m.Harmful = value.Bool
+			}
+		case memory.FieldForgiven:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field forgiven", values[i])
+			} else if value.Valid {
+				_m.Forgiven = value.Float64
+			}
+		case memory.FieldBetrayal:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field betrayal", values[i])
+			} else if value.Valid {
+				_m.Betrayal = value.Bool
+			}
+		case memory.FieldText:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field text", values[i])
+			} else if value.Valid {
+				_m.Text = value.String
+			}
+		case memory.FieldFirstAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field first_at", values[i])
+			} else if value.Valid {
+				_m.FirstAt = value.Time
+			}
+		case memory.FieldLastAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field last_at", values[i])
+			} else if value.Valid {
+				_m.LastAt = value.Time
+			}
+		case memory.FieldCovers:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field covers", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.Covers); err != nil {
+					return fmt.Errorf("unmarshal field covers: %w", err)
+				}
 			}
 		case memory.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -189,6 +291,42 @@ func (_m *Memory) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("importance=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Importance))
+	builder.WriteString(", ")
+	builder.WriteString("actor=")
+	builder.WriteString(_m.Actor)
+	builder.WriteString(", ")
+	builder.WriteString("subject=")
+	builder.WriteString(_m.Subject)
+	builder.WriteString(", ")
+	builder.WriteString("delta=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Delta))
+	builder.WriteString(", ")
+	builder.WriteString("intensity=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Intensity))
+	builder.WriteString(", ")
+	builder.WriteString("count=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Count))
+	builder.WriteString(", ")
+	builder.WriteString("harmful=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Harmful))
+	builder.WriteString(", ")
+	builder.WriteString("forgiven=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Forgiven))
+	builder.WriteString(", ")
+	builder.WriteString("betrayal=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Betrayal))
+	builder.WriteString(", ")
+	builder.WriteString("text=")
+	builder.WriteString(_m.Text)
+	builder.WriteString(", ")
+	builder.WriteString("first_at=")
+	builder.WriteString(_m.FirstAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("last_at=")
+	builder.WriteString(_m.LastAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("covers=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Covers))
 	builder.WriteByte(')')
 	return builder.String()
 }

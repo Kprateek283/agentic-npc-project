@@ -151,4 +151,3 @@ func TestHandleAdminCommand_Disabled(t *testing.T) {
 		t.Errorf("got error %q, want %q", err.Error(), wantErr)
 	}
 }
-

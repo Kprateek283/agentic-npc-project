@@ -19,16 +19,10 @@ def _req_id(context) -> str:
 
 def _dynamic_context(request) -> dict:
     """Unpack the protobuf request into the plain dict shape the router expects."""
-    emotions = request.current_emotions
     return {
-        "emotions": {
-            "joy": emotions.joy,
-            "sadness": emotions.sadness,
-            "anger": emotions.anger,
-            "fear": emotions.fear,
-            "trust": emotions.trust,
-        },
-        "memories": [mem.description for mem in request.recent_memories],
+        "speaker_emotions": dict(request.speaker_emotions),
+        "general_mood": dict(request.general_mood),
+        "memory_lines": list(request.memory_lines),
         "quest_step": request.current_quest_step,
         "completion_rate": request.completion_rate,
         "speaker": request.source_entity_id,  # who the NPC is talking to right now

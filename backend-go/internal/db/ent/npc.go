@@ -4,7 +4,6 @@ package ent
 
 import (
 	"agentic-npc-backend/internal/db/ent/npc"
-	"agentic-npc-backend/internal/db/ent/schema"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -29,8 +28,6 @@ type NPC struct {
 	BackstoryPath string `json:"backstory_path,omitempty"`
 	// The file path to the NPC's static lore.json file.
 	LorePath string `json:"lore_path,omitempty"`
-	// Emotions holds the value of the "emotions" field.
-	Emotions *schema.EmotionState `json:"emotions,omitempty"`
 	// CurrentGoals holds the value of the "current_goals" field.
 	CurrentGoals []string `json:"current_goals,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -73,7 +70,7 @@ func (*NPC) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case npc.FieldEmotions, npc.FieldCurrentGoals:
+		case npc.FieldCurrentGoals:
 			values[i] = new([]byte)
 		case npc.FieldName, npc.FieldNpcType, npc.FieldPersonalityPath, npc.FieldBackstoryPath, npc.FieldLorePath:
 			values[i] = new(sql.NullString)
@@ -129,14 +126,6 @@ func (_m *NPC) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field lore_path", values[i])
 			} else if value.Valid {
 				_m.LorePath = value.String
-			}
-		case npc.FieldEmotions:
-			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field emotions", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &_m.Emotions); err != nil {
-					return fmt.Errorf("unmarshal field emotions: %w", err)
-				}
 			}
 		case npc.FieldCurrentGoals:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -206,9 +195,6 @@ func (_m *NPC) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("lore_path=")
 	builder.WriteString(_m.LorePath)
-	builder.WriteString(", ")
-	builder.WriteString("emotions=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Emotions))
 	builder.WriteString(", ")
 	builder.WriteString("current_goals=")
 	builder.WriteString(fmt.Sprintf("%v", _m.CurrentGoals))

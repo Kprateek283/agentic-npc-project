@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"agentic-npc-backend/internal/db/ent"
-	"agentic-npc-backend/internal/domain/npc_logic"
 	"agentic-npc-backend/internal/domain/quest_logic"
 	"agentic-npc-backend/internal/dto"
 	"agentic-npc-backend/internal/infra/grpc_client"
@@ -42,14 +41,13 @@ func originAllowed(origin, host string, allowed []string) bool {
 
 // WebSocketHandler holds all clients and services
 type WebSocketHandler struct {
-	dbClient       *ent.Client
-	aiClient       *grpc_client.AIClient
-	questManager   *quest_logic.QuestManager
-	redisClient    *redis.Client
-	emotionManager *npc_logic.EmotionManager
-	upgrader       websocket.Upgrader
-	llmRateLimit   int
-	llmRateWindow  time.Duration
+	dbClient      *ent.Client
+	aiClient      *grpc_client.AIClient
+	questManager  *quest_logic.QuestManager
+	redisClient   *redis.Client
+	upgrader      websocket.Upgrader
+	llmRateLimit  int
+	llmRateWindow time.Duration
 }
 
 // NewWebSocketHandler creates a new handler with all dependencies
@@ -58,19 +56,17 @@ func NewWebSocketHandler(
 	aiClient *grpc_client.AIClient,
 	questManager *quest_logic.QuestManager,
 	redisClient *redis.Client,
-	emotionManager *npc_logic.EmotionManager,
 	allowedOrigins []string,
 	llmRateLimit int,
 	llmRateWindow time.Duration,
 ) *WebSocketHandler {
 	return &WebSocketHandler{
-		dbClient:       dbClient,
-		aiClient:       aiClient,
-		questManager:   questManager,
-		redisClient:    redisClient,
-		emotionManager: emotionManager,
-		llmRateLimit:   llmRateLimit,
-		llmRateWindow:  llmRateWindow,
+		dbClient:      dbClient,
+		aiClient:      aiClient,
+		questManager:  questManager,
+		redisClient:   redisClient,
+		llmRateLimit:  llmRateLimit,
+		llmRateWindow: llmRateWindow,
 		upgrader: websocket.Upgrader{
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,

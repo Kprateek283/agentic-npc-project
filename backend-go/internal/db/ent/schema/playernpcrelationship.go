@@ -3,7 +3,6 @@ package schema
 import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
-	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 )
 
@@ -15,15 +14,7 @@ type PlayerNPCRelationship struct {
 
 // Fields of the PlayerNPCRelationship.
 func (PlayerNPCRelationship) Fields() []ent.Field {
-	return []ent.Field{
-		field.Float("trust_level").
-			Default(0.0).
-			Comment("The trust level between 0.0 and 1.0"),
-
-		field.Int("gift_count").
-			Default(0).
-			Comment("The number of gifts this player has given this NPC, for diminishing returns."),
-	}
+	return nil
 }
 
 // Edges of the PlayerNPCRelationship.

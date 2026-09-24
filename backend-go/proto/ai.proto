@@ -12,22 +12,6 @@ service AIBrain {
   rpc ThinkStream(EventRequest) returns (stream TokenChunk) {}
 }
 
-message MemoryMessage {
-  string description = 1;
-  double importance = 2;
-  string event_type = 3;
-  repeated string participants = 4;
-}
-
-message EmotionStateMessage {
-  double joy = 1;
-  double sadness = 2;
-  double anger = 3;
-  double fear = 4;
-  double trust = 5;
-}
-
-
 message EventRequest {
   // Static paths (the "key" for the Python agent)
   string personality_path = 1;
@@ -35,8 +19,9 @@ message EventRequest {
   string lore_path = 3;
 
   // Dynamic context (the "payload")
-  EmotionStateMessage current_emotions = 4;
-  repeated MemoryMessage recent_memories = 5;
+  map<string, float> speaker_emotions = 4;   // how the NPC feels about the player it is speaking to
+  map<string, float> general_mood = 5;       // how the NPC feels in general, all players together
+  repeated string memory_lines = 11;         // already ranked and worded by the Go orchestrator
 
   // Event details
   string event_type = 6;
@@ -60,4 +45,3 @@ message TokenChunk {
   bool done = 2;
   string action_type = 3;
 }
-

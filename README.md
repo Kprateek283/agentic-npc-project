@@ -11,9 +11,20 @@ this repo ships a browser reference client that speaks the same protocol.
 ## How it works: rules change state, the model narrates
 
 Every player event goes to the Go orchestrator first. It checks quest triggers and
-preconditions, applies rewards, adjusts the NPC's emotions by fixed per-event amounts, and
-records a memory — all before any model is called. Only then does it send the current state
-to the Python AI service over gRPC. The model never changes game state; it only speaks.
+preconditions, applies rewards, records the event as an episode, and feelings are computed
+from those memories when the AI is called — all before any model is called. Only then does it
+send the current state to the Python AI service over gRPC. The model never changes game state;
+it only speaks.
+
+### Memory and computed feelings
+
+Emotions and trust are never stored directly; they are computed on each request from remembered
+episodes:
+- Repeated harm escalates while repeated kindness has diminishing returns.
+- Memories fade at a rate set by how serious they were (intensity-based half-life).
+- An apology reduces the feeling but not the memory, and each apology is worth half the last.
+- Offending again after an apology is remembered as a betrayal and revokes forgiveness.
+- Feelings toward one player are separate from the NPC's general mood, which is a fraction of everyone's.
 
 The AI service picks one of two paths by **event type** (`router.py`):
 
@@ -81,8 +92,9 @@ flowchart LR
   `ALLOWED_ORIGINS`, and clients without an `Origin` header (game engines) are accepted.
 - **Quest engine:** triggers, trust/quest preconditions and rewards defined in
   `gamedata/quests/`. Question triggers match the keyword as a whole word.
-- **NPC state:** fixed emotion deltas per event type (`gamedata/event_emotions.json`), per-player
-  trust, and a memory row for each event that reaches the AI.
+- **NPC state:** every event is remembered as an "episode" (`gamedata/events.json` defines its
+  emotion deltas and intensity); feelings toward a player and the NPC's general mood are computed
+  from those memories rather than stored.
 - **Rate limiting:** a per-player fixed-window limit on AI calls, kept in Redis
   (`LLM_RATE_LIMIT` per `LLM_RATE_WINDOW_SECONDS`, default 20 per 60 s), protects the shared
   LLM quota; if Redis is unreachable the check fails open.
@@ -237,27 +249,22 @@ REDIS_ADDR=localhost:6379 go test ./internal/ratelimit/   # optional: rate limit
 
 ## Data model
 
-Eight PostgreSQL tables via Ent: `players`, `npcs` (identity plus one emotion state per NPC),
-`quests` and `player_quest_states` (progress per player), `player_npc_relationships` (trust
-level and gift count), `memories` (an event log: event type, participants, description),
-`items`, and `inventory_items` (in the schema, not yet used by game logic).
+Eight PostgreSQL tables via Ent: `players`, `npcs` (identity and static data paths),
+`quests` and `player_quest_states` (progress per player), `player_npc_relationships` (join table
+linking player and NPC), `memories` (an episode log: actor, event type, subject, emotion deltas,
+intensity, count, harmful/forgiven/betrayal state, text), `items`, and `inventory_items`
+(in the schema, not yet used by game logic).
 
 ## Known limitations
 
 These are real gaps in the current design, kept here rather than hidden:
 
-- **Emotions are shared and never fade.** Each NPC has one emotion state for all players, and
-  nothing decays it, so one player's attack makes the NPC angry at everyone indefinitely.
-- **Attacks don't lower the trust the model sees.** The model gets per-player relationship
-  trust, which only gifts, quest rewards and admin commands change.
-- **Memory records event types, not conversations.** A memory is "player1 triggered
-  PLAYER_ASKED_QUESTION on Elara"; the question and answer are not stored, and only the last
-  five memories reach the prompt.
 - **The model can only speak.** Every reply is `SPEAK`; it cannot act on the world.
 - **Event-path runs are not interrupted by a disconnect.** The LangGraph agent runs as one
   blocking call, so it finishes even if the player has left; only lore answers stop early.
 - **The semantic cache rarely helps in play**, since in-game requests always carry a speaker.
+- **On the local llama3.1:8b model the lore path answers a question helpfully even when the NPC is furious with the asker; the event path reacts correctly.** Measured over repeated runs, and prompt reordering did not change it — it is a limit of that small model, not of the memory layer.
+- **The event path needs about two generations per reply on that model (roughly 30-120 s locally)**, because the agent often makes one tool call before answering.
+- **Beliefs, knowledge memories with source attribution, LLM severity scoring and per-NPC personality settings are deliberately out of scope for this version.**
 
-A redesign of memory and emotions is planned: per-player and general memories with
-intensity-based lifespans, emotions computed from those memories, escalation on repeated
-offences, and forgiveness that changes the feeling but not the fact.
+A later version would add beliefs, knowledge memories with source attribution, LLM severity scoring, and per-NPC personality settings.
