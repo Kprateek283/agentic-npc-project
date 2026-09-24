@@ -118,11 +118,11 @@ def test_capacity_evicts_the_oldest_entry(clock):
     assert len(c._entries) == 2
 
 
-def test_an_empty_answer_is_stored_and_served(clock):
-    # Pinned, not endorsed: see the results file. A stream that produced no text stores "".
+@pytest.mark.parametrize("answer", ["", "  \n"])
+def test_an_empty_answer_is_never_stored(clock, answer):
     c = SemanticCache(threshold=0.9, ttl_s=100, max_entries=10)
-    c.put([1.0, 0.0], "")
-    assert c.get([1.0, 0.0]) == ""
+    c.put([1.0, 0.0], answer)
+    assert c.get([1.0, 0.0]) is None
 
 
 def test_defaults_come_from_the_documented_values(clock):

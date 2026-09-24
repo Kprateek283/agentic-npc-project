@@ -6,7 +6,6 @@ import subprocess
 
 import pytest
 from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
-from pydantic import ValidationError
 
 import agents.graph_builder as graph_builder
 from agy_chat import ChatAgy
@@ -122,7 +121,7 @@ def test_subprocess_timeout_is_cli_timeout_plus_30s(fake_run, timeout_s, print_t
         pytest.param(dict(raises=FileNotFoundError(2, "No such file or directory", "agy")),
                      RuntimeError, r"Failed to execute agy binary 'agy'",
                      id="a missing binary raises"),
-        pytest.param(dict(returncode=0, stdout=json.dumps({"response": None})), ValidationError, r"AIMessage",
+        pytest.param(dict(returncode=0, stdout=json.dumps({"response": None})), RuntimeError, r"agy returned no text",
                      id="a null response raises rather than replying with nothing"),
     ],
 )
@@ -140,10 +139,12 @@ def test_stderr_in_the_error_is_cut_to_500_characters(fake_run):
     assert message == "agy process failed with exit code 2: " + "E" * 499 + "F"
 
 
-def test_an_empty_response_field_comes_back_as_an_empty_reply(fake_run):
-    # Pinned, not endorsed (see the results file): exit 0 with {"response": ""} is not an error.
-    fake_run(stdout=reply(""))
-    assert ChatAgy().invoke("Hello").content == ""
+@pytest.mark.parametrize("text", ["", "   \n"])
+def test_an_empty_response_field_raises(fake_run, text):
+    # Exit 0 with no text is a failed generation, reported like every other agy failure.
+    fake_run(stdout=reply(text))
+    with pytest.raises(RuntimeError, match=r"agy returned no text"):
+        ChatAgy().invoke("Hello")
 
 
 def test_other_message_types_are_labelled_by_their_type(fake_run):

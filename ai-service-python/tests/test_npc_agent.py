@@ -158,16 +158,15 @@ class TextlessStreamModel(RecordingModel):
         yield ChatGenerationChunk(message=AIMessageChunk(content=""))
 
 
-def test_a_stream_with_no_text_caches_an_empty_answer_and_replays_it(build, monkeypatch):
-    # Pinned, not endorsed (see the results file). A stream with no chunks at all raises inside
-    # langchain ("No generation chunks were returned") and caches nothing; chunks that carry no
-    # text are what reach the cache as "".
+def test_a_stream_with_no_text_is_not_cached(build, monkeypatch):
+    # Chunks that carry no text produced nothing worth replaying, so the next paraphrase
+    # must reach the model again rather than being answered empty for an hour.
     agent, _, _ = build([])
     model = TextlessStreamModel(messages=iter([]))
     monkeypatch.setattr(npc_agent, "llm_light", model)
     assert list(agent.stream_rag_agent(ANON, "Who guards the gate?")) == []
-    assert agent.run_rag_agent(ANON, "Who watches the gate?") == ""
-    assert len(model.calls) == 1
+    assert list(agent.stream_rag_agent(ANON, "Who watches the gate?")) == []
+    assert len(model.calls) == 2
 
 
 def test_the_quest_agent_returns_the_models_words(build):

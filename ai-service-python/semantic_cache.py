@@ -85,7 +85,8 @@ class SemanticCache:
         return None
 
     def put(self, embedding, answer: str) -> None:
-        if not self.enabled:
+        # An empty answer is a failed generation, not a value: never replay it.
+        if not self.enabled or not answer.strip():
             return
         self._entries.append({"emb": embedding, "answer": answer, "ts": time.time()})
         if len(self._entries) > self.max_entries:

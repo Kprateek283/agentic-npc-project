@@ -66,15 +66,15 @@ Key: `[x]` fixed · `[ ]` open, needs a decision · `[-]` not a defect
 ## python-01-semantic-cache.md
 
 - [x] python-01 #1 the Python suite is red — FIXED: the teardown now resets `LLM_PROVIDER` to `ollama` (the value conftest.py sets) instead of deleting it, so the final reload no longer falls back to gemini. A clean clone with no `.env` goes from 207 passed / 1 failed to 208 passed.
-- [ ] python-01 #2 an empty answer is cached and replayed — OPEN: `put` stores any string and `get` treats "" as a hit, so a stream that produced no text serves an empty reply to every paraphrase for an hour. Pinned by "an empty answer is stored and served", so refusing empty values is a deliberate change; it also interacts with python-02 #1.
+- [x] python-01 #2 an empty answer is cached and replayed — FIXED: `SemanticCache.put` ignores empty or whitespace-only answers, so a failed generation is never replayed. One guard covers both callers in `npc_agent.py`.
 - [ ] python-01 #3 only the word "true" enables the cache — OPEN: `SEMANTIC_CACHE_ENABLED` is compared with "true", so "1" and "yes" silently disable it. Pinned. Whether to accept the usual truthy spellings is a config-convention decision that should apply to every flag, not just this one.
 - [-] python-01 #4 FIFO rather than LRU eviction — NOT A DEFECT: consistent with the code's own "evict oldest" comment and pinned so a change would be deliberate.
 - [-] python-01 #5 an entry is served at exactly `ttl` — NOT A DEFECT: an off-by-one-second boundary note on a `>=` cutoff, recorded as an observation.
 
 ## python-02-agy-provider.md
 
-- [ ] python-02 #1 an empty response is returned, not raised — OPEN: `{"response": ""}` with exit 0 yields an empty reply where the brief's intent is to raise. Pinned by "an empty response field comes back as an empty reply", so changing it is a contract decision, and it should be settled together with python-01 #2.
-- [ ] python-02 #2 a null response escapes as `ValidationError` — OPEN: `data["response"]` of `None` passes the parsing `try` and fails later inside `AIMessage(...)`, so it does not surface as the `RuntimeError` every other failure uses. `test_agy_chat_contract.py` pins exactly this (`ValidationError`, matching "AIMessage"), so making the type check raise `RuntimeError` is a deliberate contract change rather than a repair.
+- [x] python-02 #1 an empty response is returned, not raised — FIXED: `ChatAgy` raises `RuntimeError("agy returned no text ...")` when `response` is empty or whitespace.
+- [x] python-02 #2 a null response escapes as `ValidationError` — FIXED: the same check rejects a non-string `response`, so `null` surfaces as `RuntimeError` like every other agy failure, not a pydantic `ValidationError`.
 - [-] python-02 #3 stderr truncated to 500 characters — NOT A DEFECT: a deliberate cap, pinned; a CLI printing a long banner first is a hypothetical the author recorded as a note.
 - [-] python-02 #4 `TimeoutExpired.stderr` may be bytes — NOT A DEFECT: called out as harmless and not asserted.
 
@@ -94,7 +94,7 @@ Key: `[x]` fixed · `[ ]` open, needs a decision · `[-]` not a defect
 
 ## python-05-agent-wrapper.md
 
-- [ ] python-05 #1 a stream with no text caches an empty answer — OPEN: `stream_rag_agent` stores `""` when the model's chunks carry no text, and every anonymous paraphrase is then answered empty for an hour without calling the model. Pinned by "a stream with no text caches an empty answer and replays it". The same contract decision as python-01 #2 and python-02 #1 — whether an empty answer is a value or a failure — and all three should be settled together.
+- [x] python-05 #1 a stream with no text caches an empty answer — FIXED: covered by the python-01 #2 guard in `put`; the pinning test now asserts a textless stream reaches the model again on the next paraphrase.
 - [-] python-05 #2 the iteration-cap line is the brief's trap — NOT A DEFECT: an observation about test construction. The cap's fallback begins "Forgive me, my thoughts wandered", which would satisfy a loose apology check, so tests must exclude it first; these do.
 - [-] python-05 #3 the cache check precedes the retriever and the model — NOT A DEFECT: an observation that in-game requests pay no embedding cost for the cache.
 

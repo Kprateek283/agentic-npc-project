@@ -88,6 +88,11 @@ class ChatAgy(BaseChatModel):
                 f"Failed to parse agy JSON output (exit code {proc.returncode}, stderr: {stderr_preview!r}): {exc}"
             ) from exc
 
+        if not isinstance(response_text, str) or not response_text.strip():
+            raise RuntimeError(
+                f"agy returned no text (response={response_text!r}, stderr: {stderr_preview!r})"
+            )
+
         generation = ChatGeneration(message=AIMessage(content=response_text))
         return ChatResult(generations=[generation])
 
