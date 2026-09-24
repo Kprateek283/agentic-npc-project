@@ -22,6 +22,11 @@ import (
 
 // handleGifting applies the episode-based memory and diminishing returns logic for gifts
 func (qm *QuestManager) handleGifting(ctx context.Context, db *ent.Client, p *ent.Player, n *ent.NPC, itemID string) error {
+	return qm.handleGiftingAt(ctx, db, p, n, itemID, time.Now())
+}
+
+// handleGiftingAt is handleGifting recorded at the given instant.
+func (qm *QuestManager) handleGiftingAt(ctx context.Context, db *ent.Client, p *ent.Player, n *ent.NPC, itemID string, now time.Time) error {
 	itemDef, err := qm.getItemDefinition(itemID)
 	if err != nil {
 		return err
@@ -34,7 +39,6 @@ func (qm *QuestManager) handleGifting(ctx context.Context, db *ent.Client, p *en
 
 	v := clamp(itemDef.BaseTrustValue, -1.0, 1.0)
 	intensity := math.Abs(v)
-	now := time.Now()
 
 	cfg := memory.DefaultConfig()
 	if qm.Rules != nil {
