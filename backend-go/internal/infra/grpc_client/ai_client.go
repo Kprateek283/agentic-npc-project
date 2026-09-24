@@ -130,7 +130,7 @@ func (c *AIClient) CallAIThink(
 
 // CallAIThinkStream sends the same request but consumes a server stream, invoking onToken
 // for each text delta as it arrives (C3). It returns the full concatenated content once
-// the stream completes. No retry: a mid-stream failure returns whatever streamed so far
+// the stream completes, and the action type from the done frame ("SPEAK" if none arrives). No retry: a mid-stream failure returns whatever streamed so far
 // plus the error, and the caller decides how to finish.
 func (c *AIClient) CallAIThinkStream(
 	ctx context.Context,
@@ -146,16 +146,17 @@ func (c *AIClient) CallAIThinkStream(
 	currentQuestStep int,
 	completionRate float32,
 	onToken func(string),
-) (string, error) {
+) (string, string, error) {
 	req := buildEventRequest(personalityPath, backstoryPath, lorePath, speakerEmotions, generalMood, memoryLines,
 		eventType, questionText, sourceEntityId, currentQuestStep, completionRate)
 
 	ctx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
 
+	action := "SPEAK"
 	stream, err := c.client.ThinkStream(ctx, req)
 	if err != nil {
-		return "", err
+		return "", action, err
 	}
 
 	var full strings.Builder
@@ -165,15 +166,19 @@ func (c *AIClient) CallAIThinkStream(
 			break
 		}
 		if err != nil {
-			return full.String(), err
+			return full.String(), action, err
 		}
-		if chunk.Done {
-			break
-		}
+		// The done frame may carry text too; keep it before stopping.
 		if chunk.Text != "" {
 			full.WriteString(chunk.Text)
 			onToken(chunk.Text)
 		}
+		if chunk.Done {
+			if chunk.ActionType != "" {
+				action = chunk.ActionType
+			}
+			break
+		}
 	}
-	return full.String(), nil
+	return full.String(), action, nil
 }

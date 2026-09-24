@@ -537,7 +537,7 @@ func (h *WebSocketHandler) streamAI(conn *websocket.Conn, ctx context.Context, r
 
 	sent := 0
 	grpcStart := time.Now()
-	full, err := h.aiClient.CallAIThinkStream(ctx, a.personalityPath, a.backstoryPath, a.lorePath,
+	full, action, err := h.aiClient.CallAIThinkStream(ctx, a.personalityPath, a.backstoryPath, a.lorePath,
 		a.emotions, a.generalMood, a.memoryLines, a.eventType, a.text, a.sourceEntityId, a.questStep, a.completionRate,
 		func(tok string) {
 			sent++
@@ -556,8 +556,9 @@ func (h *WebSocketHandler) streamAI(conn *websocket.Conn, ctx context.Context, r
 	if err != nil {
 		log.Printf("[stream] errored after %d partial(s); finalizing with partial text: %v", sent, err)
 	}
-	// Final frame carries the whole content (non-streaming clients can ignore partials).
-	h.sendSimpleResponse(conn, "SPEAK", full)
+	// Final frame carries the whole content (non-streaming clients can ignore partials) under
+	// the action type the AI service chose.
+	h.sendSimpleResponse(conn, action, full)
 	return grpcMs, nil
 }
 

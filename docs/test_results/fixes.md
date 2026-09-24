@@ -32,8 +32,8 @@ Key: `[x]` fixed · `[ ]` open, needs a decision · `[-]` not a defect
 
 ## go-04-grpc-client-mapping.md
 
-- [ ] go-04 #1 the stream's action type is discarded — OPEN: `CallAIThinkStream` returns only text and `streamAI` always emits `SPEAK`, so a non-SPEAK action would be lost on the streaming path. Carrying it through changes the function's signature and the handler that consumes it; every path answers `SPEAK` today, so nothing is visibly broken.
-- [ ] go-04 #2 text on the done frame is dropped — OPEN: the loop breaks on `Done` before appending. The Python servicer sends `text=""` on done frames, and `ai_client_test.go` pins the dropping, so changing it is a contract decision between the two services rather than a repair.
+- [x] go-04 #1 the stream's action type is discarded — FIXED: `CallAIThinkStream` now returns the done frame's action type (SPEAK when none arrives), and `streamAI` sends its final frame under that type instead of a hard-coded SPEAK. Verified red with the action ignored.
+- [x] go-04 #2 text on the done frame is dropped — FIXED: text on the done frame is appended and forwarded before the loop stops. The Python servicer sends `text=""` on done today, so nothing changes on the wire now; a server that finishes with text no longer loses it. The pinning case now asserts "Yes and no."; verified red with done-frame text dropped.
 - [-] go-04 #3 two copies of the contract — NOT A DEFECT: the two `ai.proto` files are identical and `TestProtoContractCopiesMatch` now fails if they drift. Consolidating them is a build-layout change, not a defect.
 - [-] go-04 #4 unknown agent replies as speech — NOT A DEFECT: an observation about behaviour in the handler/servicer, outside this package, and reported as a note rather than wrong behaviour here.
 - [-] go-04 #5 unclamped float32 narrowing — NOT A DEFECT: the memory layer clamps before this point, so the narrowing cannot see an out-of-range value; recorded by the author as a note.

@@ -321,6 +321,7 @@ func tok(text string) *pb.TokenChunk { return &pb.TokenChunk{Text: text} }
 func done(text string) *pb.TokenChunk {
 	return &pb.TokenChunk{Text: text, Done: true, ActionType: "SPEAK"}
 }
+func doneAs(action string) *pb.TokenChunk { return &pb.TokenChunk{Done: true, ActionType: action} }
 
 func callThink(c *AIClient) (*pb.ActionResponse, error) {
 	return c.CallAIThink(context.Background(), "p.json", "b.json", "l.json",
@@ -386,12 +387,12 @@ func TestCallAIThink(t *testing.T) {
 	})
 }
 
-func streamCall(c *AIClient) (string, []string, error) {
+func streamCall(c *AIClient) (string, string, []string, error) {
 	var toks []string
-	full, err := c.CallAIThinkStream(context.Background(), "p.json", "b.json", "l.json",
+	full, action, err := c.CallAIThinkStream(context.Background(), "p.json", "b.json", "l.json",
 		map[string]float64{"trust": 0.5}, nil, nil, "PLAYER_ASKED_QUESTION", "What is the Sunstone?", "player1", 0, 0,
 		func(s string) { toks = append(toks, s) })
-	return full, toks, err
+	return full, action, toks, err
 }
 
 func TestCallAIThinkStream(t *testing.T) {
@@ -402,6 +403,7 @@ func TestCallAIThinkStream(t *testing.T) {
 		end        error
 		openErr    error
 		wantFull   string
+		wantAction string // "" means the default, SPEAK
 		wantTokens []string
 		wantCode   codes.Code
 		wantRecvs  int // -1 to skip
@@ -435,10 +437,25 @@ func TestCallAIThinkStream(t *testing.T) {
 			wantRecvs:  2,
 		},
 		{
-			name:       "text carried on the done frame itself is dropped",
+			name:       "text carried on the done frame itself is kept",
 			chunks:     []*pb.TokenChunk{tok("Yes"), done(" and no.")},
-			wantFull:   "Yes",
-			wantTokens: []string{"Yes"},
+			wantFull:   "Yes and no.",
+			wantTokens: []string{"Yes", " and no."},
+			wantRecvs:  2,
+		},
+		{
+			name:       "the done frame's action type is returned",
+			chunks:     []*pb.TokenChunk{tok("Take it."), doneAs("GIVE_ITEM")},
+			wantFull:   "Take it.",
+			wantAction: "GIVE_ITEM",
+			wantTokens: []string{"Take it."},
+			wantRecvs:  2,
+		},
+		{
+			name:       "a done frame with no action type falls back to SPEAK",
+			chunks:     []*pb.TokenChunk{tok("Hm."), doneAs("")},
+			wantFull:   "Hm.",
+			wantTokens: []string{"Hm."},
 			wantRecvs:  2,
 		},
 		{
@@ -468,9 +485,16 @@ func TestCallAIThinkStream(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			s := &fakeStream{chunks: tc.chunks, end: tc.end}
 			f := &fakeBrain{stream: s, streamErr: tc.openErr}
-			full, toks, err := streamCall(&AIClient{client: f, timeout: time.Hour})
+			full, action, toks, err := streamCall(&AIClient{client: f, timeout: time.Hour})
 			if full != tc.wantFull {
 				t.Errorf("full = %q, want %q", full, tc.wantFull)
+			}
+			wantAction := tc.wantAction
+			if wantAction == "" {
+				wantAction = "SPEAK"
+			}
+			if action != wantAction {
+				t.Errorf("action = %q, want %q", action, wantAction)
 			}
 			if len(toks) != 0 || len(tc.wantTokens) != 0 {
 				if !reflect.DeepEqual(toks, tc.wantTokens) {
@@ -501,7 +525,7 @@ func TestCallAIThinkStream(t *testing.T) {
 	t.Run("a non-status error from Recv is passed through unchanged", func(t *testing.T) {
 		boom := errors.New("boom")
 		f := &fakeBrain{stream: &fakeStream{end: boom}}
-		full, toks, err := streamCall(&AIClient{client: f, timeout: time.Hour})
+		full, _, toks, err := streamCall(&AIClient{client: f, timeout: time.Hour})
 		if full != "" || len(toks) != 0 || !errors.Is(err, boom) {
 			t.Errorf("got %q, %q, %v; want empty and boom", full, toks, err)
 		}
