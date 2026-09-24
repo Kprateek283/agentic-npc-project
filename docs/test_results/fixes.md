@@ -89,7 +89,7 @@ Key: `[x]` fixed · `[ ]` open, needs a decision · `[-]` not a defect
 ## python-04-prompt-templates.md
 
 - [x] python-04 #1 a brace in persona text breaks the lore path — FIXED: `build_rag_chain` escapes the persona's braces before joining it to the RAG template, so authored text reaches the model as written. The agent path sends the persona as a literal SystemMessage and was never affected, so the escape belongs at the template boundary, not in the loader. The pinning test now asserts the literal text arrives; removing the escape turns it red.
-- [ ] python-04 #2 the RAG template never explains the "after apologising" marker — OPEN: Go appends " — after apologising" to betrayal lines on both paths, but only `react_prompt.py` tells the model what it means ("A memory line ending 'after apologising' means that person broke an apology..."). The wording to add already exists verbatim in the sibling template and no test pins its absence, but adding it changes what the model sees on every lore answer, which is a prompt-design decision to sanction rather than a repair to make quietly.
+- [x] python-04 #2 the RAG template never explains the "after apologising" marker — FIXED: the RAG template now carries the same sentence as the react template ("A memory line ending 'after apologising' means that person broke an apology, which you may hold against them"); the rule-presence test requires it in both.
 - [-] python-04 #3 both templates repeat the "Toward you" paragraph — NOT A DEFECT: an observation about duplication, and the tests check both copies so they cannot drift apart silently.
 
 ## python-05-agent-wrapper.md

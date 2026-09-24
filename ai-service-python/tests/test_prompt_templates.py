@@ -170,8 +170,8 @@ REACT = [react_prompt_template]
         # You/Someone attribution.
         pytest.param(RAG, "do not accuse the current speaker of another's deed", id="rag: no blame for another's deed"),
         pytest.param(REACT, "do not blame the current person for what another did", id="react: no blame for another's deed"),
-        pytest.param(REACT, 'A memory line ending "after apologising" means that person broke an apology',
-                     id="react: broken apology marker"),
+        pytest.param(BOTH, 'A memory line ending "after apologising" means that person broke an apology',
+                     id="broken apology marker"),
         # Tool rules (event path).
         pytest.param(REACT, 'Never search for the event name itself (such as "PLAYER_THREW_STONE"); it is not lore.',
                      id="never search the lore book for an event name"),
