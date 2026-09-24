@@ -14,7 +14,6 @@ import re
 import langchain_qdrant
 import pytest
 from langchain_core.embeddings import Embeddings
-from pydantic import ValidationError
 
 import tools.lore_retriever_tool as lore_mod
 
@@ -70,23 +69,18 @@ def test_missing_or_malformed_lore_gives_no_tool(tmp_path, content):
 
 
 @pytest.mark.parametrize(
-    "content, error",
+    "content",
     [
-        pytest.param(["Marcus guards the gate."], AttributeError, id="a JSON list instead of an object"),
-        pytest.param({"known_facts": [42]}, ValidationError, id="a fact that is not a string"),
+        pytest.param(["Marcus guards the gate."], id="a JSON list instead of an object"),
+        pytest.param({"known_facts": [42]}, id="a fact that is not a string"),
+        pytest.param({"known_facts": ["Marcus guards the gate.", None]}, id="one bad fact among good ones"),
+        pytest.param({"known_facts": "gate"}, id="a string instead of a list"),
+        pytest.param({"known_facts": {"gate": "Marcus"}}, id="an object instead of a list"),
     ],
 )
-def test_lore_of_the_wrong_shape_raises(tmp_path, content, error):
-    # Pinned, not endorsed (see the results file): only unreadable JSON is caught; valid JSON of
-    # the wrong shape raises out of create_lore_tool_from_file and stops the agent from loading.
-    with pytest.raises(error):
-        lore_mod.create_lore_tool_from_file(lore_file(tmp_path, content))
-
-
-def test_a_string_instead_of_a_list_is_split_into_single_characters(tmp_path):
-    # Pinned, not endorsed: iterating a string gives one "fact" per character.
-    retriever, _ = lore_mod.create_lore_tool_from_file(lore_file(tmp_path, {"known_facts": "gate"}))
-    assert sorted(d.page_content for d in retriever.vectorstore.docstore._dict.values()) == ["a", "e", "g", "t"]
+def test_lore_of_the_wrong_shape_gives_no_tool(tmp_path, content):
+    # Wrong shape costs the NPC its lore tool, like a missing file, never its whole agent.
+    assert lore_mod.create_lore_tool_from_file(lore_file(tmp_path, content)) == (None, None)
 
 
 @pytest.mark.parametrize(

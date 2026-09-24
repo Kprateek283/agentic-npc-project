@@ -55,7 +55,11 @@ def create_lore_tool_from_file(lore_file_path: str):
         logger.exception("Failed to read or parse JSON from %s: %s", lore_file_path, e)
         return None, None
 
-    lore_facts = data.get("known_facts", [])
+    # A malformed file costs the NPC its lore tool, like a missing one, not its whole agent.
+    lore_facts = data.get("known_facts", []) if isinstance(data, dict) else None
+    if not isinstance(lore_facts, list) or not all(isinstance(fact, str) for fact in lore_facts):
+        logger.error("%s: 'known_facts' must be a list of strings; skipping the lore tool.", lore_file_path)
+        return None, None
     if not lore_facts:
         logger.warning("No 'known_facts' found in %s.", lore_file_path)
         return None, None
