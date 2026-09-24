@@ -62,3 +62,18 @@ Key: `[x]` fixed · `[ ]` open, needs a decision · `[-]` not a defect
 - [ ] go-07 #5 seeding never updates — OPEN: both seeders use `ON CONFLICT DO NOTHING`, so gamedata edits never reach an existing database despite the "Synchronizing with database" log. `seeder_test.go` pins the leave-it-alone behaviour, so update-on-conflict is a deliberate change.
 - [-] go-07 #6 `main_quest_1.json` is never seeded — NOT A DEFECT: only `definitions/sq_*.json` is read and nothing in the Go code refers to that file; recorded as an observation about unused data.
 - [-] go-07 #7 duplicate personality names collapse — NOT A DEFECT: an observation about glob order with no wrong behaviour reported in today's data.
+
+## python-01-semantic-cache.md
+
+- [ ] python-01 #1 the Python suite is red — OPEN, and it blocks future Python work. `tests/test_agy_chat.py::test_config_with_agy_provider` fails with `ValueError: GEMINI_API_KEY is required when LLM_PROVIDER=gemini`: its monkeypatch teardown removes the `ollama` default `conftest.py` sets, and the reload then falls back to `gemini`. The test exists on this branch too. The defect is in the test's env handling, and tests are not mine to change; the alternative repair — stopping `config` raising on import — is a startup-policy decision. Until it is settled, no Python fix can be verified by a clean suite run.
+- [ ] python-01 #2 an empty answer is cached and replayed — OPEN: `put` stores any string and `get` treats "" as a hit, so a stream that produced no text serves an empty reply to every paraphrase for an hour. Pinned by "an empty answer is stored and served", so refusing empty values is a deliberate change; it also interacts with python-02 #1.
+- [ ] python-01 #3 only the word "true" enables the cache — OPEN: `SEMANTIC_CACHE_ENABLED` is compared with "true", so "1" and "yes" silently disable it. Pinned. Whether to accept the usual truthy spellings is a config-convention decision that should apply to every flag, not just this one.
+- [-] python-01 #4 FIFO rather than LRU eviction — NOT A DEFECT: consistent with the code's own "evict oldest" comment and pinned so a change would be deliberate.
+- [-] python-01 #5 an entry is served at exactly `ttl` — NOT A DEFECT: an off-by-one-second boundary note on a `>=` cutoff, recorded as an observation.
+
+## python-02-agy-provider.md
+
+- [ ] python-02 #1 an empty response is returned, not raised — OPEN: `{"response": ""}` with exit 0 yields an empty reply where the brief's intent is to raise. Pinned by "an empty response field comes back as an empty reply", so changing it is a contract decision, and it should be settled together with python-01 #2.
+- [ ] python-02 #2 a null response escapes as `ValidationError` — OPEN: `data["response"]` of `None` passes the parsing `try` and fails later inside `AIMessage(...)`, so it does not surface as the `RuntimeError` every other failure uses. `test_agy_chat_contract.py` pins exactly this (`ValidationError`, matching "AIMessage"), so making the type check raise `RuntimeError` is a deliberate contract change rather than a repair.
+- [-] python-02 #3 stderr truncated to 500 characters — NOT A DEFECT: a deliberate cap, pinned; a CLI printing a long banner first is a hypothetical the author recorded as a note.
+- [-] python-02 #4 `TimeoutExpired.stderr` may be bytes — NOT A DEFECT: called out as harmless and not asserted.
