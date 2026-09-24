@@ -1,5 +1,5 @@
 {
-  "benchmark": "streaming_ttft_ollama",
+  "benchmark": "streaming_ttft_agy",
   "run_date": "2026-09-25",
   "hardware": {
     "platform": "Linux-6.19.10-300.fc44.x86_64-x86_64-with-glibc2.43",
@@ -9,23 +9,23 @@
     "memory": "16058820 kB",
     "gpu": "none detected"
   },
-  "provider": "ollama",
+  "provider": "agy",
   "questions": 3,
   "reps": 2,
   "ttft_ms": {
     "n": 6,
-    "median_ms": 1311.15,
-    "p95_ms": 35954.01,
-    "min_ms": 932.32,
-    "max_ms": 35954.01,
-    "mean_ms": 12684.54
+    "median_ms": 14191.36,
+    "p95_ms": 17929.81,
+    "min_ms": 12578.52,
+    "max_ms": 17929.81,
+    "mean_ms": 14876.63
   },
   "total_ms": {
     "n": 6,
-    "median_ms": 31151.11,
-    "p95_ms": 52451.09,
-    "min_ms": 23073.01,
-    "max_ms": 52451.09,
-    "mean_ms": 35369.91
+    "median_ms": 14191.75,
+    "p95_ms": 17930.18,
+    "min_ms": 12578.81,
+    "max_ms": 17930.18,
+    "mean_ms": 14876.97
   }
 }

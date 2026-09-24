@@ -1,30 +1,30 @@
 {
   "benchmark": "semantic_cache",
-  "run_date": "2026-07-20",
+  "run_date": "2026-09-25",
   "hardware": {
-    "platform": "Linux-6.14.0-33-generic-x86_64-with-glibc2.39",
-    "python": "3.12.3",
+    "platform": "Linux-6.19.10-300.fc44.x86_64-x86_64-with-glibc2.43",
+    "python": "3.12.14",
     "cpus": "16",
     "cpu": "12th Gen Intel(R) Core(TM) i5-1240P",
-    "memory": "16072120 kB",
-    "gpu": "NVIDIA GeForce RTX 2050"
+    "memory": "16058820 kB",
+    "gpu": "none detected"
   },
   "questions": 4,
   "hit_rate_round2": 1.0,
   "miss_ms": {
     "n": 4,
-    "median_ms": 20838.36,
-    "p95_ms": 23165.33,
-    "min_ms": 18022.56,
-    "max_ms": 23165.33,
-    "mean_ms": 20716.15
+    "median_ms": 46454.65,
+    "p95_ms": 49347.36,
+    "min_ms": 44737.35,
+    "max_ms": 49347.36,
+    "mean_ms": 46748.5
   },
   "hit_ms": {
     "n": 4,
-    "median_ms": 64.64,
-    "p95_ms": 3168.22,
-    "min_ms": 42.42,
-    "max_ms": 3168.22,
-    "mean_ms": 834.98
+    "median_ms": 72.91,
+    "p95_ms": 92.92,
+    "min_ms": 65.14,
+    "max_ms": 92.92,
+    "mean_ms": 75.97
   }
 }
