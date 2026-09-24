@@ -100,15 +100,17 @@ def test_rag_prompt_with_no_lore_says_the_npc_knows_nothing():
     assert "**LORE FACTS YOU KNOW:**\n(You know nothing about this.)" in system.content
 
 
-def test_a_brace_in_persona_text_becomes_a_placeholder_the_chain_never_fills(tmp_path):
-    # Pinned, not endorsed (see the results file): persona text is not escaped before it is
-    # joined to the RAG template, so "{weapon}" in a backstory becomes a template variable.
-    (tmp_path / "personality.json").write_text('{"name": "Tess", "occupation": "Smith", "summary": "Gruff."}')
+def test_a_brace_in_persona_text_reaches_the_model_as_written(tmp_path):
+    # A "{weapon}" in a backstory is authored text; it used to become a template variable the
+    # chain never fills, so every lore question to that NPC raised KeyError.
+    (tmp_path / "personality.json").write_text('{"name": "Tess", "occupation": "Smith", "summary": "Gruff {mostly}."}')
     (tmp_path / "backstory.json").write_text('{"core_facts": [{"fact": "Her favourite {weapon} is a hammer."}]}')
     static, *_ = load_static_prompt(str(tmp_path / "personality.json"), str(tmp_path / "backstory.json"))
     prompt_chain, _ = build_rag_chain(static, RunnableLambda(lambda q: []))
-    with pytest.raises(KeyError, match="weapon"):
-        prompt_chain.invoke({"question": "Hi", **format_dynamic_context(CONTEXT)})
+    system = prompt_chain.invoke({"question": "Hi", **format_dynamic_context(CONTEXT)}).to_messages()[0].content
+    assert "Her favourite {weapon} is a hammer." in system
+    assert "Gruff {mostly}." in system
+    assert "{{" not in system
 
 
 def test_react_prompt_reaches_the_model_through_the_agent_with_every_value_in_place(monkeypatch):

@@ -18,8 +18,11 @@ def build_rag_chain(static_system_prompt: str, lore_retriever):
     The prompt is the shared one from prompts/rag_prompt.py — persona, grounding rules,
     retrieved lore and the live game state, in one place.
     """
+    # The persona is authored text, not template: escape its braces so a "{word}" in a
+    # backstory reaches the model as written instead of becoming an unfilled variable.
+    persona = static_system_prompt.replace("{", "{{").replace("}", "}}")
     full_rag_prompt = ChatPromptTemplate.from_messages([
-        ("system", static_system_prompt + rag_prompt.template),
+        ("system", persona + rag_prompt.template),
         ("human", "{question}"),
     ])
 
