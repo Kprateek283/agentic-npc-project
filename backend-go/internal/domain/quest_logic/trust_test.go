@@ -581,3 +581,34 @@ func TestTrustRowDescriptionsStartWithTheActor(t *testing.T) {
 		}
 	})
 }
+
+// A gift that lowers trust is an insult: it is stored as harm, so repeats escalate and an
+// apology can forgive it. A gift that raises trust is not. Both are remembered by item name.
+func TestGiftRowsRecordHarmAndTheItemName(t *testing.T) {
+	e := newTrustEnv(t)
+	e.gift(t, "p1", "Elara", "rotten_fish", t0)
+	e.gift(t, "p1", "Elara", "apple", t0)
+	_, rows, err := npcstate.Load(e.ctx, e.db, e.npcs["Elara"])
+	if err != nil {
+		t.Fatalf("npcstate.Load: %v", err)
+	}
+	want := map[string]struct {
+		harmful bool
+		desc    string
+	}{
+		"rotten_fish": {true, "p1 gave me Rotten Fish"},
+		"apple":       {false, "p1 gave me Apple"},
+	}
+	if len(rows) != len(want) {
+		t.Fatalf("rows = %d, want %d", len(rows), len(want))
+	}
+	for _, r := range rows {
+		w, ok := want[r.Subject]
+		if !ok {
+			t.Fatalf("unexpected row for %q", r.Subject)
+		}
+		if r.Harmful != w.harmful || r.Description != w.desc {
+			t.Errorf("%s: harmful=%v desc=%q, want harmful=%v desc=%q", r.Subject, r.Harmful, r.Description, w.harmful, w.desc)
+		}
+	}
+}

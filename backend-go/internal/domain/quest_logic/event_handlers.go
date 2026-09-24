@@ -83,7 +83,11 @@ func (qm *QuestManager) handleGiftingAt(ctx context.Context, db *ent.Client, p *
 		return nil
 	}
 
-	memoryDesc := fmt.Sprintf("%s gave %s to %s", p.PlayerID, itemID, n.Name)
+	itemName := itemDef.Name
+	if itemName == "" {
+		itemName = itemID
+	}
+	memoryDesc := fmt.Sprintf("%s gave me %s", p.PlayerID, itemName)
 	_, err = db.Memory.Create().
 		SetOwner(n).
 		SetActor(p.PlayerID).
@@ -91,7 +95,9 @@ func (qm *QuestManager) handleGiftingAt(ctx context.Context, db *ent.Client, p *
 		SetSubject(itemID).
 		SetDelta(map[string]float64{"trust": v}).
 		SetIntensity(intensity).
-		SetHarmful(false).
+		// A gift that lowers trust (junk like a rotten fish) is an insult: repeats escalate
+		// like other harm and an apology can forgive it.
+		SetHarmful(v < 0).
 		SetCount(1.0).
 		SetFirstAt(now).
 		SetLastAt(now).
