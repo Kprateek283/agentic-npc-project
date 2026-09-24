@@ -44,7 +44,7 @@ func TestAllowAgainstRedis(t *testing.T) {
 	defer rdb.Del(ctx, key)
 
 	limit := 3
-	window := 2 * time.Second
+	window := time.Minute
 
 	// Call 1: allowed, count 1
 	allowed, count, err := Allow(ctx, rdb, key, limit, window)
@@ -64,8 +64,12 @@ func TestAllowAgainstRedis(t *testing.T) {
 		t.Fatalf("expected TTL > 0 after call 1, got %v", ttl1)
 	}
 
-	// Small pause so any TTL extension would be measurable
-	time.Sleep(100 * time.Millisecond)
+	// Shorten the TTL by hand. EXPIRE NX must leave it alone, so if a later call reset it to
+	// the window, the TTL would jump back to about a minute. No sleep needed to see that.
+	if err := rdb.Expire(ctx, key, 5*time.Second).Err(); err != nil {
+		t.Fatalf("failed to shorten TTL: %v", err)
+	}
+	ttl1 = 5 * time.Second
 
 	// Call 2: allowed, count 2
 	allowed, count, err = Allow(ctx, rdb, key, limit, window)
@@ -103,8 +107,10 @@ func TestAllowAgainstRedis(t *testing.T) {
 		t.Fatalf("call 4: expected allowed=false, count=4; got allowed=%v, count=%d", allowed, count)
 	}
 
-	// After sleeping past the window, the next call is allowed with count 1
-	time.Sleep(window + 100*time.Millisecond)
+	// When the window ends Redis drops the key; deleting it is the same state without waiting.
+	if err := rdb.Del(ctx, key).Err(); err != nil {
+		t.Fatalf("failed to end the window: %v", err)
+	}
 
 	allowed, count, err = Allow(ctx, rdb, key, limit, window)
 	if err != nil {

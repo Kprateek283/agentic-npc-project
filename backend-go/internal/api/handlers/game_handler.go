@@ -134,13 +134,7 @@ func (h *WebSocketHandler) HandleGameEvent(conn *websocket.Conn, ctx context.Con
 	}
 
 	// 5. Rate limit check before calling the AI service
-	rlCtx, rlCancel := context.WithTimeout(ctx, 200*time.Millisecond)
-	allowed, count, err := ratelimit.Allow(rlCtx, h.redisClient, "ratelimit:llm:"+event.SourceEntityId, h.llmRateLimit, h.llmRateWindow)
-	rlCancel()
-	if err != nil {
-		slog.Warn("rate_limit_unavailable", "req_id", reqID, "player", event.SourceEntityId, "err", err.Error())
-	} else if !allowed {
-		slog.Warn("rate_limited", "req_id", reqID, "player", event.SourceEntityId, "count", count)
+	if !h.allowLLM(ctx, reqID, event.SourceEntityId) {
 		h.sendSimpleResponse(conn, "SPEAK", rateLimitedLine)
 		return
 	}
@@ -581,4 +575,20 @@ func (h *WebSocketHandler) getPlayerQuestState(ctx context.Context, player *ent.
 	}
 
 	return 0, 0.0 // Default if no active quest
+}
+
+// allowLLM applies the per-player LLM rate limit. Redis being down or slow must never block
+// play, so any limiter error allows the call (fail open) and is only logged.
+func (h *WebSocketHandler) allowLLM(ctx context.Context, reqID, player string) bool {
+	rlCtx, cancel := context.WithTimeout(ctx, 200*time.Millisecond)
+	defer cancel()
+	allowed, count, err := ratelimit.Allow(rlCtx, h.redisClient, "ratelimit:llm:"+player, h.llmRateLimit, h.llmRateWindow)
+	if err != nil {
+		slog.Warn("rate_limit_unavailable", "req_id", reqID, "player", player, "err", err.Error())
+		return true
+	}
+	if !allowed {
+		slog.Warn("rate_limited", "req_id", reqID, "player", player, "count", count)
+	}
+	return allowed
 }

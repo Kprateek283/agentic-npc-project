@@ -48,9 +48,9 @@ Key: `[x]` fixed · `[ ]` open, needs a decision · `[-]` not a defect
 
 ## go-06-rate-limiting-offline.md
 
-- [ ] go-06 #1 the fail-open branch is untested — OPEN: covering it needs a seam in `HandleGameEvent` (extracting the rate-limit decision). That is a refactor of handler structure to serve testability, and the shape of the seam is a decision for whoever takes the handler.
+- [x] go-06 #1 the fail-open branch is untested — FIXED: the rate-limit decision moved into `WebSocketHandler.allowLLM`, which returns true on any limiter error. New `TestAllowLLMFailsOpen` covers no client and an unreachable Redis offline; verified red with the error path returning false.
 - [-] go-06 #2 sub-second windows rounded up by go-redis — NOT A DEFECT: configuration cannot produce one today (`LLM_RATE_WINDOW_SECONDS` is whole seconds); recorded as a note for a future caller.
-- [ ] go-06 #3 the optional real-Redis test sleeps — OPEN: `TestAllowAgainstRedis` uses `time.Sleep` against the brief's "never add a sleep" rule. It is a defect in a test, and tests are not mine to rewrite; it only runs with `REDIS_ADDR` set, so CI is unaffected.
+- [x] go-06 #3 the optional real-Redis test sleeps — FIXED: both sleeps replaced: the TTL is shortened by hand so an extension shows as a jump back to the window, and the key is deleted to end the window. The old check could not catch a missing NX (TTL has 1 s resolution); the new one does, verified by swapping ExpireNX for Expire. Runs in 0.00 s instead of ~2.2 s.
 - [-] go-06 #4 refused calls keep incrementing — NOT A DEFECT: this is the fixed-window design working as intended; hammering does not extend the lockout, and the behaviour is pinned.
 
 ## go-07-seeding.md
