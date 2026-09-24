@@ -184,8 +184,9 @@ def test_config_with_agy_provider(monkeypatch: pytest.MonkeyPatch) -> None:
     assert reloaded_config.CHAT_MODEL_LIGHT == "agy (gemini-3.5-flash)"
     assert reloaded_config.CHAT_MODEL_HEAVY == reloaded_config.OLLAMA_MODEL_HEAVY
 
-    # Clean up by reloading config back to default environment
-    monkeypatch.delenv("LLM_PROVIDER", raising=False)
+    # Reload back to the provider conftest.py sets; deleting it would fall back to gemini,
+    # which needs GEMINI_API_KEY and fails in CI.
+    monkeypatch.setenv("LLM_PROVIDER", "ollama")
     monkeypatch.delenv("AGY_BIN", raising=False)
     monkeypatch.delenv("AGY_TIMEOUT_S", raising=False)
     monkeypatch.delenv("AGY_MODEL", raising=False)
