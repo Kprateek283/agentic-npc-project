@@ -402,6 +402,11 @@ type aiRequestArgs struct {
 
 // buildAIArgs reads the state and computes emotions, general mood, and ranked memory lines.
 func (h *WebSocketHandler) buildAIArgs(ctx context.Context, event EventMessage, npc *ent.NPC, player *ent.Player) (*aiRequestArgs, error) {
+	return h.buildAIArgsAt(ctx, event, npc, player, time.Now())
+}
+
+// buildAIArgsAt is buildAIArgs evaluated at a given instant, so tests can use fixed times.
+func (h *WebSocketHandler) buildAIArgsAt(ctx context.Context, event EventMessage, npc *ent.NPC, player *ent.Player, now time.Time) (*aiRequestArgs, error) {
 	if npc == nil {
 		var err error
 		npc, err = h.questManager.GetNpc(ctx, h.dbClient, event.TargetNpcName)
@@ -427,7 +432,6 @@ func (h *WebSocketHandler) buildAIArgs(ctx context.Context, event EventMessage, 
 		return nil, err
 	}
 
-	now := time.Now()
 	speakerEmotions := memory.EmotionsToward(player.PlayerID, eps, now, cfg)
 	generalMood := memory.GeneralMood(eps, now, cfg)
 

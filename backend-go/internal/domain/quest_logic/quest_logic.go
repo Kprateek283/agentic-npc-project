@@ -62,6 +62,11 @@ func keywordMatches(eventType, keyword, text string) bool {
 
 // checkQuestCompletion is the main quest logic loop
 func (qm *QuestManager) checkQuestCompletion(ctx context.Context, db *ent.Client, p *ent.Player, n *ent.NPC, event dto.EventMessage) (failResponse *FailResponseAction, err error) {
+	return qm.checkQuestCompletionAt(ctx, db, p, n, event, time.Now())
+}
+
+// checkQuestCompletionAt is checkQuestCompletion evaluated at the given instant.
+func (qm *QuestManager) checkQuestCompletionAt(ctx context.Context, db *ent.Client, p *ent.Player, n *ent.NPC, event dto.EventMessage, now time.Time) (failResponse *FailResponseAction, err error) {
 	// Find all active quests for this player
 	activeQuests, err := db.PlayerQuestState.Query().Where(
 		entplayerqueststate.HasPlayerWith(entplayer.IDEQ(p.ID)),
@@ -112,7 +117,7 @@ func (qm *QuestManager) checkQuestCompletion(ctx context.Context, db *ent.Client
 			slog.Debug("event matches trigger", "quest_id", questState.QuestIdentifier, "step", currentStepStr)
 
 			// Event matches! Now check preconditions
-			preconditionsMet, err := qm.checkPreconditions(ctx, db, p, n, stepDef.Preconditions)
+			preconditionsMet, err := qm.checkPreconditionsAt(ctx, db, p, n, stepDef.Preconditions, now)
 			if err != nil {
 				return nil, err
 			}
@@ -122,7 +127,7 @@ func (qm *QuestManager) checkQuestCompletion(ctx context.Context, db *ent.Client
 			}
 
 			// Preconditions met! Apply rewards
-			if err := qm.applyRewards(ctx, db, p, n, stepDef.Rewards); err != nil {
+			if err := qm.applyRewards(ctx, db, p, n, stepDef.Rewards, now); err != nil {
 				log.Printf("Warning: failed to apply rewards: %v", err)
 				// Don't block quest completion on reward failure
 			} else {
@@ -156,8 +161,8 @@ func (qm *QuestManager) checkQuestCompletion(ctx context.Context, db *ent.Client
 	return nil, nil // Event didn't trigger any active quest steps
 }
 
-// checkPreconditions validates all rules for a quest step
-func (qm *QuestManager) checkPreconditions(ctx context.Context, db *ent.Client, p *ent.Player, n *ent.NPC, preconditions []Precondition) (bool, error) {
+// checkPreconditionsAt validates all rules for a quest step at the given instant
+func (qm *QuestManager) checkPreconditionsAt(ctx context.Context, db *ent.Client, p *ent.Player, n *ent.NPC, preconditions []Precondition, now time.Time) (bool, error) {
 	slog.Debug("checking preconditions", "player_id", p.PlayerID, "npc_name", n.Name)
 	for _, precond := range preconditions {
 		slog.Debug("checking precondition type", "type", precond.Type)
@@ -172,7 +177,7 @@ func (qm *QuestManager) checkPreconditions(ctx context.Context, db *ent.Client, 
 				slog.Debug("error loading npc memories", "error", err)
 				return false, err
 			}
-			currentTrust := npcstate.TrustToward(eps, p.PlayerID, time.Now(), cfg)
+			currentTrust := npcstate.TrustToward(eps, p.PlayerID, now, cfg)
 			slog.Debug("got relationship trust", "trust_level", currentTrust)
 			slog.Debug("comparing trust", "current", currentTrust, "operator", precond.Operator, "target", precond.Value)
 
@@ -208,7 +213,7 @@ func (qm *QuestManager) checkPreconditions(ctx context.Context, db *ent.Client, 
 }
 
 // applyRewards gives the player items, XP, or relationship changes
-func (qm *QuestManager) applyRewards(ctx context.Context, db *ent.Client, p *ent.Player, n *ent.NPC, rewards Rewards) error {
+func (qm *QuestManager) applyRewards(ctx context.Context, db *ent.Client, p *ent.Player, n *ent.NPC, rewards Rewards, now time.Time) error {
 	// 1. Apply Relationship Change
 	if rewards.RelationshipChange.TargetNPCName != "" {
 		targetNpcName := rewards.RelationshipChange.TargetNPCName
@@ -232,7 +237,6 @@ func (qm *QuestManager) applyRewards(ctx context.Context, db *ent.Client, p *ent
 		}
 
 		v := clamp(trustChange, -1.0, 1.0)
-		now := time.Now()
 		_, err = db.Memory.Create().
 			SetOwner(rewardNpc).
 			SetActor(p.PlayerID).
