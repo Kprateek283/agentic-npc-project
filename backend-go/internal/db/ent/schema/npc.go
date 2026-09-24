@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 )
 
-
 // NPC holds the schema definition for the NPC entity.
 type NPC struct {
 	ent.Schema
