@@ -21,6 +21,11 @@ OLLAMA_MODEL_HEAVY = os.getenv("OLLAMA_MODEL_HEAVY", "llama3.1:8b")
 OLLAMA_MODEL_LIGHT = os.getenv("OLLAMA_MODEL_LIGHT", OLLAMA_MODEL_HEAVY)
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "nomic-embed-text")
 
+# Configuration for local agy experiment provider (see docs/agy_provider_experiment.md).
+AGY_BIN = os.getenv("AGY_BIN", "agy")
+AGY_TIMEOUT_S = int(os.getenv("AGY_TIMEOUT_S", "120"))
+AGY_MODEL = os.getenv("AGY_MODEL")
+
 # The library default is 6 retries. On a free-tier key that is actively harmful: the first
 # 429 triggers a retry storm that burns the rest of the daily quota (it cost a whole eval
 # sample once). Retrying a per-day quota error cannot succeed anyway. Read at module level
@@ -50,8 +55,21 @@ elif LLM_PROVIDER == "ollama":
     llm_heavy = ChatOllama(model=OLLAMA_MODEL_HEAVY, base_url=OLLAMA_HOST, temperature=0.7)
     CHAT_MODEL_LIGHT, CHAT_MODEL_HEAVY = OLLAMA_MODEL_LIGHT, OLLAMA_MODEL_HEAVY
 
+elif LLM_PROVIDER == "agy":
+    # Local experiment only: uses host-installed agy CLI for the lore path (light LLM).
+    # Event path (heavy LLM) uses Ollama because agy does not support tool-calling.
+    from agy_chat import ChatAgy
+    from langchain_ollama.chat_models import ChatOllama
+
+    llm_light = ChatAgy(binary=AGY_BIN, timeout_s=AGY_TIMEOUT_S, model=AGY_MODEL)
+    llm_heavy = ChatOllama(model=OLLAMA_MODEL_HEAVY, base_url=OLLAMA_HOST, temperature=0.7)
+    CHAT_MODEL_LIGHT = f"agy ({AGY_MODEL})" if AGY_MODEL else "agy"
+    CHAT_MODEL_HEAVY = OLLAMA_MODEL_HEAVY
+
 else:
-    raise ValueError(f"Unsupported LLM_PROVIDER={LLM_PROVIDER!r} (expected 'gemini' or 'ollama')")
+    raise ValueError(
+        f"Unsupported LLM_PROVIDER={LLM_PROVIDER!r} (expected 'gemini', 'ollama', or 'agy')"
+    )
 
 # --- Embeddings always run locally on Ollama, regardless of chat provider ---
 embeddings = OllamaEmbeddings(model=EMBEDDING_MODEL, base_url=OLLAMA_HOST)
