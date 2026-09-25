@@ -194,24 +194,25 @@ eval results lie about which backend produced them.
 
 Every figure comes from a committed, re-runnable script — see
 [`docs/benchmarks.md`](docs/benchmarks.md) for methodology, hardware, both measurement dates
-and full tables. Local and agy figures are from 2026-09-25 on a laptop under memory pressure
-(8B model half on a 4 GB GPU), so treat them as indicative.
+and full tables. Local and agy figures are from 2026-09-25 on a laptop (8B model half on a
+4 GB GPU, largely CPU-bound), so treat them as indicative.
 
 | Path | Median | Sample | What it measures |
 |---|---|---|---|
-| gRPC round trip (no LLM) | **0.16 ms** | n=200 | protobuf + HTTP/2 + routing |
-| End-to-end infra (WebSocket → Go → gRPC → Python) | **4.01 ms** | n=100 | full orchestration incl. memory and emotions, no inference |
-| Lore path, local (llama3.1:8b) | **12.9 s** | n=30 | full answer |
-| Lore path, agy CLI | **14.3 s** | n=30 | full answer; steadier (p95 16.2 s vs 32.6 s) |
-| Event path, local | **24.5 s** | n=15 | full agent run |
-| Lore streaming, local | **1.3 s** to first token | n=6 | ~36 s on the first question to an NPC, ~1 s after |
+| gRPC round trip (no LLM) | **0.32 ms** | n=200 | protobuf + HTTP/2 + routing |
+| End-to-end infra (WebSocket → Go → gRPC → Python) | **3.76 ms** | n=100 | full orchestration incl. memory and emotions, no inference |
+| Lore path, local (llama3.1:8b) | **13.6 s** | n=30 | full answer |
+| Lore path, agy CLI | **14.4 s** | n=30 | full answer; steadier (p95 16.9 s vs 28.8 s) |
+| Event path, local | **27.4 s** | n=15 | full agent run |
+| Lore streaming, local | **0.54 s** to first token | n=6 | ~14 s on the first question to an NPC, ~0.5 s after |
+| Semantic cache hit | **39 ms** | n=4 | vs 16.3 s for the miss; 4/4 repeats hit |
 
 Gemini figures (2.87 s lore, n=3; 5.43 s agent, n=1) are from 2026-07-18, before Memory v1,
 and have not been re-run; see the benchmarks doc for their full context.
 
-**Headline:** orchestration is ~4 ms; inference is seconds. The Go/gRPC layer is about 0.03%
+**Headline:** orchestration is under 4 ms; inference is seconds. The Go/gRPC layer is about 0.03%
 of a lore answer — latency is inference-dominated, not an infrastructure bottleneck.
-(Earlier README figures of ~14 ms gRPC were never measured; the real value is about 90×
+(Earlier README figures of ~14 ms gRPC were never measured; the real value is about 40×
 lower.)
 
 ## Evaluation (lore answer quality)

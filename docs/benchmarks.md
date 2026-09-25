@@ -8,14 +8,15 @@ measured value wins and the README is corrected to match.
 ## Hardware & software
 
 Two measurement dates are in this file. Every local and agy number was re-run on
-**2026-09-25** against commit `7656cff` (branch `test-suite-review-fixes`); the Gemini
+**2026-09-25** against commit `7656cff` (branch `test-suite-review-fixes`), with memory
+freed before the run; the Gemini
 figures are from **2026-07-18** and were not re-run (no key). Numbers from different dates
 are not directly comparable — the OS, GPU driver and code all changed in between.
 
 | | 2026-09-25 (local, agy, infra) | 2026-07-18 (Gemini only) |
 |---|---|---|
 | CPU | 12th Gen Intel Core i5-1240P (16 threads) | same |
-| RAM | ~15.3 GB; **5.4–5.8 GB of swap in use** during the runs | ~15.3 GB |
+| RAM | ~15.3 GB; 11–12 GB available at the start, no disk swap (1.2 GB compressed zram) | ~15.3 GB |
 | GPU | RTX 2050 4 GB via **Vulkan (open-source NVK driver)**; Ollama puts 16/33 llama3.1 layers on it | RTX 2050 4 GB, proprietary driver |
 | OS / Python | Fedora 44, Linux 6.19, Python 3.12.14 | Linux 6.14, Python 3.12.3 |
 | Ollama | 0.34.2 — llama3.1:8b (chat), nomic-embed-text (embeddings) | llama3.1:8b, nomic-embed-text |
@@ -23,9 +24,10 @@ are not directly comparable — the OS, GPU driver and code all changed in betwe
 | Code | Memory v1 + test-suite fixes, `AGENT_MAX_ITERATIONS=5` (shipped default) | commit `095bf7e`, before Memory v1 |
 
 The 4 GB GPU holds only half of an 8B model, so local inference is largely CPU-bound — local
-latency here describes a laptop, not a served GPU deployment. The machine was also under
-memory pressure (swap in use), which makes local timings noisy: two runs of the same RAG
-path an hour apart differed by up to 2×. State both caveats with any local figure.
+latency here describes a laptop, not a served GPU deployment, and it is noisy: an earlier
+run the same morning with 5.4 GB swapped out gave 12.9 s / 24.5 s for the two local paths
+against 13.6 s / 27.4 s here, while single calls varied up to 2× between runs. State both
+caveats with any local figure.
 
 ## Infrastructure latency (no LLM in the path)
 
@@ -34,22 +36,23 @@ the non-LLM branch of the router. Measured 2026-09-25.
 
 | Measurement | Median | p95 | n | Script |
 |---|---|---|---|---|
-| gRPC round-trip (client → Python → response) | **0.16 ms** | 0.71 ms | 200 | `grpc_roundtrip.py` |
-| End-to-end infra (WebSocket → Go → gRPC → Python → back) | **4.01 ms** | 6.23 ms | 100 | `ws_e2e.py` |
+| gRPC round-trip (client → Python → response) | **0.32 ms** | 0.76 ms | 200 | `grpc_roundtrip.py` |
+| End-to-end infra (WebSocket → Go → gRPC → Python → back) | **3.76 ms** | 4.89 ms | 100 | `ws_e2e.py` |
 
 The end-to-end path now includes the Memory v1 work per turn (episode write, emotion and
 memory-line computation, the EMOTIONS frame) and the Redis rate-limit check, and is still
-~4 ms. (July, before those existed: 0.14 ms and 7.37 ms.) `ws_e2e.py` reads each turn through
+under 4 ms. (July, before those existed: 0.14 ms and 7.37 ms. Sub-millisecond gRPC times move
+with CPU clock scaling: an earlier run the same morning measured 0.16 ms.) `ws_e2e.py` reads each turn through
 to its final SPEAK frame; before that fix it would have timed only the first frame.
 
 **Corrections to earlier README claims** (measurement wins):
 
 | Old README claim | Measured | Note |
 |---|---|---|
-| gRPC round-trip ~14 ms | **0.16 ms** | ~90× lower; the old figure was never measured |
+| gRPC round-trip ~14 ms | **0.32 ms** | ~40× lower; the old figure was never measured |
 | Redis cache hit ~8 ms | **0.15 ms** | ~50× lower (July measurement) |
 | PostgreSQL query ~42 ms | **0.20 ms** (indexed lookup) | ~200× lower on localhost (July measurement) |
-| Infra overhead < 50 ms | **4.01 ms** | true, and well under |
+| Infra overhead < 50 ms | **3.76 ms** | true, and well under |
 
 ## Inference latency: cloud vs local
 
@@ -58,19 +61,26 @@ endpoints, the same router the game uses (`cloud_vs_local.py`).
 
 | Path | Local llama3.1:8b (2026-09-25) | agy CLI (2026-09-25) | Gemini 3.5 Flash (2026-07-18, **stale**) |
 |---|---|---|---|
-| Lore path (RAG) | **12.9 s** median, p95 32.6 s, n=30 | **14.3 s** median, p95 16.2 s, n=30 | 2.87 s median, n=3 |
-| Event path (agent) | **24.5 s** median, p95 39.8 s, n=15 | runs on local llama3.1 — see note | 5.43 s, n=1 |
+| Lore path (RAG) | **13.6 s** median, p95 28.8 s, n=30 | **14.4 s** median, p95 16.9 s, n=30 | 2.87 s median, n=3 |
+| Event path (agent) | **27.4 s** median, p95 44.0 s, n=15 | runs on local llama3.1 — see note | 5.43 s, n=1 |
 
 **agy.** With `LLM_PROVIDER=agy` only the light model (lore answers) runs on the Antigravity
 CLI, headless, one process per call (`AGY_MODEL` unset, so the CLI's default model). The
 agent path needs tool calling, which the CLI does not offer, so it stays on local llama3.1.
 agy is not faster than local here — every call spawns the CLI — but it is far steadier
-(p95 16.2 s vs 32.6 s) and answers lore questions the 8B model gets wrong (see
-`docs/agy_provider_experiment.md`). In the agy run the agent path measured 86.3 s median
-(n=15), against 24.5 s in the local run an hour earlier — the same local model, the same code
-and the same number of tool calls, with no agy process running during the agent phase and no
-model reloads in Ollama's log. The difference is machine state (swap in use), not agy, so it
-is not reported as an agy number.
+(p95 16.9 s vs 28.8 s) and answers lore questions the 8B model gets wrong (see
+`docs/agy_provider_experiment.md`).
+
+**The agent path is slower in agy mode, but not because of agy.** In the agy run the
+agent path measured 83.2 s median (n=15) against 27.4 s in the local run — reproduced across
+two runs, the same local model, code and tool calls, no model reloads. A direct A/B of one
+agent event (Silas, `PLAYER_INTERACT`) with no lore traffic in between gave overlapping
+times in both modes (local 44–72 s, median ~55 s, n=6; agy 47–126 s, n=3, the slowest being
+the first call after a restart). So an agent call costs about the same on its own; what the
+local benchmark has and agy mode lacks is lore traffic on the *same* local model just before
+each agent call, which keeps Ollama warm. With lore answers on agy, the local agent model
+runs cold. That is a real cost of the mixed setup, not agy's latency, so it is not reported
+in the agy column.
 
 **Gemini (stale).** Measured 2026-07-18 on commit `095bf7e`, before Memory v1, with
 `gemini-3.5-flash` on the free tier (20 requests/day/project): 3 questions and 2 events at
@@ -87,15 +97,15 @@ at the first token instead of waiting for the whole answer. Measured directly on
 
 | Provider | TTFT median | TTFT range | Full response median | n |
 |---|---|---|---|---|
-| Local (llama3.1:8b) | **1.3 s** | 0.9 s – 36.0 s | 31.2 s | 6 |
-| agy CLI | **14.2 s** | 12.6 s – 17.9 s | 14.2 s | 6 |
+| Local (llama3.1:8b) | **0.54 s** | 0.31 s – 13.8 s | 15.8 s | 6 |
+| agy CLI | **15.4 s** | 13.7 s – 19.2 s | 15.4 s | 6 |
 | Gemini | not measured† | — | — | — |
 
-**Local TTFT is bimodal.** The first question to an NPC waits ~36 s for its first token (the
+**Local TTFT is bimodal.** The first question to an NPC waits ~14 s for its first token (the
 whole persona prompt is processed cold); every later question to that NPC gets its first
-token in ~1 s, because Ollama keeps that NPC's prompt prefix cached. In game, every player
-talking to the same NPC shares that prefix, so ~1 s is the steady state and ~36 s is a
-once-per-NPC cold start. An earlier run asked each question twice back to back, which made
+token in ~0.5 s, because Ollama keeps that NPC's prompt prefix cached. In game, every player
+talking to the same NPC shares that prefix, so ~0.5 s is the steady state and ~14 s is a
+once-per-NPC cold start (~36 s in the earlier, memory-starved run). An earlier run asked each question twice back to back, which made
 the repeat look like a 0.2 s TTFT; the script now interleaves reps.
 
 **agy does not stream**: the CLI returns the whole answer at once, so TTFT equals the full
@@ -112,11 +122,11 @@ on the gRPC RAG path (`semantic_cache.py`): ask N questions cold, then re-ask th
 
 | | Latency | Notes |
 |---|---|---|
-| Cache miss (LLM) | **46.5 s** (median, n=4) | full RAG generation, local llama3.1:8b, under memory pressure |
-| Cache hit | **73 ms** (median, n=4; p95 93 ms) | question embedding + cosine scan, no LLM |
+| Cache miss (LLM) | **16.3 s** (median, n=4) | full RAG generation, local llama3.1:8b |
+| Cache hit | **39 ms** (median, n=4; p95 43 ms) | question embedding + cosine scan, no LLM |
 | Round-2 hit rate | **100%** (4/4) | exact repeats of the same question |
 
-A hit makes no model call. Threshold 0.90 is tuned to sit above measured same-topic /
+A hit is **~400× faster** than the miss and makes no model call. Threshold 0.90 is tuned to sit above measured same-topic /
 different-intent question pairs (≤0.81), so the cache never serves a wrong answer; the trade
 is that loosely-worded paraphrases (~0.82) miss and pay for the LLM. Only neutral contexts
 are cached — since Memory v1 that means every emotion rounds to 0.00, trust included (it is
@@ -126,7 +136,7 @@ requests (REST/evals/benchmarks); in-game requests carry a speaker and bypass it
 
 ## The headline finding
 
-Infrastructure is **~4 ms end-to-end**; inference is **seconds**. The orchestration layer
+Infrastructure is **under 4 ms end-to-end**; inference is **seconds**. The orchestration layer
 (Go validation, lookups, episode writes, emotion and memory-line computation, rate limiting,
 gRPC) is ~0.03% of a 13–14 s lore answer on local or agy. **Latency is inference-dominated;
 the Go/gRPC/Redis pipeline is not the bottleneck.**

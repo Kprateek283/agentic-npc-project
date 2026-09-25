@@ -13,18 +13,18 @@
   "hit_rate_round2": 1.0,
   "miss_ms": {
     "n": 4,
-    "median_ms": 46454.65,
-    "p95_ms": 49347.36,
-    "min_ms": 44737.35,
-    "max_ms": 49347.36,
-    "mean_ms": 46748.5
+    "median_ms": 16290.98,
+    "p95_ms": 20694.89,
+    "min_ms": 12953.73,
+    "max_ms": 20694.89,
+    "mean_ms": 16557.65
   },
   "hit_ms": {
     "n": 4,
-    "median_ms": 72.91,
-    "p95_ms": 92.92,
-    "min_ms": 65.14,
-    "max_ms": 92.92,
-    "mean_ms": 75.97
+    "median_ms": 39.38,
+    "p95_ms": 43.12,
+    "min_ms": 36.86,
+    "max_ms": 43.12,
+    "mean_ms": 39.68
   }
 }
